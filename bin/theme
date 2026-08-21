@@ -130,13 +130,9 @@ set_wallpaper() {
     local backgrounds_dir="$theme_dir/backgrounds"
     
     if [[ -d "$backgrounds_dir" ]]; then
-        # Get the first wallpaper (prefer omarchy.webp if exists)
+        # Get the first available wallpaper
         local wallpaper
-        if [[ -f "$backgrounds_dir/omarchy.webp" ]]; then
-            wallpaper="$backgrounds_dir/omarchy.webp"
-        else
-            wallpaper=$(ls "$backgrounds_dir"/*.{jpg,jpeg,png,webp} 2>/dev/null | head -1)
-        fi
+        wallpaper=$(ls "$backgrounds_dir"/*.{jpg,jpeg,png,webp} 2>/dev/null | head -1)
         
         if [[ -n "$wallpaper" && -f "$wallpaper" ]]; then
             osascript -e "tell application \"System Events\" to tell every desktop to set picture to \"$wallpaper\"" 2>/dev/null
