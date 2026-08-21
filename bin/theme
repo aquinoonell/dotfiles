@@ -165,11 +165,23 @@ signal_nvim() {
     local colorscheme="$1"
     local plugin="$2"
     
-    # Write to a file that nvim will watch
+    # Write to files for next nvim startup
     echo "$colorscheme" > "$HOME/.nvim-colorscheme"
     echo "$plugin" > "$HOME/.nvim-colorscheme-plugin"
-    print_success "Neovim colorscheme set to: $colorscheme"
-    print_info "Restart nvim or run :lua require('theme-loader').reload() to apply"
+    
+    # Send colorscheme command to all running nvim instances
+    if command -v nvr &>/dev/null; then
+        for sock in /tmp/nvim*/0 /var/folders/*/*/nvim*/0 $TMPDIR/nvim*/0 2>/dev/null; do
+            if [[ -S "$sock" ]]; then
+                nvr --servername "$sock" --remote-send "<Esc>:colorscheme $colorscheme<CR>" 2>/dev/null &
+            fi
+        done
+        wait
+        print_success "Neovim colorscheme: $colorscheme (reloaded)"
+    else
+        print_success "Neovim colorscheme set to: $colorscheme"
+        print_info "Restart nvim to apply (install neovim-remote for live reload)"
+    fi
 }
 
 # Main theme switch function
