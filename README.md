@@ -54,13 +54,9 @@ wallpaper 2         # Set 2nd wallpaper of current theme
 wallpaper gruvbox   # Pick wallpaper from gruvbox theme
 ```
 
-### Tmux Keybindings
+### Tmux Keybinding
 
-| Key | Action |
-|-----|--------|
-| `Ctrl-s T` | Open theme picker popup |
-| `Ctrl-s W` | Open wallpaper picker (current theme) |
-| `Ctrl-s B` | Open wallpaper picker (all themes) |
+Press `Ctrl-s t` to open the theme picker popup (browse all themes and wallpapers).
 
 ### What Gets Themed
 
