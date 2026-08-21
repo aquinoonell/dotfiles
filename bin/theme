@@ -1,0 +1,262 @@
+#!/bin/bash
+#
+# Theme Switcher - Switch nvim, wezterm, aerospace, and wallpaper themes
+# Usage: theme <theme-name> | theme --list | theme --current
+#
+
+set -e
+
+DOTFILES_DIR="$HOME/dotfiles"
+THEMES_DIR="$DOTFILES_DIR/themes"
+TEMPLATES_DIR="$DOTFILES_DIR/templates"
+CURRENT_THEME_FILE="$HOME/.current-theme"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+print_success() { echo -e "${GREEN}✓${NC} $1"; }
+print_error() { echo -e "${RED}✗${NC} $1"; }
+print_info() { echo -e "${BLUE}→${NC} $1"; }
+
+# List available themes
+list_themes() {
+    echo -e "${BLUE}Available themes:${NC}"
+    for theme in "$THEMES_DIR"/*/; do
+        theme_name=$(basename "$theme")
+        if [[ -f "$CURRENT_THEME_FILE" ]] && [[ "$(cat "$CURRENT_THEME_FILE")" == "$theme_name" ]]; then
+            echo -e "  ${GREEN}● $theme_name${NC} (current)"
+        else
+            echo "  ○ $theme_name"
+        fi
+    done
+}
+
+# Show current theme
+show_current() {
+    if [[ -f "$CURRENT_THEME_FILE" ]]; then
+        echo "$(cat "$CURRENT_THEME_FILE")"
+    else
+        echo "No theme set"
+    fi
+}
+
+# Parse TOML value (simple key = "value" parser)
+get_toml_value() {
+    local file="$1"
+    local key="$2"
+    grep "^$key = " "$file" 2>/dev/null | sed 's/.*= "\(.*\)"/\1/' | head -1
+}
+
+# Convert hex color to 0xff format for borders
+hex_to_borders() {
+    local hex="$1"
+    echo "0xff${hex:1}"
+}
+
+# Fill template with colors
+fill_template() {
+    local template="$1"
+    local output="$2"
+    local colors_file="$3"
+    local theme_name="$4"
+    
+    local content
+    content=$(cat "$template")
+    
+    # Replace theme name
+    content="${content//\{\{THEME_NAME\}\}/$theme_name}"
+    
+    # Replace colors
+    local keys=(
+        "background" "dark_background" "darker_background" "lighter_background"
+        "foreground" "dark_foreground" "light_foreground" "bright_foreground"
+        "accent" "selection" "muted"
+        "red" "yellow" "orange" "green" "cyan" "blue" "magenta" "brown"
+        "bright_red" "bright_yellow" "bright_green" "bright_cyan" "bright_blue" "bright_magenta"
+    )
+    
+    for key in "${keys[@]}"; do
+        local value
+        value=$(get_toml_value "$colors_file" "$key")
+        if [[ -n "$value" ]]; then
+            content="${content//\{\{$key\}\}/$value}"
+        fi
+    done
+    
+    # Replace hex versions for borders (0xff format)
+    local accent muted_color
+    accent=$(get_toml_value "$colors_file" "accent")
+    muted_color=$(get_toml_value "$colors_file" "muted")
+    
+    content="${content//\{\{accent_hex\}\}/$(hex_to_borders "$accent")}"
+    content="${content//\{\{muted_hex\}\}/$(hex_to_borders "$muted_color")}"
+    
+    echo "$content" > "$output"
+}
+
+# Get neovim colorscheme from theme
+get_nvim_colorscheme() {
+    local theme_dir="$1"
+    local nvim_file="$theme_dir/neovim.lua"
+    
+    if [[ -f "$nvim_file" ]]; then
+        # Extract colorscheme name from the lua file
+        grep "colorscheme" "$nvim_file" | sed 's/.*colorscheme = "\([^"]*\)".*/\1/' | head -1
+    else
+        echo "default"
+    fi
+}
+
+# Get neovim plugin from theme
+get_nvim_plugin() {
+    local theme_dir="$1"
+    local nvim_file="$theme_dir/neovim.lua"
+    
+    if [[ -f "$nvim_file" ]]; then
+        # Extract plugin name (first quoted string that looks like a plugin)
+        grep -E '^\s*"[^/]+/[^"]+"' "$nvim_file" | head -1 | sed 's/.*"\([^"]*\)".*/\1/'
+    else
+        echo ""
+    fi
+}
+
+# Set desktop wallpaper
+set_wallpaper() {
+    local theme_dir="$1"
+    local backgrounds_dir="$theme_dir/backgrounds"
+    
+    if [[ -d "$backgrounds_dir" ]]; then
+        # Get the first wallpaper (prefer omarchy.webp if exists)
+        local wallpaper
+        if [[ -f "$backgrounds_dir/omarchy.webp" ]]; then
+            wallpaper="$backgrounds_dir/omarchy.webp"
+        else
+            wallpaper=$(ls "$backgrounds_dir"/*.{jpg,jpeg,png,webp} 2>/dev/null | head -1)
+        fi
+        
+        if [[ -n "$wallpaper" && -f "$wallpaper" ]]; then
+            osascript -e "tell application \"System Events\" to tell every desktop to set picture to \"$wallpaper\"" 2>/dev/null
+            print_success "Wallpaper set"
+        else
+            print_info "No wallpaper found for this theme"
+        fi
+    else
+        print_info "No backgrounds directory for this theme"
+    fi
+}
+
+# Restart borders with new colors
+restart_borders() {
+    local accent="$1"
+    local muted="$2"
+    
+    # Kill existing borders
+    pkill -x borders 2>/dev/null || true
+    sleep 0.2
+    
+    # Start with new colors
+    borders active_color="$accent" inactive_color="$muted" width=6.0 &
+    disown
+    print_success "Borders restarted"
+}
+
+# Signal neovim to reload colorscheme
+signal_nvim() {
+    local colorscheme="$1"
+    local plugin="$2"
+    
+    # Write to a file that nvim will watch
+    echo "$colorscheme" > "$HOME/.nvim-colorscheme"
+    echo "$plugin" > "$HOME/.nvim-colorscheme-plugin"
+    print_success "Neovim colorscheme set to: $colorscheme"
+    print_info "Restart nvim or run :lua require('theme-loader').reload() to apply"
+}
+
+# Main theme switch function
+switch_theme() {
+    local theme_name="$1"
+    local theme_dir="$THEMES_DIR/$theme_name"
+    local colors_file="$theme_dir/colors.toml"
+    
+    # Validate theme exists
+    if [[ ! -d "$theme_dir" ]]; then
+        print_error "Theme '$theme_name' not found"
+        echo "Run 'theme --list' to see available themes"
+        exit 1
+    fi
+    
+    if [[ ! -f "$colors_file" ]]; then
+        print_error "No colors.toml found for theme '$theme_name'"
+        exit 1
+    fi
+    
+    echo -e "${BLUE}Switching to theme: ${YELLOW}$theme_name${NC}"
+    echo ""
+    
+    # 1. Generate WezTerm config
+    if [[ -f "$TEMPLATES_DIR/wezterm.lua.tmpl" ]]; then
+        fill_template "$TEMPLATES_DIR/wezterm.lua.tmpl" "$HOME/.wezterm.lua" "$colors_file" "$theme_name"
+        print_success "WezTerm config updated"
+    fi
+    
+    # 2. Generate Aerospace config
+    if [[ -f "$TEMPLATES_DIR/aerospace.toml.tmpl" ]]; then
+        fill_template "$TEMPLATES_DIR/aerospace.toml.tmpl" "$HOME/.config/aerospace/aerospace.toml" "$colors_file" "$theme_name"
+        print_success "Aerospace config updated"
+        
+        # Reload aerospace
+        aerospace reload-config 2>/dev/null && print_success "Aerospace reloaded" || print_info "Aerospace reload skipped"
+    fi
+    
+    # 3. Restart borders with new colors
+    local accent muted_color
+    accent=$(get_toml_value "$colors_file" "accent")
+    muted_color=$(get_toml_value "$colors_file" "muted")
+    restart_borders "$(hex_to_borders "$accent")" "$(hex_to_borders "$muted_color")"
+    
+    # 4. Update neovim colorscheme
+    local nvim_colorscheme nvim_plugin
+    nvim_colorscheme=$(get_nvim_colorscheme "$theme_dir")
+    nvim_plugin=$(get_nvim_plugin "$theme_dir")
+    signal_nvim "$nvim_colorscheme" "$nvim_plugin"
+    
+    # 5. Set wallpaper
+    set_wallpaper "$theme_dir"
+    
+    # 6. Save current theme
+    echo "$theme_name" > "$CURRENT_THEME_FILE"
+    
+    echo ""
+    print_success "Theme switched to: $theme_name"
+}
+
+# Main
+case "${1:-}" in
+    --list|-l)
+        list_themes
+        ;;
+    --current|-c)
+        show_current
+        ;;
+    --help|-h|"")
+        echo "Usage: theme <theme-name> | theme --list | theme --current"
+        echo ""
+        echo "Commands:"
+        echo "  <theme-name>    Switch to the specified theme"
+        echo "  --list, -l      List available themes"
+        echo "  --current, -c   Show current theme"
+        echo "  --help, -h      Show this help"
+        echo ""
+        echo "Examples:"
+        echo "  theme osaka-jade"
+        echo "  theme gruvbox"
+        echo "  theme --list"
+        ;;
+    *)
+        switch_theme "$1"
+        ;;
+esac

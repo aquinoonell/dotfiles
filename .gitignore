@@ -1,3 +1,5 @@
 nvim/nvim.log
 *.log
 .DS_Store
+themes/*/preview*.png
+themes/*/*.png
