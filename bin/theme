@@ -171,11 +171,17 @@ signal_nvim() {
     
     # Send colorscheme command to all running nvim instances
     if command -v nvr &>/dev/null; then
-        for sock in /tmp/nvim*/0 /var/folders/*/*/nvim*/0 $TMPDIR/nvim*/0 2>/dev/null; do
+        local sockets
+        sockets=$(find /tmp -maxdepth 2 -name "0" -path "*/nvim*" 2>/dev/null || true)
+        if [[ -n "$TMPDIR" ]]; then
+            sockets+=$'\n'$(find "$TMPDIR" -maxdepth 2 -name "0" -path "*/nvim*" 2>/dev/null || true)
+        fi
+        
+        while IFS= read -r sock; do
             if [[ -S "$sock" ]]; then
                 nvr --servername "$sock" --remote-send "<Esc>:colorscheme $colorscheme<CR>" 2>/dev/null &
             fi
-        done
+        done <<< "$sockets"
         wait
         print_success "Neovim colorscheme: $colorscheme (reloaded)"
     else
