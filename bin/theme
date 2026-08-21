@@ -171,19 +171,21 @@ signal_nvim() {
     
     # Send colorscheme command to all running nvim instances
     if command -v nvr &>/dev/null; then
-        local sockets
-        sockets=$(find /tmp -maxdepth 2 -name "0" -path "*/nvim*" 2>/dev/null || true)
-        if [[ -n "$TMPDIR" ]]; then
-            sockets+=$'\n'$(find "$TMPDIR" -maxdepth 2 -name "0" -path "*/nvim*" 2>/dev/null || true)
-        fi
-        
+        local found=0
+        # Find nvim sockets - they're usually in /var/folders/.../T/nvim.*/*/nvim.*.0
         while IFS= read -r sock; do
             if [[ -S "$sock" ]]; then
                 nvr --servername "$sock" --remote-send "<Esc>:colorscheme $colorscheme<CR>" 2>/dev/null &
+                found=1
             fi
-        done <<< "$sockets"
+        done < <(find /var/folders -name "nvim.*" -type s 2>/dev/null; find /tmp -name "nvim.*" -type s 2>/dev/null)
         wait
-        print_success "Neovim colorscheme: $colorscheme (reloaded)"
+        
+        if [[ $found -eq 1 ]]; then
+            print_success "Neovim colorscheme: $colorscheme (reloaded)"
+        else
+            print_success "Neovim colorscheme set to: $colorscheme"
+        fi
     else
         print_success "Neovim colorscheme set to: $colorscheme"
         print_info "Restart nvim to apply (install neovim-remote for live reload)"
