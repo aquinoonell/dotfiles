@@ -6,7 +6,8 @@ return {
             { "vim-airline/vim-airline-themes", lazy = false },
         },
         init = function()
-            vim.g.airline_theme = "gruvbox"
+            -- Use a minimal/muted theme that works with any colorscheme
+            vim.g.airline_theme = "minimalist"
 
             -- Powerline separators (require a Nerd Font / powerline-patched font)
             vim.g.airline_powerline_fonts = 1
@@ -50,7 +51,7 @@ return {
             vim.g["airline#extensions#lsp#enabled"] = 0
         end,
         config = function()
-            vim.cmd("AirlineTheme gruvbox")
+            vim.cmd("AirlineTheme minimalist")
         end,
     },
 }

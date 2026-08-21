@@ -172,8 +172,8 @@ signal_nvim() {
     # Send colorscheme command to all running nvim instances
     if command -v nvr &>/dev/null; then
         local found=0
-        # Full reload command: clear highlights, set colorscheme, reset background, redraw
-        local reload_cmd="<Esc>:hi clear | colorscheme $colorscheme | set bg=dark | hi Normal guibg=NONE | hi NormalFloat guibg=NONE | redraw!<CR>"
+        # Full reload command: clear highlights, set colorscheme, reset background, refresh airline, redraw
+        local reload_cmd="<Esc>:hi clear | colorscheme $colorscheme | set bg=dark | hi Normal guibg=NONE | hi NormalFloat guibg=NONE | AirlineRefresh | redraw!<CR>"
         
         # Find nvim sockets
         while IFS= read -r sock; do
