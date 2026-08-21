@@ -6,8 +6,9 @@ return {
             { "vim-airline/vim-airline-themes", lazy = false },
         },
         init = function()
-            -- Use a minimal/muted theme that works with any colorscheme
-            vim.g.airline_theme = "minimalist"
+            -- Let airline auto-detect theme from colorscheme
+            -- Falls back to 'dark' which uses muted colors from the colorscheme
+            vim.g.airline_theme = "base16_default_dark"
 
             -- Powerline separators (require a Nerd Font / powerline-patched font)
             vim.g.airline_powerline_fonts = 1
@@ -51,7 +52,8 @@ return {
             vim.g["airline#extensions#lsp#enabled"] = 0
         end,
         config = function()
-            vim.cmd("AirlineTheme minimalist")
+            -- Use base16 which picks up colors from colorscheme in a muted way
+            vim.cmd("AirlineTheme base16_default_dark")
         end,
     },
 }

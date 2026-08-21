@@ -172,8 +172,21 @@ signal_nvim() {
     # Send colorscheme command to all running nvim instances
     if command -v nvr &>/dev/null; then
         local found=0
-        # Full reload command: clear highlights, set colorscheme, reset background, refresh airline, redraw
-        local reload_cmd="<Esc>:hi clear | colorscheme $colorscheme | set bg=dark | hi Normal guibg=NONE | hi NormalFloat guibg=NONE | AirlineRefresh | redraw!<CR>"
+        # Map colorschemes to matching airline themes (muted versions)
+        local airline_theme="base16_default_dark"
+        case "$colorscheme" in
+            gruvbox) airline_theme="base16_gruvbox_dark_medium" ;;
+            tokyonight*) airline_theme="base16_tokyo_night_dark" ;;
+            catppuccin*) airline_theme="base16_catppuccin_mocha" ;;
+            nord) airline_theme="nord" ;;
+            kanagawa*) airline_theme="base16_kanagawa" ;;
+            rose-pine|rose_pine) airline_theme="base16_rose_pine" ;;
+            everforest) airline_theme="base16_everforest" ;;
+            bamboo) airline_theme="base16_default_dark" ;;
+        esac
+        
+        # Full reload command: clear highlights, set colorscheme, set airline theme, reset background, redraw
+        local reload_cmd="<Esc>:hi clear | colorscheme $colorscheme | AirlineTheme $airline_theme | set bg=dark | hi Normal guibg=NONE | hi NormalFloat guibg=NONE | redraw!<CR>"
         
         # Find nvim sockets
         while IFS= read -r sock; do
