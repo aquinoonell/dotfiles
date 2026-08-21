@@ -172,14 +172,16 @@ signal_nvim() {
     # Send colorscheme command to all running nvim instances
     if command -v nvr &>/dev/null; then
         local found=0
-        # Find nvim sockets - they're usually in /var/folders/.../T/nvim.*/*/nvim.*.0
+        # Full reload command: clear highlights, set colorscheme, reset background, redraw
+        local reload_cmd="<Esc>:hi clear | colorscheme $colorscheme | set bg=dark | hi Normal guibg=NONE | hi NormalFloat guibg=NONE | redraw!<CR>"
+        
+        # Find nvim sockets
         while IFS= read -r sock; do
             if [[ -S "$sock" ]]; then
-                nvr --servername "$sock" --remote-send "<Esc>:colorscheme $colorscheme<CR>" 2>/dev/null &
+                nvr --servername "$sock" --remote-send "$reload_cmd" 2>/dev/null
                 found=1
             fi
         done < <(find /var/folders -name "nvim.*" -type s 2>/dev/null; find /tmp -name "nvim.*" -type s 2>/dev/null)
-        wait
         
         if [[ $found -eq 1 ]]; then
             print_success "Neovim colorscheme: $colorscheme (reloaded)"
