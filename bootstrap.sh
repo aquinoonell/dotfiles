@@ -82,7 +82,6 @@ if [[ "$(uname)" == "Darwin" ]]; then
     brew list neovim &>/dev/null || brew install neovim
     brew list tmux &>/dev/null || brew install tmux
     brew list fzf &>/dev/null || brew install fzf
-    brew list chafa &>/dev/null || brew install chafa
     brew list borders &>/dev/null || brew install FelixKratz/formulae/borders
     brew list aerospace &>/dev/null || brew install --cask nikitabobko/tap/aerospace
     

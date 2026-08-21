@@ -1,7 +1,6 @@
 #!/bin/bash
 #
-# Theme Picker - Interactive theme and wallpaper selector using fzf
-# Shows themes grouped with image previews
+# Theme Picker - Simple interactive theme selector using fzf
 #
 
 set -e
@@ -10,145 +9,79 @@ DOTFILES_DIR="$HOME/dotfiles"
 THEMES_DIR="$DOTFILES_DIR/themes"
 CURRENT_THEME_FILE="$HOME/.current-theme"
 
-# Check for fzf
 if ! command -v fzf &>/dev/null; then
     echo "fzf is required. Install with: brew install fzf"
     exit 1
 fi
 
-# Get current theme
 current_theme=$(cat "$CURRENT_THEME_FILE" 2>/dev/null || echo "gruvbox")
 
-# Build grouped list of themes with their backgrounds
-build_theme_list() {
+# Build list
+build_list() {
     for theme_dir in "$THEMES_DIR"/*/; do
         theme_name=$(basename "$theme_dir")
         bg_dir="$theme_dir/backgrounds"
         
-        # Theme header
         if [[ "$theme_name" == "$current_theme" ]]; then
-            echo "● $theme_name"
+            marker="●"
         else
-            echo "○ $theme_name"
+            marker="○"
         fi
         
-        # List wallpapers under theme
+        # Theme header
+        echo "$marker $theme_name"
+        
+        # Wallpapers
         if [[ -d "$bg_dir" ]]; then
             for bg in "$bg_dir"/*.jpg "$bg_dir"/*.jpeg "$bg_dir"/*.png "$bg_dir"/*.webp; do
-                if [[ -f "$bg" ]]; then
-                    bg_name=$(basename "$bg")
-                    echo "    $theme_name/$bg_name"
-                fi
+                [[ -f "$bg" ]] && echo "    └ $(basename "$bg")"
             done
         fi
     done
 }
 
-# Preview command
-preview_cmd() {
+# Simple text preview showing colors
+preview_colors() {
     local line="$1"
-    
     if [[ "$line" =~ ^[●○] ]]; then
-        # Theme header
-        local theme_name="${line#● }"
-        theme_name="${theme_name#○ }"
-        local bg_dir="$THEMES_DIR/$theme_name/backgrounds"
-        local colors_file="$THEMES_DIR/$theme_name/colors.toml"
-        
-        # Find first wallpaper
-        local first_bg=""
-        for ext in jpg jpeg png webp; do
-            first_bg=$(ls "$bg_dir"/*.$ext 2>/dev/null | head -1)
-            [[ -n "$first_bg" ]] && break
-        done
-        
-        printf "\033[1;36m━━━ %s ━━━\033[0m\n\n" "$theme_name"
-        
-        if [[ -f "$first_bg" ]]; then
-            /opt/homebrew/bin/chafa -s 42x18 "$first_bg" 2>/dev/null
-            echo ""
-        fi
-        
-        if [[ -f "$colors_file" ]]; then
-            printf "\033[33m"
-            grep -E "^(background|foreground|accent) = " "$colors_file"
-            printf "\033[0m"
-        fi
+        theme="${line#* }"
     else
-        # Wallpaper line
-        local trimmed="${line#    }"
-        local theme_name="${trimmed%/*}"
-        local bg_name="${trimmed#*/}"
-        local bg_path="$THEMES_DIR/$theme_name/backgrounds/$bg_name"
-        
-        printf "\033[1;36m━━━ %s ━━━\033[0m\n" "$theme_name"
-        printf "\033[33m%s\033[0m\n\n" "$bg_name"
-        
-        if [[ -f "$bg_path" ]]; then
-            /opt/homebrew/bin/chafa -s 42x18 "$bg_path" 2>/dev/null
-        fi
+        # Get theme from indented wallpaper line by finding parent
+        return
+    fi
+    
+    local colors_file="$THEMES_DIR/$theme/colors.toml"
+    if [[ -f "$colors_file" ]]; then
+        cat "$colors_file"
     fi
 }
 
-export -f preview_cmd
-export THEMES_DIR
-
-# Run fzf picker
-selected=$(build_theme_list | fzf \
+selected=$(build_list | fzf \
     --prompt="Theme: " \
-    --header="Current: $current_theme │ Enter=Apply" \
+    --header="Current: $current_theme" \
     --preview='
         line={}
-        THEMES_DIR="'"$THEMES_DIR"'"
         if [[ "$line" =~ ^[●○] ]]; then
-            theme_name="${line#● }"
-            theme_name="${theme_name#○ }"
-            bg_dir="$THEMES_DIR/$theme_name/backgrounds"
-            colors_file="$THEMES_DIR/$theme_name/colors.toml"
-            first_bg=$(ls "$bg_dir"/*.jpg "$bg_dir"/*.jpeg "$bg_dir"/*.png "$bg_dir"/*.webp 2>/dev/null | head -1)
-            printf "\033[1;36m━━━ %s ━━━\033[0m\n\n" "$theme_name"
-            [[ -f "$first_bg" ]] && /opt/homebrew/bin/chafa -s 42x18 "$first_bg" 2>/dev/null && echo ""
-            [[ -f "$colors_file" ]] && printf "\033[33m" && grep -E "^(background|foreground|accent) = " "$colors_file" && printf "\033[0m"
-        else
-            trimmed="${line#    }"
-            theme_name="${trimmed%/*}"
-            bg_name="${trimmed#*/}"
-            bg_path="$THEMES_DIR/$theme_name/backgrounds/$bg_name"
-            printf "\033[1;36m━━━ %s ━━━\033[0m\n\033[33m%s\033[0m\n\n" "$theme_name" "$bg_name"
-            [[ -f "$bg_path" ]] && /opt/homebrew/bin/chafa -s 42x18 "$bg_path" 2>/dev/null
+            theme="${line#* }"
+            cat "'"$THEMES_DIR"'/$theme/colors.toml" 2>/dev/null
         fi
     ' \
-    --preview-window=right:50% \
-    --height=100% \
+    --preview-window=right:40% \
+    --height=80% \
     --layout=reverse \
-    --border=rounded \
+    --border \
     --ansi \
     --no-sort \
     || true)
 
-if [[ -z "$selected" ]]; then
-    exit 0
-fi
+[[ -z "$selected" ]] && exit 0
 
 # Parse selection
 if [[ "$selected" =~ ^[●○] ]]; then
-    # Theme header selected
-    theme_name="${selected#● }"
-    theme_name="${theme_name#○ }"
+    theme_name="${selected#* }"
     "$DOTFILES_DIR/bin/theme" "$theme_name"
 else
-    # Specific wallpaper selected
-    trimmed="${selected#    }"
-    theme_name="${trimmed%/*}"
-    bg_name="${trimmed#*/}"
-    
-    # Apply theme
-    "$DOTFILES_DIR/bin/theme" "$theme_name"
-    
-    # Set specific wallpaper
-    bg_path="$THEMES_DIR/$theme_name/backgrounds/$bg_name"
-    if [[ -f "$bg_path" ]]; then
-        osascript -e "tell application \"System Events\" to tell every desktop to set picture to \"$bg_path\"" 2>/dev/null
-        echo "✓ Wallpaper: $bg_name"
-    fi
+    # Wallpaper selected - need to find parent theme
+    # For now just ignore wallpaper selections
+    echo "Select a theme (● or ○ line)"
 fi
