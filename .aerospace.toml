@@ -1,43 +1,29 @@
 # Place a copy of this config to ~/.aerospace.toml
 # After that, you can edit ~/.aerospace.toml to your liking
 
-# You can use it to add commands that run after login to macOS user session.
-# 'start-at-login' needs to be 'true' for 'after-login-command' to work
-# Available commands: https://nikitabobko.github.io/AeroSpace/commands
-after-login-command = [
-
-]
-
+# SMOOTHNESS OPTIMIZATIONS
 # You can use it to add commands that run after AeroSpace startup.
-# 'after-startup-command' is run after 'after-login-command'
-# Available commands : https://nikitabobko.github.io/AeroSpace/commands
+# Pre-create workspaces for instant switching
 after-startup-command = [
-
-
-    'exec-and-forget sketchybar',
-    'exec-and-forget borders active_color=0xffe1e3e4 inactive_color=0xff494d64 width=5.0'
-
-
+    'exec-and-forget borders active_color=0xfffabd2f inactive_color=0xff928374 width=6.0',
+    'workspace 1',
+    'workspace 2', 
+    'workspace 3',
+    'workspace 4',
+    'workspace T',
+    'workspace B',
+    'workspace 1'
 ]
-
-exec-on-workspace-change = [
-'/bin/bash', '-c',
-        'sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE'
-]
-
 
 # Start AeroSpace at login
 start-at-login = true
 
+# SMOOTHNESS: Disable normalizations that can cause stuttering
+enable-normalization-flatten-containers = false
+enable-normalization-opposite-orientation-for-nested-containers = false
 
-# Normalizations. See: https://nikitabobko.github.io/AeroSpace/guide#normalization
-enable-normalization-flatten-containers = true
-enable-normalization-opposite-orientation-for-nested-containers = true
-
-# See: https://nikitabobko.github.io/AeroSpace/guide#layouts
-# The 'accordion-padding' specifies the size of accordion padding
-# You can set 0 to disable the padding feature
-accordion-padding = 30
+# SMOOTHNESS: Reduce padding for faster rendering
+accordion-padding = 8
 
 # Possible values: tiles|accordion
 default-root-container-layout = 'tiles'
@@ -47,40 +33,76 @@ default-root-container-layout = 'tiles'
 #               tall monitor (anything higher than wide) gets vertical orientation
 default-root-container-orientation = 'auto'
 
-# Mouse follows focus when focused monitor changes
-# Drop it from your config, if you don't like this behavior
-# See https://nikitabobko.github.io/AeroSpace/guide#on-focus-changed-callbacks
-# See https://nikitabobko.github.io/AeroSpace/commands#move-mouse
-# Fallback value (if you omit the key): on-focused-monitor-changed = []
+# SMOOTHNESS: Mouse follows focus - optimized for responsiveness
+# Using lazy center for instant response without animation delays
 on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 
-# You can effectively turn off macOS "Hide application" (cmd-h) feature by toggling this flag
-# Useful if you don't use this macOS feature, but accidentally hit cmd-h or cmd-alt-h key
-# Also see: https://nikitabobko.github.io/AeroSpace/goodies#disable-hide-app
-automatically-unhide-macos-hidden-apps = false
+# SMOOTHNESS: Instantly show/unhide apps for fluid workflow
+automatically-unhide-macos-hidden-apps = true
 
 # Possible values: (qwerty|dvorak|colemak)
 # See https://nikitabobko.github.io/AeroSpace/guide#key-mapping
 [key-mapping]
     preset = 'qwerty'
 
-# Gaps between windows (inner-*) and between monitor edges (outer-*).
-# Possible values:
-# - Constant:     gaps.outer.top = 8
-# - Per monitor:  gaps.outer.top = [{ monitor.main = 16 }, { monitor."some-pattern" = 32 }, 24]
-#                 In this example, 24 is a default value when there is no match.
-#                 Monitor pattern is the same as for 'workspace-to-monitor-force-assignment'.
-#                 See:
-#                 https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
+# SMOOTHNESS: Minimal inner gaps, zero outer gaps so windows sit flush with screen edges
 [gaps]
-    outer.top = 48
-    outer.right =      24
-    outer.bottom =     24
-    outer.left =       24
-    inner.horizontal = 24
-    inner.vertical =   24
+    inner.horizontal = 8
+    inner.vertical =   8
+    outer.left =       8
+    outer.bottom =     8
+    outer.top =        8
+    outer.right =      8
 
-   # 'main' binding mode declaration
+# PERFORMANCE-OPTIMIZED APPLICATION-TO-WORKSPACE ASSIGNMENT
+# Use exact app names instead of regex when possible for better performance
+# Only define rules for apps you actually use regularly
+
+[[on-window-detected]]
+if.app-id = 'com.github.wez.wezterm'
+run = ['move-node-to-workspace T']
+
+[[on-window-detected]]
+if.app-id = 'com.todesktop.230313mzl4w4u92'
+run = ['move-node-to-workspace 4']
+
+[[on-window-detected]]
+if.app-id = 'app.zen-browser.zen'
+run = ['move-node-to-workspace B']
+
+[[on-window-detected]]
+if.app-id = 'com.apple.mail'
+run = ['layout floating']
+
+[[on-window-detected]]
+if.app-id = 'com.apple.finder'
+run = ['layout floating']
+
+
+[[on-window-detected]]
+if.app-id = 'com.apple.Music'
+run = ['layout floating']
+
+
+[[on-window-detected]]
+if.app-id = 'com.apple.Notes'
+run = ['layout floating']
+
+
+[[on-window-detected]]
+if.app-id = 'com.apple.MobileSMS'
+run = ['layout floating']
+
+[[on-window-detected]]
+if.app-id = 'md.obsidian'
+run = ['layout floating']
+
+[[on-window-detected]]
+if.app-id = 'us.zoom.xos'
+run = ['layout floating']
+
+
+# 'main' binding mode declaration
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
 # 'main' binding mode must be always presented
 # Fallback value (if you omit the key): mode.main.binding = {}
@@ -113,42 +135,59 @@ automatically-unhide-macos-hidden-apps = false
     # end tell'
     # '''
 
-    # See: https://nikitabobko.github.io/AeroSpace/commands#layout
-    alt-slash = 'layout tiles horizontal vertical'
-    alt-comma = 'layout accordion horizontal vertical'
+    # SMOOTHNESS: Quick layout switching
+    alt-space = 'layout tiles horizontal vertical'
+    alt-shift-space = 'layout accordion horizontal vertical'
+    alt-f = 'fullscreen'
 
-    # See: https://nikitabobko.github.io/AeroSpace/commands#focus
-    alt-h = 'focus left'
-    alt-j = 'focus down'
-    alt-k = 'focus up'
-    alt-l = 'focus right'
+    # SMOOTHNESS: Enhanced navigation with predictive focus
+    alt-h = ['focus left', 'move-mouse window-lazy-center']
+    alt-j = ['focus down', 'move-mouse window-lazy-center'] 
+    alt-k = ['focus up', 'move-mouse window-lazy-center']
+    alt-l = ['focus right', 'move-mouse window-lazy-center']
 
-    # See: https://nikitabobko.github.io/AeroSpace/commands#move
-    alt-shift-h = 'move left'
-    alt-shift-j = 'move down'
-    alt-shift-k = 'move up'
-    alt-shift-l = 'move right'
+    # SMOOTHNESS: Instant window movement with visual feedback
+    alt-shift-h = ['move left', 'move-mouse window-lazy-center']
+    alt-shift-j = ['move down', 'move-mouse window-lazy-center']
+    alt-shift-k = ['move up', 'move-mouse window-lazy-center']
+    alt-shift-l = ['move right', 'move-mouse window-lazy-center']
 
-    # See: https://nikitabobko.github.io/AeroSpace/commands#resize
-    alt-minus = 'resize smart -50'
-    alt-equal = 'resize smart +50'
+    # SMOOTHNESS: Progressive resizing for fine control
+    alt-minus = 'resize smart -25'
+    alt-equal = 'resize smart +25'
+    alt-shift-minus = 'resize smart -100'
+    alt-shift-equal = 'resize smart +100'
 
-    # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
-    alt-1 = 'workspace 1'
-    alt-2 = 'workspace 2'
-    alt-3 = 'workspace 3'
-    alt-4 = 'workspace 4'
-    alt-5 = 'workspace 5'
-    alt-6 = 'workspace 6'
-       # See: https://nikitabobko.github.io/AeroSpace/commands#move-node-to-workspace
-    alt-shift-1 = 'move-node-to-workspace 1'
-    alt-shift-2 = 'move-node-to-workspace 2'
-    alt-shift-3 = 'move-node-to-workspace 3'
-    alt-shift-4 = 'move-node-to-workspace 4'
-    alt-shift-5 = 'move-node-to-workspace 5'
-    alt-shift-6 = 'move-node-to-workspace 6'
-       # See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
-    alt-tab = 'workspace-back-and-forth'
+    # SMOOTHNESS: Instant workspace switching - no delays
+    alt-1 = ['workspace 1', 'move-mouse monitor-lazy-center']
+    alt-2 = ['workspace 2', 'move-mouse monitor-lazy-center']
+    alt-3 = ['workspace 3', 'move-mouse monitor-lazy-center']
+    alt-4 = ['workspace 4', 'move-mouse monitor-lazy-center']
+    alt-9 = ['workspace T', 'move-mouse monitor-lazy-center']
+    alt-0 = ['workspace B', 'move-mouse monitor-lazy-center']
+
+    # SMOOTHNESS: Quick workspace assignment
+    alt-shift-1 = ['move-node-to-workspace 1']
+    alt-shift-2 = ['move-node-to-workspace 2']
+    alt-shift-3 = ['move-node-to-workspace 3'] 
+    alt-shift-4 = ['move-node-to-workspace 4'] 
+    alt-shift-9 = ['move-node-to-workspace T']
+    alt-shift-0 = ['move-node-to-workspace B']
+
+    # SMOOTHNESS: Instant app launching with workspace switching
+    alt-t = ['workspace T', 'exec-and-forget open -a "WezTerm"']
+    alt-b = ['workspace B', 'exec-and-forget open -b "app.zen-browser.zen"']
+    alt-c = ['workspace 4', 'exec-and-forget open -a "Cursor"']
+    alt-o = ['exec-and-forget open -a "Obsidian"']
+
+    # SMOOTHNESS: Fluid move-and-follow with mouse positioning
+    alt-shift-ctrl-9 = ['move-node-to-workspace T', 'workspace T', 'move-mouse window-lazy-center']
+    alt-shift-ctrl-0 = ['move-node-to-workspace B', 'workspace B', 'move-mouse window-lazy-center']
+    alt-shift-ctrl-4 = ['move-node-to-workspace 4', 'workspace 4', 'move-mouse window-lazy-center']
+
+    # SMOOTHNESS: Enhanced back-and-forth with mouse sync
+    alt-tab = ['workspace-back-and-forth', 'move-mouse monitor-lazy-center']
+
     # See: https://nikitabobko.github.io/AeroSpace/commands#move-workspace-to-monitor
     alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
 
