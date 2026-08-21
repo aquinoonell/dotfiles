@@ -1,0 +1,71 @@
+#!/bin/bash
+#
+# Toggle JankyBorders on/off
+# Usage: borders-toggle [on|off]
+#
+
+DOTFILES_DIR="$HOME/dotfiles"
+CURRENT_THEME_FILE="$HOME/.current-theme"
+THEMES_DIR="$DOTFILES_DIR/themes"
+
+# Get current theme colors
+get_border_colors() {
+    local theme=$(cat "$CURRENT_THEME_FILE" 2>/dev/null || echo "gruvbox")
+    local colors_file="$THEMES_DIR/$theme/colors.toml"
+    
+    if [[ -f "$colors_file" ]]; then
+        local accent=$(grep "^accent = " "$colors_file" | cut -d'"' -f2)
+        local muted=$(grep "^muted = " "$colors_file" | cut -d'"' -f2)
+        echo "${accent:-#509475}" "${muted:-#53685B}"
+    else
+        echo "#509475" "#53685B"
+    fi
+}
+
+borders_on() {
+    read -r accent muted <<< "$(get_border_colors)"
+    # Convert to 0xff format
+    accent_hex="0xff${accent:1}"
+    muted_hex="0xff${muted:1}"
+    
+    pkill -x borders 2>/dev/null || true
+    sleep 0.1
+    borders active_color="$accent_hex" inactive_color="$muted_hex" width=6.0 &
+    disown
+    echo "✓ Borders enabled"
+}
+
+borders_off() {
+    pkill -x borders 2>/dev/null
+    echo "✓ Borders disabled"
+}
+
+borders_status() {
+    if pgrep -x borders >/dev/null; then
+        echo "Borders: enabled"
+    else
+        echo "Borders: disabled"
+    fi
+}
+
+case "${1:-toggle}" in
+    on)
+        borders_on
+        ;;
+    off)
+        borders_off
+        ;;
+    toggle)
+        if pgrep -x borders >/dev/null; then
+            borders_off
+        else
+            borders_on
+        fi
+        ;;
+    status)
+        borders_status
+        ;;
+    *)
+        echo "Usage: borders-toggle [on|off|toggle|status]"
+        ;;
+esac
