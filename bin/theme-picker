@@ -51,16 +51,53 @@ selected=$(build_list | fzf \
         if [[ "$line" =~ ^[●○] ]]; then
             theme="${line#* }"
         else
-            # Wallpaper line: "  theme/wallpaper.jpg"
             trimmed="${line#  }"
             theme="${trimmed%%/*}"
         fi
         
         colors_file="$THEMES_DIR/$theme/colors.toml"
         if [[ -f "$colors_file" ]]; then
-            echo "━━━ $theme ━━━"
+            # Get colors
+            get_color() { grep "^$1 = " "$colors_file" 2>/dev/null | cut -d"\"" -f2; }
+            
+            bg=$(get_color background)
+            fg=$(get_color foreground)
+            accent=$(get_color accent)
+            red=$(get_color red)
+            green=$(get_color green)
+            blue=$(get_color blue)
+            cyan=$(get_color cyan)
+            magenta=$(get_color magenta)
+            yellow=$(get_color yellow)
+            
+            # Convert hex to RGB and print colored block
+            hex_to_rgb() {
+                hex="${1#\#}"
+                printf "%d;%d;%d" "0x${hex:0:2}" "0x${hex:2:2}" "0x${hex:4:2}"
+            }
+            
+            color_block() {
+                local hex="$1"
+                local label="$2"
+                if [[ -n "$hex" ]]; then
+                    rgb=$(hex_to_rgb "$hex")
+                    printf "\033[48;2;${rgb}m    \033[0m %s %s\n" "$label" "$hex"
+                fi
+            }
+            
             echo ""
-            cat "$colors_file"
+            echo "  ━━━ $theme ━━━"
+            echo ""
+            color_block "$bg" "background"
+            color_block "$fg" "foreground"
+            color_block "$accent" "accent"
+            echo ""
+            color_block "$red" "red"
+            color_block "$green" "green"
+            color_block "$yellow" "yellow"
+            color_block "$blue" "blue"
+            color_block "$cyan" "cyan"
+            color_block "$magenta" "magenta"
         fi
     ' \
     --preview-window=right:45% \
