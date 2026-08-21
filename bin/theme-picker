@@ -16,7 +16,7 @@ fi
 
 current_theme=$(cat "$CURRENT_THEME_FILE" 2>/dev/null || echo "gruvbox")
 
-# Build list
+# Build list with theme:wallpaper format for easy parsing
 build_list() {
     for theme_dir in "$THEMES_DIR"/*/; do
         theme_name=$(basename "$theme_dir")
@@ -34,39 +34,36 @@ build_list() {
         # Wallpapers
         if [[ -d "$bg_dir" ]]; then
             for bg in "$bg_dir"/*.jpg "$bg_dir"/*.jpeg "$bg_dir"/*.png "$bg_dir"/*.webp; do
-                [[ -f "$bg" ]] && echo "    └ $(basename "$bg")"
+                [[ -f "$bg" ]] && echo "  $theme_name/$(basename "$bg")"
             done
         fi
     done
 }
 
-# Simple text preview showing colors
-preview_colors() {
-    local line="$1"
-    if [[ "$line" =~ ^[●○] ]]; then
-        theme="${line#* }"
-    else
-        # Get theme from indented wallpaper line by finding parent
-        return
-    fi
-    
-    local colors_file="$THEMES_DIR/$theme/colors.toml"
-    if [[ -f "$colors_file" ]]; then
-        cat "$colors_file"
-    fi
-}
-
 selected=$(build_list | fzf \
     --prompt="Theme: " \
-    --header="Current: $current_theme" \
+    --header="Current: $current_theme │ Select theme or wallpaper" \
     --preview='
         line={}
+        THEMES_DIR="'"$THEMES_DIR"'"
+        
+        # Extract theme name
         if [[ "$line" =~ ^[●○] ]]; then
             theme="${line#* }"
-            cat "'"$THEMES_DIR"'/$theme/colors.toml" 2>/dev/null
+        else
+            # Wallpaper line: "  theme/wallpaper.jpg"
+            trimmed="${line#  }"
+            theme="${trimmed%%/*}"
+        fi
+        
+        colors_file="$THEMES_DIR/$theme/colors.toml"
+        if [[ -f "$colors_file" ]]; then
+            echo "━━━ $theme ━━━"
+            echo ""
+            cat "$colors_file"
         fi
     ' \
-    --preview-window=right:40% \
+    --preview-window=right:45% \
     --height=80% \
     --layout=reverse \
     --border \
@@ -78,10 +75,22 @@ selected=$(build_list | fzf \
 
 # Parse selection
 if [[ "$selected" =~ ^[●○] ]]; then
+    # Theme header
     theme_name="${selected#* }"
     "$DOTFILES_DIR/bin/theme" "$theme_name"
 else
-    # Wallpaper selected - need to find parent theme
-    # For now just ignore wallpaper selections
-    echo "Select a theme (● or ○ line)"
+    # Wallpaper line
+    trimmed="${selected#  }"
+    theme_name="${trimmed%%/*}"
+    bg_name="${trimmed#*/}"
+    
+    # Apply theme
+    "$DOTFILES_DIR/bin/theme" "$theme_name"
+    
+    # Set specific wallpaper
+    bg_path="$THEMES_DIR/$theme_name/backgrounds/$bg_name"
+    if [[ -f "$bg_path" ]]; then
+        osascript -e "tell application \"System Events\" to tell every desktop to set picture to \"$bg_path\"" 2>/dev/null
+        echo "✓ Wallpaper: $bg_name"
+    fi
 fi
