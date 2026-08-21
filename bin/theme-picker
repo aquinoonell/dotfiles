@@ -1,0 +1,130 @@
+#!/bin/bash
+#
+# Theme Picker - Interactive theme and wallpaper selector using fzf
+# Usage: theme-picker
+#
+# Keybindings in picker:
+#   Enter  - Select theme/wallpaper
+#   Tab    - Preview wallpaper without selecting
+#   Esc    - Cancel
+#
+
+set -e
+
+DOTFILES_DIR="$HOME/dotfiles"
+THEMES_DIR="$DOTFILES_DIR/themes"
+CURRENT_THEME_FILE="$HOME/.current-theme"
+
+# Check for fzf
+if ! command -v fzf &>/dev/null; then
+    echo "fzf is required. Install with: brew install fzf"
+    exit 1
+fi
+
+# Get current theme
+current_theme=$(cat "$CURRENT_THEME_FILE" 2>/dev/null || echo "gruvbox")
+
+# Get all wallpaper files in a directory
+get_wallpapers() {
+    local bg_dir="$1"
+    find "$bg_dir" -type f \( -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" -o -name "*.webp" \) 2>/dev/null | sort
+}
+
+# Build list of themes with their backgrounds
+build_theme_list() {
+    for theme_dir in "$THEMES_DIR"/*/; do
+        theme_name=$(basename "$theme_dir")
+        bg_dir="$theme_dir/backgrounds"
+        
+        if [[ -d "$bg_dir" ]]; then
+            local has_bg=false
+            # List theme with each background
+            while IFS= read -r bg; do
+                has_bg=true
+                bg_name=$(basename "$bg")
+                # Mark current theme
+                if [[ "$theme_name" == "$current_theme" ]]; then
+                    echo "● $theme_name | $bg_name"
+                else
+                    echo "  $theme_name | $bg_name"
+                fi
+            done < <(get_wallpapers "$bg_dir")
+            
+            if [[ "$has_bg" == "false" ]]; then
+                if [[ "$theme_name" == "$current_theme" ]]; then
+                    echo "● $theme_name | (no wallpaper)"
+                else
+                    echo "  $theme_name | (no wallpaper)"
+                fi
+            fi
+        else
+            # Theme without backgrounds
+            if [[ "$theme_name" == "$current_theme" ]]; then
+                echo "● $theme_name | (no wallpaper)"
+            else
+                echo "  $theme_name | (no wallpaper)"
+            fi
+        fi
+    done
+}
+
+# Preview function for fzf
+preview_wallpaper() {
+    local selection="$1"
+    local theme_name=$(echo "$selection" | sed 's/^[●○ ]*//' | cut -d'|' -f1 | xargs)
+    local bg_name=$(echo "$selection" | cut -d'|' -f2 | xargs)
+    local bg_path="$THEMES_DIR/$theme_name/backgrounds/$bg_name"
+    local colors_file="$THEMES_DIR/$theme_name/colors.toml"
+    
+    echo "Theme: $theme_name"
+    echo "Wallpaper: $bg_name"
+    echo ""
+    
+    if [[ -f "$colors_file" ]]; then
+        echo "Colors:"
+        grep -E "^(background|foreground|accent|red|green|blue|cyan|magenta|yellow)" "$colors_file" | head -10
+    fi
+    
+    echo ""
+    if [[ -f "$bg_path" ]]; then
+        echo "Path: $bg_path"
+    fi
+}
+
+export -f preview_wallpaper
+export THEMES_DIR
+
+# Run fzf picker
+selected=$(build_theme_list | fzf \
+    --prompt="Select theme & wallpaper: " \
+    --header="Current: $current_theme | Enter=Apply, Esc=Cancel" \
+    --preview="bash -c 'preview_wallpaper \"{}\"'" \
+    --preview-window=right:40%:wrap \
+    --height=80% \
+    --layout=reverse \
+    --border=rounded \
+    --ansi \
+    || true)
+
+if [[ -z "$selected" ]]; then
+    echo "Cancelled"
+    exit 0
+fi
+
+# Parse selection
+theme_name=$(echo "$selected" | sed 's/^[●○ ]*//' | cut -d'|' -f1 | xargs)
+bg_name=$(echo "$selected" | cut -d'|' -f2 | xargs)
+
+echo "Applying theme: $theme_name"
+
+# Apply theme
+"$DOTFILES_DIR/bin/theme" "$theme_name"
+
+# Set specific wallpaper if not "(no wallpaper)"
+if [[ "$bg_name" != "(no wallpaper)" ]]; then
+    bg_path="$THEMES_DIR/$theme_name/backgrounds/$bg_name"
+    if [[ -f "$bg_path" ]]; then
+        osascript -e "tell application \"System Events\" to tell every desktop to set picture to \"$bg_path\"" 2>/dev/null
+        echo "✓ Wallpaper set to: $bg_name"
+    fi
+fi

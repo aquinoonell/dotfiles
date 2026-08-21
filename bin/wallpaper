@@ -1,0 +1,192 @@
+#!/bin/bash
+#
+# Wallpaper Picker - Browse and set wallpapers
+# Usage: 
+#   wallpaper              # Pick from current theme's wallpapers
+#   wallpaper --all        # Pick from all themes' wallpapers
+#   wallpaper --list       # List current theme's wallpapers
+#   wallpaper <number>     # Set wallpaper by number (1, 2, 3...)
+#   wallpaper <theme>      # Pick from specific theme's wallpapers
+#
+
+set -e
+
+DOTFILES_DIR="$HOME/dotfiles"
+THEMES_DIR="$DOTFILES_DIR/themes"
+CURRENT_THEME_FILE="$HOME/.current-theme"
+
+# Colors
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+current_theme=$(cat "$CURRENT_THEME_FILE" 2>/dev/null || echo "gruvbox")
+
+# Set wallpaper
+set_wallpaper() {
+    local path="$1"
+    if [[ -f "$path" ]]; then
+        osascript -e "tell application \"System Events\" to tell every desktop to set picture to \"$path\"" 2>/dev/null
+        echo -e "${GREEN}✓${NC} Wallpaper set: $(basename "$path")"
+    else
+        echo "Wallpaper not found: $path"
+        exit 1
+    fi
+}
+
+# Get all wallpaper files in a directory
+get_wallpapers() {
+    local bg_dir="$1"
+    find "$bg_dir" -type f \( -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" -o -name "*.webp" \) 2>/dev/null | sort
+}
+
+# List wallpapers for a theme
+list_wallpapers() {
+    local theme="$1"
+    local bg_dir="$THEMES_DIR/$theme/backgrounds"
+    local i=1
+    
+    if [[ ! -d "$bg_dir" ]]; then
+        echo "No wallpapers for theme: $theme"
+        return
+    fi
+    
+    echo -e "${BLUE}Wallpapers for $theme:${NC}"
+    while IFS= read -r bg; do
+        if [[ -f "$bg" ]]; then
+            echo "  $i. $(basename "$bg")"
+            ((i++))
+        fi
+    done < <(get_wallpapers "$bg_dir")
+}
+
+# Get wallpaper by number
+get_wallpaper_by_number() {
+    local theme="$1"
+    local num="$2"
+    local bg_dir="$THEMES_DIR/$theme/backgrounds"
+    local i=1
+    
+    while IFS= read -r bg; do
+        if [[ $i -eq $num ]]; then
+            echo "$bg"
+            return
+        fi
+        ((i++))
+    done < <(get_wallpapers "$bg_dir")
+}
+
+# Interactive picker with fzf
+pick_wallpaper() {
+    local scope="$1"  # "current", "all", or theme name
+    
+    if ! command -v fzf &>/dev/null; then
+        echo "fzf required for interactive mode. Install: brew install fzf"
+        echo "Or use: wallpaper <number>"
+        exit 1
+    fi
+    
+    local wallpapers=""
+    
+    if [[ "$scope" == "all" ]]; then
+        # All themes
+        for theme_dir in "$THEMES_DIR"/*/; do
+            theme_name=$(basename "$theme_dir")
+            bg_dir="$theme_dir/backgrounds"
+            if [[ -d "$bg_dir" ]]; then
+                while IFS= read -r bg; do
+                    wallpapers+="$theme_name/$(basename "$bg")"$'\n'
+                done < <(get_wallpapers "$bg_dir")
+            fi
+        done
+    else
+        # Specific theme
+        local theme="${scope:-$current_theme}"
+        local bg_dir="$THEMES_DIR/$theme/backgrounds"
+        if [[ -d "$bg_dir" ]]; then
+            while IFS= read -r bg; do
+                wallpapers+="$(basename "$bg")"$'\n'
+            done < <(get_wallpapers "$bg_dir")
+        fi
+    fi
+    
+    if [[ -z "$wallpapers" ]]; then
+        echo "No wallpapers found"
+        exit 1
+    fi
+    
+    local selected
+    selected=$(echo -e "$wallpapers" | grep -v '^$' | fzf \
+        --prompt="Select wallpaper: " \
+        --header="Theme: ${scope:-$current_theme}" \
+        --height=50% \
+        --layout=reverse \
+        --border=rounded \
+        || true)
+    
+    if [[ -z "$selected" ]]; then
+        echo "Cancelled"
+        exit 0
+    fi
+    
+    # Build full path
+    local full_path
+    if [[ "$scope" == "all" ]]; then
+        local sel_theme=$(echo "$selected" | cut -d'/' -f1)
+        local sel_bg=$(echo "$selected" | cut -d'/' -f2)
+        full_path="$THEMES_DIR/$sel_theme/backgrounds/$sel_bg"
+    else
+        full_path="$THEMES_DIR/${scope:-$current_theme}/backgrounds/$selected"
+    fi
+    
+    set_wallpaper "$full_path"
+}
+
+# Main
+case "${1:-}" in
+    --list|-l)
+        list_wallpapers "$current_theme"
+        ;;
+    --all|-a)
+        pick_wallpaper "all"
+        ;;
+    --help|-h)
+        echo "Usage: wallpaper [option]"
+        echo ""
+        echo "Options:"
+        echo "  (none)        Interactive picker for current theme"
+        echo "  --all, -a     Interactive picker for all themes"
+        echo "  --list, -l    List current theme's wallpapers"
+        echo "  <number>      Set wallpaper by number (1, 2, 3...)"
+        echo "  <theme>       Interactive picker for specific theme"
+        echo ""
+        echo "Examples:"
+        echo "  wallpaper           # Pick from current theme"
+        echo "  wallpaper 2         # Set 2nd wallpaper of current theme"
+        echo "  wallpaper --all     # Pick from all themes"
+        echo "  wallpaper gruvbox   # Pick from gruvbox theme"
+        ;;
+    "")
+        pick_wallpaper "$current_theme"
+        ;;
+    [0-9]*)
+        # Number - set by index
+        bg_path=$(get_wallpaper_by_number "$current_theme" "$1")
+        if [[ -n "$bg_path" ]]; then
+            set_wallpaper "$bg_path"
+        else
+            echo "Wallpaper #$1 not found"
+            list_wallpapers "$current_theme"
+            exit 1
+        fi
+        ;;
+    *)
+        # Theme name
+        if [[ -d "$THEMES_DIR/$1" ]]; then
+            pick_wallpaper "$1"
+        else
+            echo "Unknown theme: $1"
+            exit 1
+        fi
+        ;;
+esac

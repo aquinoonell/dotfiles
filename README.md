@@ -44,6 +44,24 @@ theme --list        # List all themes
 theme --current     # Show current theme
 ```
 
+### Interactive Pickers (fzf)
+
+```bash
+theme-picker        # Browse all themes with wallpaper preview
+wallpaper           # Pick wallpaper from current theme
+wallpaper --all     # Pick wallpaper from any theme
+wallpaper 2         # Set 2nd wallpaper of current theme
+wallpaper gruvbox   # Pick wallpaper from gruvbox theme
+```
+
+### Tmux Keybindings
+
+| Key | Action |
+|-----|--------|
+| `Ctrl-s T` | Open theme picker popup |
+| `Ctrl-s W` | Open wallpaper picker (current theme) |
+| `Ctrl-s B` | Open wallpaper picker (all themes) |
+
 ### What Gets Themed
 
 | Component | What Changes |
@@ -76,7 +94,9 @@ theme --current     # Show current theme
 ```
 ~/dotfiles/
 ├── bin/
-│   └── theme              # Theme switcher CLI
+│   ├── theme              # Theme switcher CLI
+│   ├── theme-picker       # Interactive theme browser (fzf)
+│   └── wallpaper          # Wallpaper picker
 ├── themes/                # All 22 omarchy themes
 │   ├── osaka-jade/
 │   │   ├── colors.toml    # Color definitions
@@ -89,6 +109,7 @@ theme --current     # Show current theme
 ├── nvim/                  # Neovim config
 ├── .wezterm.lua           # WezTerm config (generated)
 ├── .aerospace.toml        # AeroSpace config (generated)
+├── .tmux.conf             # Tmux config
 ├── bootstrap.sh           # One-line installer
 └── install.sh             # Local installation
 ```
@@ -98,6 +119,8 @@ theme --current     # Show current theme
 - macOS (tested on Sonoma+)
 - [WezTerm](https://wezfurlong.org/wezterm/) - Terminal
 - [Neovim](https://neovim.io/) - Editor
+- [tmux](https://github.com/tmux/tmux) - Terminal multiplexer
+- [fzf](https://github.com/junegunn/fzf) - Fuzzy finder (for pickers)
 - [AeroSpace](https://github.com/nikitabobko/AeroSpace) - Tiling WM
 - [JankyBorders](https://github.com/FelixKratz/JankyBorders) - Window borders
 

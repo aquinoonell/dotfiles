@@ -80,6 +80,8 @@ if [[ "$(uname)" == "Darwin" ]]; then
     # Essential tools
     brew list wezterm &>/dev/null || brew install --cask wezterm
     brew list neovim &>/dev/null || brew install neovim
+    brew list tmux &>/dev/null || brew install tmux
+    brew list fzf &>/dev/null || brew install fzf
     brew list borders &>/dev/null || brew install FelixKratz/formulae/borders
     brew list aerospace &>/dev/null || brew install --cask nikitabobko/tap/aerospace
     

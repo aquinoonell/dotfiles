@@ -42,6 +42,15 @@ rm -f ~/.config/aerospace/aerospace.toml
 ln -sf "$DOTFILES_DIR/.aerospace.toml" ~/.config/aerospace/aerospace.toml
 echo "✓ Linked aerospace config"
 
+# Backup and link tmux config
+if [[ -f ~/.tmux.conf && ! -L ~/.tmux.conf ]]; then
+    echo "Backing up existing tmux config to ~/.tmux.conf.backup"
+    mv ~/.tmux.conf ~/.tmux.conf.backup
+fi
+rm -f ~/.tmux.conf
+ln -sf "$DOTFILES_DIR/.tmux.conf" ~/.tmux.conf
+echo "✓ Linked tmux config"
+
 # Add bin to PATH if not already there
 if ! echo "$PATH" | grep -q "$DOTFILES_DIR/bin"; then
     echo ""
