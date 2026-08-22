@@ -1,0 +1,71 @@
+#!/bin/bash
+#
+# Preview helper for theme-picker
+# Usage: theme-preview "● theme-name" or "  theme-name/wallpaper.jpg"
+#
+
+THEMES_DIR="$HOME/dotfiles/themes"
+line="$1"
+
+# Extract theme name
+if [[ "$line" =~ ^[●○] ]]; then
+    theme="${line#* }"
+else
+    trimmed="${line#  }"
+    theme="${trimmed%%/*}"
+fi
+
+colors_file="$THEMES_DIR/$theme/colors.toml"
+
+if [[ ! -f "$colors_file" ]]; then
+    echo "Theme: $theme"
+    echo "No colors.toml found"
+    exit 0
+fi
+
+# Get color value from toml
+get_color() {
+    grep "^$1 = " "$colors_file" 2>/dev/null | cut -d'"' -f2
+}
+
+# Convert hex to RGB
+hex_to_rgb() {
+    local hex="${1#\#}"
+    printf "%d;%d;%d" "0x${hex:0:2}" "0x${hex:2:2}" "0x${hex:4:2}"
+}
+
+# Print colored block
+color_block() {
+    local hex="$1"
+    local label="$2"
+    if [[ -n "$hex" ]]; then
+        local rgb=$(hex_to_rgb "$hex")
+        printf "\033[48;2;%sm    \033[0m %s %s\n" "$rgb" "$label" "$hex"
+    fi
+}
+
+# Get colors
+bg=$(get_color background)
+fg=$(get_color foreground)
+accent=$(get_color accent)
+red=$(get_color red)
+green=$(get_color green)
+yellow=$(get_color yellow)
+blue=$(get_color blue)
+cyan=$(get_color cyan)
+magenta=$(get_color magenta)
+
+# Display
+echo ""
+echo "  ━━━ $theme ━━━"
+echo ""
+color_block "$bg" "background"
+color_block "$fg" "foreground"
+color_block "$accent" "accent"
+echo ""
+color_block "$red" "red"
+color_block "$green" "green"
+color_block "$yellow" "yellow"
+color_block "$blue" "blue"
+color_block "$cyan" "cyan"
+color_block "$magenta" "magenta"
