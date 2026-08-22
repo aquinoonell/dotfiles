@@ -37,6 +37,12 @@ accent="${accent:-#d79921}"
 selection="${selection:-#504945}"
 muted="${muted:-#928374}"
 
+# Match tmux popup to current theme (this was the leftover blue bar)
+if command -v tmux &>/dev/null && [[ -n "${TMUX:-}" ]]; then
+    tmux set -g popup-style "bg=${bg},fg=${fg}" 2>/dev/null || true
+    tmux set -g popup-border-style "fg=${muted}" 2>/dev/null || true
+fi
+
 # Build fzf color scheme from current theme
 fzf_colors="bg:${bg},fg:${fg},hl:${accent}"
 fzf_colors+=",bg+:${selection},fg+:${fg},hl+:${accent}"
@@ -75,7 +81,7 @@ selected=$(build_list | fzf \
     --header="Current: $current_theme │ Select theme or wallpaper" \
     --preview="$DOTFILES_DIR/bin/theme-preview {}" \
     --preview-window=right:45% \
-    --height=80% \
+    --height=100% \
     --layout=reverse \
     --border \
     --ansi \

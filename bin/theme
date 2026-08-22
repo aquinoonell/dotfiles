@@ -258,7 +258,18 @@ switch_theme() {
     # 5. Set wallpaper
     set_wallpaper "$theme_dir"
     
-    # 6. Save current theme
+    # 6. Update tmux popup colors to match theme
+    if command -v tmux &>/dev/null; then
+        local popup_bg popup_fg popup_muted
+        popup_bg=$(get_toml_value "$colors_file" "background")
+        popup_fg=$(get_toml_value "$colors_file" "foreground")
+        popup_muted=$(get_toml_value "$colors_file" "muted")
+        tmux set -g popup-style "bg=${popup_bg},fg=${popup_fg}" 2>/dev/null || true
+        tmux set -g popup-border-style "fg=${popup_muted}" 2>/dev/null || true
+        print_success "Tmux popup colors updated"
+    fi
+    
+    # 7. Save current theme
     echo "$theme_name" > "$CURRENT_THEME_FILE"
     
     echo ""
