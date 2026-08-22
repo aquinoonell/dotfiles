@@ -187,7 +187,8 @@ signal_nvim() {
     if command -v nvr &>/dev/null; then
         local found=0
         # Use OmarchyApplyTheme which loads plugins + falls back to colors.toml
-        local reload_cmd="<Esc>:lua if OmarchyApplyTheme then OmarchyApplyTheme('${theme_name}') end | AirlineRefresh | redraw!<CR>"
+        # Keep everything inside :lua — "|" after :lua is invalid Lua
+        local reload_cmd="<Esc>:lua if OmarchyApplyTheme then OmarchyApplyTheme('${theme_name}') end; pcall(vim.cmd, 'AirlineRefresh'); vim.cmd('redraw!')<CR>"
         
         # Fast socket search (macOS TMPDIR + /tmp only, limited depth)
         local search_roots=()
