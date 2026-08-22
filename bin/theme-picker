@@ -42,7 +42,7 @@ fzf_colors="bg:${bg},fg:${fg},hl:${accent}"
 fzf_colors+=",bg+:${selection},fg+:${fg},hl+:${accent}"
 fzf_colors+=",info:${muted},prompt:${accent},pointer:${accent}"
 fzf_colors+=",marker:${accent},spinner:${accent},header:${muted}"
-fzf_colors+=",border:${muted}"
+fzf_colors+=",border:${muted},gutter:${bg},preview-bg:${bg}"
 
 # Build list with theme:wallpaper format
 build_list() {
