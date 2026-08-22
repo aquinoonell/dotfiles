@@ -28,6 +28,7 @@ borders_on() {
     accent_hex="0xff${accent:1}"
     muted_hex="0xff${muted:1}"
     
+    rm -f "$HOME/.borders-disabled"
     pkill -x borders 2>/dev/null || true
     sleep 0.1
     borders active_color="$accent_hex" inactive_color="$muted_hex" width=6.0 &
@@ -36,6 +37,7 @@ borders_on() {
 }
 
 borders_off() {
+    touch "$HOME/.borders-disabled"
     pkill -x borders 2>/dev/null
     echo "✓ Borders disabled"
 }

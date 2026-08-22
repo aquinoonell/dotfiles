@@ -107,7 +107,8 @@ get_nvim_colorscheme() {
         # Extract colorscheme name from the lua file
         grep "colorscheme" "$nvim_file" | sed 's/.*colorscheme = "\([^"]*\)".*/\1/' | head -1
     else
-        echo "default"
+        # No dedicated plugin — OmarchyApplyTheme will use colors.toml
+        echo "omarchy-$(basename "$theme_dir")"
     fi
 }
 
@@ -150,6 +151,13 @@ restart_borders() {
     local accent="$1"
     local muted="$2"
     
+    # Respect user preference (borders-toggle off)
+    if [[ -f "$HOME/.borders-disabled" ]]; then
+        pkill -x borders 2>/dev/null || true
+        print_info "Borders disabled (run borders-toggle on to enable)"
+        return
+    fi
+    
     # Kill existing borders
     pkill -x borders 2>/dev/null || true
     sleep 0.2
@@ -157,52 +165,49 @@ restart_borders() {
     # Start with new colors
     borders active_color="$accent" inactive_color="$muted" width=6.0 &
     disown
-    print_success "Borders restarted"
+    sleep 0.1
+    if pgrep -x borders >/dev/null; then
+        print_success "Borders restarted ($accent)"
+    else
+        print_info "Borders failed to start — try: borders-toggle on"
+    fi
 }
 
 # Signal neovim to reload colorscheme
 signal_nvim() {
-    local colorscheme="$1"
-    local plugin="$2"
+    local theme_name="$1"
+    local colorscheme="$2"
+    local plugin="$3"
     
     # Write to files for next nvim startup
     echo "$colorscheme" > "$HOME/.nvim-colorscheme"
     echo "$plugin" > "$HOME/.nvim-colorscheme-plugin"
     
-    # Send colorscheme command to all running nvim instances
+    # Send full theme apply to all running nvim instances
     if command -v nvr &>/dev/null; then
         local found=0
-        # Map colorschemes to matching airline themes (muted versions)
-        local airline_theme="base16_default_dark"
-        case "$colorscheme" in
-            gruvbox) airline_theme="base16_gruvbox_dark_medium" ;;
-            tokyonight*) airline_theme="base16_tokyo_night_dark" ;;
-            catppuccin*) airline_theme="base16_catppuccin_mocha" ;;
-            nord) airline_theme="nord" ;;
-            kanagawa*) airline_theme="base16_kanagawa" ;;
-            rose-pine|rose_pine) airline_theme="base16_rose_pine" ;;
-            everforest) airline_theme="base16_everforest" ;;
-            bamboo) airline_theme="base16_default_dark" ;;
-        esac
+        # Use OmarchyApplyTheme which loads plugins + falls back to colors.toml
+        local reload_cmd="<Esc>:lua if OmarchyApplyTheme then OmarchyApplyTheme('${theme_name}') end | AirlineRefresh | redraw!<CR>"
         
-        # Full reload command: clear highlights, set colorscheme, set airline theme, reset background, redraw
-        local reload_cmd="<Esc>:hi clear | colorscheme $colorscheme | AirlineTheme $airline_theme | set bg=dark | hi Normal guibg=NONE | hi NormalFloat guibg=NONE | redraw!<CR>"
+        # Fast socket search (macOS TMPDIR + /tmp only, limited depth)
+        local search_roots=()
+        [[ -n "${TMPDIR:-}" ]] && search_roots+=("$TMPDIR")
+        search_roots+=("/tmp")
         
-        # Find nvim sockets
         while IFS= read -r sock; do
             if [[ -S "$sock" ]]; then
-                nvr --servername "$sock" --remote-send "$reload_cmd" 2>/dev/null
+                nvr --servername "$sock" --remote-send "$reload_cmd" 2>/dev/null || true
                 found=1
             fi
-        done < <(find /var/folders -name "nvim.*" -type s 2>/dev/null; find /tmp -name "nvim.*" -type s 2>/dev/null)
+        done < <(find "${search_roots[@]}" -maxdepth 4 -name 'nvim.*.0' -type s 2>/dev/null)
         
         if [[ $found -eq 1 ]]; then
-            print_success "Neovim colorscheme: $colorscheme (reloaded)"
+            print_success "Neovim theme: $theme_name (reloaded)"
         else
-            print_success "Neovim colorscheme set to: $colorscheme"
+            print_success "Neovim theme set to: $theme_name"
         fi
     else
-        print_success "Neovim colorscheme set to: $colorscheme"
+        print_success "Neovim theme set to: $theme_name"
         print_info "Restart nvim to apply (install neovim-remote for live reload)"
     fi
 }
@@ -247,18 +252,25 @@ switch_theme() {
     local accent muted_color
     accent=$(get_toml_value "$colors_file" "accent")
     muted_color=$(get_toml_value "$colors_file" "muted")
-    restart_borders "$(hex_to_borders "$accent")" "$(hex_to_borders "$muted_color")"
+    if [[ -n "$accent" && -n "$muted_color" ]]; then
+        restart_borders "$(hex_to_borders "$accent")" "$(hex_to_borders "$muted_color")"
+    else
+        print_info "Missing accent/muted colors for borders"
+    fi
     
-    # 4. Update neovim colorscheme
+    # 4. Save current theme early so nvim/other tools can read it
+    echo "$theme_name" > "$CURRENT_THEME_FILE"
+    
+    # 5. Update neovim colorscheme
     local nvim_colorscheme nvim_plugin
     nvim_colorscheme=$(get_nvim_colorscheme "$theme_dir")
     nvim_plugin=$(get_nvim_plugin "$theme_dir")
-    signal_nvim "$nvim_colorscheme" "$nvim_plugin"
+    signal_nvim "$theme_name" "$nvim_colorscheme" "$nvim_plugin"
     
-    # 5. Set wallpaper
+    # 6. Set wallpaper
     set_wallpaper "$theme_dir"
     
-    # 6. Update tmux popup colors to match theme
+    # 7. Update tmux popup colors to match theme
     if command -v tmux &>/dev/null; then
         local popup_bg popup_fg popup_muted
         popup_bg=$(get_toml_value "$colors_file" "background")
@@ -268,9 +280,6 @@ switch_theme() {
         tmux set -g popup-border-style "fg=${popup_muted}" 2>/dev/null || true
         print_success "Tmux popup colors updated"
     fi
-    
-    # 7. Save current theme
-    echo "$theme_name" > "$CURRENT_THEME_FILE"
     
     echo ""
     print_success "Theme switched to: $theme_name"
