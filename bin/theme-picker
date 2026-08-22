@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# Theme Picker - Interactive theme selector using fzf
-# The picker UI matches the current theme
+# Visual theme picker — omarchy-style (cached previews, filterable carousel in fzf)
+# Wallpapers: use `wallpaper` separately (like omarchy-theme-bg-switcher)
 #
 
 set -e
@@ -9,78 +9,75 @@ set -e
 DOTFILES_DIR="$HOME/dotfiles"
 THEMES_DIR="$DOTFILES_DIR/themes"
 CURRENT_THEME_FILE="$HOME/.current-theme"
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles/theme-selector"
+PREVIEW_DIR="$CACHE_DIR/previews"
 
 if ! command -v fzf &>/dev/null; then
-    echo "fzf is required. Install with: brew install fzf"
+    echo "fzf required. Install: brew install fzf"
     exit 1
+fi
+
+if [[ "${1:-}" == "--preload" ]]; then
+    "$DOTFILES_DIR/bin/theme-picker-cache" --cache-only
+    exit 0
 fi
 
 current_theme=$(cat "$CURRENT_THEME_FILE" 2>/dev/null || echo "gruvbox")
 
-# Get colors from current theme for fzf styling
+"$DOTFILES_DIR/bin/theme-picker-cache" --cache-only
+
 get_theme_color() {
-    local colors_file="$THEMES_DIR/$current_theme/colors.toml"
-    grep "^$1 = " "$colors_file" 2>/dev/null | cut -d'"' -f2
+    grep "^$1 = " "$THEMES_DIR/$current_theme/colors.toml" 2>/dev/null | cut -d'"' -f2
 }
+bg=$(get_theme_color background); bg="${bg:-#282828}"
+fg=$(get_theme_color foreground); fg="${fg:-#ebdbb2}"
+accent=$(get_theme_color accent); accent="${accent:-#d79921}"
+selection=$(get_theme_color selection); selection="${selection:-#504945}"
+muted=$(get_theme_color muted); muted="${muted:-#928374}"
 
-# Read current theme colors
-bg=$(get_theme_color background)
-fg=$(get_theme_color foreground)
-accent=$(get_theme_color accent)
-selection=$(get_theme_color selection)
-muted=$(get_theme_color muted)
-
-# Default fallbacks
-bg="${bg:-#282828}"
-fg="${fg:-#ebdbb2}"
-accent="${accent:-#d79921}"
-selection="${selection:-#504945}"
-muted="${muted:-#928374}"
-
-# Match tmux popup to current theme (this was the leftover blue bar)
 if command -v tmux &>/dev/null && [[ -n "${TMUX:-}" ]]; then
     tmux set -g popup-style "bg=${bg},fg=${fg}" 2>/dev/null || true
     tmux set -g popup-border-style "fg=${muted}" 2>/dev/null || true
 fi
 
-# Build fzf color scheme from current theme
 fzf_colors="bg:${bg},fg:${fg},hl:${accent}"
 fzf_colors+=",bg+:${selection},fg+:${fg},hl+:${accent}"
 fzf_colors+=",info:${muted},prompt:${accent},pointer:${accent}"
 fzf_colors+=",marker:${accent},spinner:${accent},header:${muted}"
 fzf_colors+=",border:${muted},gutter:${bg},preview-bg:${bg}"
-fzf_colors+=",separator:${muted},scrollbar:${muted},preview-border:${muted}"
-fzf_colors+=",preview-scrollbar:${muted},label:${fg},preview-label:${fg}"
 
-# Build list with theme:wallpaper format
 build_list() {
     for theme_dir in "$THEMES_DIR"/*/; do
-        theme_name=$(basename "$theme_dir")
-        bg_dir="$theme_dir/backgrounds"
-        
-        if [[ "$theme_name" == "$current_theme" ]]; then
+        [[ -d "$theme_dir" ]] || continue
+        theme=$(basename "$theme_dir")
+        thumb="$PREVIEW_DIR/$theme.jpg"
+        if [[ "$theme" == "$current_theme" ]]; then
             marker="●"
         else
             marker="○"
         fi
-        
-        # Theme header
-        echo "$marker $theme_name"
-        
-        # Wallpapers
-        if [[ -d "$bg_dir" ]]; then
-            for bg in "$bg_dir"/*.jpg "$bg_dir"/*.jpeg "$bg_dir"/*.png "$bg_dir"/*.webp; do
-                [[ -f "$bg" ]] && echo "  $theme_name/$(basename "$bg")"
-            done
+        if [[ -f "$thumb" ]]; then
+            echo "${marker}|${theme}|${thumb}"
+        else
+            echo "${marker}|${theme}|"
         fi
-    done
+    done | sort -t'|' -k2
 }
 
 selected=$(build_list | fzf \
     --prompt="Theme: " \
-    --header="Current: $current_theme │ Select theme or wallpaper" \
-    --preview="$DOTFILES_DIR/bin/theme-preview {}" \
-    --preview-window=right:45% \
+    --header="Current: $current_theme │ filter │ Enter=apply │ wallpapers: wallpaper" \
+    --delimiter='|' \
+    --with-nth=2 \
+    --preview='
+        thumb={3}
+        theme={2}
+        if [[ -n "$thumb" && -f "$thumb" ]] && command -v wezterm >/dev/null; then
+            wezterm imgcat "$thumb" 2>/dev/null
+        fi
+        '"$DOTFILES_DIR"'/bin/theme-preview "$theme"
+    ' \
+    --preview-window=right:50% \
     --height=100% \
     --layout=reverse \
     --border \
@@ -91,24 +88,5 @@ selected=$(build_list | fzf \
 
 [[ -z "$selected" ]] && exit 0
 
-# Parse selection
-if [[ "$selected" =~ ^[●○] ]]; then
-    # Theme header
-    theme_name="${selected#* }"
-    "$DOTFILES_DIR/bin/theme" "$theme_name"
-else
-    # Wallpaper line
-    trimmed="${selected#  }"
-    theme_name="${trimmed%%/*}"
-    bg_name="${trimmed#*/}"
-    
-    # Apply theme
-    "$DOTFILES_DIR/bin/theme" "$theme_name"
-    
-    # Set specific wallpaper
-    bg_path="$THEMES_DIR/$theme_name/backgrounds/$bg_name"
-    if [[ -f "$bg_path" ]]; then
-        osascript -e "tell application \"System Events\" to tell every desktop to set picture to \"$bg_path\"" 2>/dev/null
-        echo "✓ Wallpaper: $bg_name"
-    fi
-fi
+theme_name=$(echo "$selected" | cut -d'|' -f2)
+[[ -n "$theme_name" ]] && "$DOTFILES_DIR/bin/theme" "$theme_name"

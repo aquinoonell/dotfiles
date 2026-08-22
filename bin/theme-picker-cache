@@ -1,0 +1,86 @@
+#!/bin/bash
+#
+# Build cached theme preview thumbnails (omarchy-style)
+# Usage: theme-picker-cache [--cache-only]
+#
+
+set -e
+
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
+THEMES_DIR="$DOTFILES_DIR/themes"
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles/theme-selector"
+PREVIEW_DIR="$CACHE_DIR/previews"
+SIGNATURE_FILE="$CACHE_DIR/signature"
+FAST_SIGNATURE_FILE="$CACHE_DIR/fast-signature"
+CACHE_ONLY="${1:-}"
+
+mkdir -p "$PREVIEW_DIR"
+
+find_preview() {
+    local theme_path="$1"
+    local preview preview_name
+
+    for preview_name in preview.png preview.jpg preview.jpeg preview.webp preview.gif; do
+        preview=$(find -L "$theme_path" -maxdepth 1 -type f -iname "$preview_name" -print -quit 2>/dev/null)
+        [[ -n "$preview" ]] && printf '%s\n' "$preview" && return
+    done
+
+    if [[ -d "$theme_path/backgrounds" ]]; then
+        find -L "$theme_path/backgrounds" -maxdepth 1 -type f \
+            \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) \
+            -print 2>/dev/null | sort | head -n 1
+    fi
+}
+
+make_thumb() {
+    local src="$1"
+    local dest="$2"
+    [[ -f "$src" ]] || return 1
+    [[ -f "$dest" ]] && return 0
+  sips -Z 480 "$src" --out "$dest" >/dev/null 2>&1 || cp "$src" "$dest"
+}
+
+# Fast signature: theme dir mtimes only
+fast_signature="v1"$'\n'
+while IFS= read -r theme_path; do
+    [[ -d "$theme_path" ]] || continue
+    fast_signature+="$theme_path:$(stat -f '%m' "$theme_path")"$'\n'
+done < <(find -L "$THEMES_DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort)
+
+theme_signature=""
+if [[ ! -f "$FAST_SIGNATURE_FILE" ]] || ! cmp -s "$FAST_SIGNATURE_FILE" <(printf '%s' "$fast_signature"); then
+    while IFS= read -r theme_path; do
+        [[ -d "$theme_path" ]] || continue
+        theme_signature+="$theme_path:$(stat -f '%m' "$theme_path")"$'\n'
+        preview=$(find_preview "$theme_path")
+        if [[ -n "$preview" ]]; then
+            theme_signature+="$preview:$(stat -f '%z:%m' "$preview")"$'\n'
+        fi
+    done < <(find -L "$THEMES_DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort)
+fi
+
+rebuild=false
+if [[ ! -f "$FAST_SIGNATURE_FILE" ]] || ! cmp -s "$FAST_SIGNATURE_FILE" <(printf '%s' "$fast_signature"); then
+    rebuild=true
+elif [[ -n "$theme_signature" ]] && [[ ! -f "$SIGNATURE_FILE" ]] || ! cmp -s "$SIGNATURE_FILE" <(printf '%s' "$theme_signature"); then
+    rebuild=true
+fi
+
+if [[ "$rebuild" == true ]]; then
+    rm -rf "$PREVIEW_DIR"
+    mkdir -p "$PREVIEW_DIR"
+
+    while IFS= read -r theme_path; do
+        theme_name=$(basename "$theme_path")
+        preview=$(find_preview "$theme_path")
+        [[ -n "$preview" ]] || continue
+        make_thumb "$preview" "$PREVIEW_DIR/$theme_name.jpg"
+    done < <(find -L "$THEMES_DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort)
+
+    printf '%s' "$theme_signature" >"$SIGNATURE_FILE"
+    printf '%s' "$fast_signature" >"$FAST_SIGNATURE_FILE"
+fi
+
+if [[ "$CACHE_ONLY" != "--cache-only" ]]; then
+    ls "$PREVIEW_DIR"/*.jpg 2>/dev/null | wc -l | xargs echo "Cached previews:"
+fi

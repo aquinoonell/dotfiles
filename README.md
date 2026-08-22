@@ -47,11 +47,10 @@ theme --current     # Show current theme
 ### Interactive Pickers (fzf)
 
 ```bash
-theme-picker        # Browse all themes with wallpaper preview
+theme-picker        # Visual theme carousel (cached previews, like omarchy)
+theme-picker --preload  # Warm preview cache on login
 wallpaper           # Pick wallpaper from current theme
 wallpaper --all     # Pick wallpaper from any theme
-wallpaper 2         # Set 2nd wallpaper of current theme
-wallpaper gruvbox   # Pick wallpaper from gruvbox theme
 ```
 
 ### Tmux Keybinding
