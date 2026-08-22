@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 # Theme Picker - Interactive theme selector using fzf
+# The picker UI matches the current theme
 #
 
 set -e
@@ -16,7 +17,34 @@ fi
 
 current_theme=$(cat "$CURRENT_THEME_FILE" 2>/dev/null || echo "gruvbox")
 
-# Build list with theme:wallpaper format for easy parsing
+# Get colors from current theme for fzf styling
+get_theme_color() {
+    local colors_file="$THEMES_DIR/$current_theme/colors.toml"
+    grep "^$1 = " "$colors_file" 2>/dev/null | cut -d'"' -f2
+}
+
+# Read current theme colors
+bg=$(get_theme_color background)
+fg=$(get_theme_color foreground)
+accent=$(get_theme_color accent)
+selection=$(get_theme_color selection)
+muted=$(get_theme_color muted)
+
+# Default fallbacks
+bg="${bg:-#282828}"
+fg="${fg:-#ebdbb2}"
+accent="${accent:-#d79921}"
+selection="${selection:-#504945}"
+muted="${muted:-#928374}"
+
+# Build fzf color scheme from current theme
+fzf_colors="bg:${bg},fg:${fg},hl:${accent}"
+fzf_colors+=",bg+:${selection},fg+:${fg},hl+:${accent}"
+fzf_colors+=",info:${muted},prompt:${accent},pointer:${accent}"
+fzf_colors+=",marker:${accent},spinner:${accent},header:${muted}"
+fzf_colors+=",border:${muted}"
+
+# Build list with theme:wallpaper format
 build_list() {
     for theme_dir in "$THEMES_DIR"/*/; do
         theme_name=$(basename "$theme_dir")
@@ -50,6 +78,7 @@ selected=$(build_list | fzf \
     --border \
     --ansi \
     --no-sort \
+    --color="$fzf_colors" \
     || true)
 
 [[ -z "$selected" ]] && exit 0
