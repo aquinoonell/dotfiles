@@ -1,52 +1,102 @@
 #!/bin/bash
 #
-# Preview helper for theme-picker
-# Usage: theme-preview "● theme-name" or "  theme-name/wallpaper.jpg"
+# Preview helper for theme-picker (must work inside fzf + tmux popup)
 #
 
-THEMES_DIR="$HOME/dotfiles/themes"
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$HOME/dotfiles/bin:${PATH:-}"
+
+THEMES_DIR="${THEMES_DIR:-$HOME/dotfiles/themes}"
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles/theme-selector"
+PREVIEW_DIR="$CACHE_DIR/previews"
 line="$1"
 
-# Extract theme name
+CHAFA="/opt/homebrew/bin/chafa"
+[[ -x "$CHAFA" ]] || CHAFA="$(command -v chafa 2>/dev/null || true)"
+
+is_theme_header=false
 if [[ "$line" =~ ^[●○] ]]; then
+    is_theme_header=true
     theme="${line#* }"
+    theme="${theme## }"
+    image_path=""
+    bg_name=""
 else
-    trimmed="${line#  }"
+    trimmed="${line#"${line%%[![:space:]]*}"}"
     theme="${trimmed%%/*}"
+    bg_name="${trimmed#*/}"
+    image_path="$THEMES_DIR/$theme/backgrounds/$bg_name"
 fi
 
 colors_file="$THEMES_DIR/$theme/colors.toml"
 
 if [[ ! -f "$colors_file" ]]; then
-    echo "Theme: $theme"
-    echo "No colors.toml found"
+    printf 'Theme: %s\nNo colors.toml found\n' "$theme"
     exit 0
 fi
 
-# Get color value from toml
 get_color() {
     grep "^$1 = " "$colors_file" 2>/dev/null | cut -d'"' -f2
 }
 
-# Convert hex to RGB
 hex_to_rgb() {
     local hex="${1#\#}"
     printf "%d;%d;%d" "0x${hex:0:2}" "0x${hex:2:2}" "0x${hex:4:2}"
 }
 
-# Print colored block
-color_block() {
-    local hex="$1"
-    local label="$2"
-    if [[ -n "$hex" ]]; then
-        local rgb=$(hex_to_rgb "$hex")
-        printf "\033[48;2;%sm    \033[0m %s %s\n" "$rgb" "$label" "$hex"
-    fi
+strip_preview_esc() {
+    sed $'s/\x1b\\[?25[lh]//g'
 }
 
-# Get colors
-bg=$(get_color background)
+show_image() {
+    local img="$1"
+    [[ -f "$img" ]] || return 1
+
+    # WezTerm pane (no tmux): native imgcat — full quality
+    if [[ -n "${WEZTERM_PANE:-}" && -z "${TMUX:-}" ]] && command -v wezterm &>/dev/null; then
+        wezterm imgcat --width 640px "$img" 2>/dev/null | strip_preview_esc && return 0
+    fi
+
+    [[ -n "$CHAFA" ]] || return 1
+
+    local passthrough=none
+    [[ -n "${TMUX:-}" ]] && passthrough=tmux
+
+    # Kitty pixel graphics (WezTerm) — much sharper than block symbols
+    if "$CHAFA" \
+        --format kitty \
+        --passthrough "$passthrough" \
+        --probe off \
+        --polite off \
+        -s 640x0 \
+        "$img" 2>/dev/null | strip_preview_esc
+    then
+        return 0
+    fi
+
+    # iTerm inline images (some terminals)
+    if "$CHAFA" \
+        --format iterm \
+        --passthrough "$passthrough" \
+        --probe off \
+        --polite off \
+        -s 640x0 \
+        "$img" 2>/dev/null | strip_preview_esc
+    then
+        return 0
+    fi
+
+    # Last resort: braille symbols (block mode is very chunky)
+    "$CHAFA" \
+        --format symbols \
+        --symbols braille \
+        --probe off \
+        --colors full \
+        -s 72x28 \
+        "$img" 2>/dev/null | strip_preview_esc
+}
+
 fg=$(get_color foreground)
+bg=$(get_color background)
 accent=$(get_color accent)
 red=$(get_color red)
 green=$(get_color green)
@@ -55,14 +105,45 @@ blue=$(get_color blue)
 cyan=$(get_color cyan)
 magenta=$(get_color magenta)
 
-# Display
-echo ""
-echo "  ━━━ $theme ━━━"
-echo ""
+fg="${fg:-#ebdbb2}"
+fg_rgb=$(hex_to_rgb "$fg")
+
+printf '\033[38;2;%sm' "$fg_rgb"
+if [[ -n "$bg_name" ]]; then
+    printf '  %s\n' "$bg_name"
+fi
+printf '  ━━━ %s ━━━\033[0m\n\n' "$theme"
+
+if [[ -n "$image_path" && -f "$image_path" ]]; then
+    preview_img="$image_path"
+elif [[ -f "$PREVIEW_DIR/$theme.jpg" ]]; then
+    preview_img="$PREVIEW_DIR/$theme.jpg"
+else
+    preview_img=$(find "$THEMES_DIR/$theme/backgrounds" -maxdepth 1 -type f \
+        \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) \
+        2>/dev/null | sort | head -n 1)
+fi
+
+if [[ -n "$preview_img" ]]; then
+    if ! show_image "$preview_img"; then
+        printf '\033[38;2;%sm  (preview unavailable)\033[0m\n' "$fg_rgb"
+    fi
+    printf '\n'
+fi
+
+color_block() {
+    local hex="$1"
+    local label="$2"
+    [[ -n "$hex" ]] || return 0
+    local rgb
+    rgb=$(hex_to_rgb "$hex")
+    printf '\033[48;2;%sm    \033[0m\033[38;2;%sm %s %s\033[0m\n' "$rgb" "$fg_rgb" "$label" "$hex"
+}
+
 color_block "$bg" "background"
 color_block "$fg" "foreground"
 color_block "$accent" "accent"
-echo ""
+printf '\n'
 color_block "$red" "red"
 color_block "$green" "green"
 color_block "$yellow" "yellow"

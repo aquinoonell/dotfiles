@@ -1,19 +1,23 @@
 #!/bin/bash
 #
-# Visual theme picker — omarchy-style (cached previews, filterable carousel in fzf)
-# Wallpapers: use `wallpaper` separately (like omarchy-theme-bg-switcher)
+# Visual theme + wallpaper picker (grouped list, chafa previews in tmux)
 #
 
 set -e
 
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$HOME/dotfiles/bin:${PATH:-}"
+
 DOTFILES_DIR="$HOME/dotfiles"
 THEMES_DIR="$DOTFILES_DIR/themes"
 CURRENT_THEME_FILE="$HOME/.current-theme"
-CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles/theme-selector"
-PREVIEW_DIR="$CACHE_DIR/previews"
 
 if ! command -v fzf &>/dev/null; then
     echo "fzf required. Install: brew install fzf"
+    exit 1
+fi
+
+if ! command -v chafa &>/dev/null; then
+    echo "chafa required for image previews. Install: brew install chafa"
     exit 1
 fi
 
@@ -23,8 +27,6 @@ if [[ "${1:-}" == "--preload" ]]; then
 fi
 
 current_theme=$(cat "$CURRENT_THEME_FILE" 2>/dev/null || echo "gruvbox")
-
-"$DOTFILES_DIR/bin/theme-picker-cache" --cache-only
 
 get_theme_color() {
     grep "^$1 = " "$THEMES_DIR/$current_theme/colors.toml" 2>/dev/null | cut -d'"' -f2
@@ -44,40 +46,41 @@ fzf_colors="bg:${bg},fg:${fg},hl:${accent}"
 fzf_colors+=",bg+:${selection},fg+:${fg},hl+:${accent}"
 fzf_colors+=",info:${muted},prompt:${accent},pointer:${accent}"
 fzf_colors+=",marker:${accent},spinner:${accent},header:${muted}"
-fzf_colors+=",border:${muted},gutter:${bg},preview-bg:${bg}"
+fzf_colors+=",border:${muted},gutter:${bg}"
+# Explicit preview fg/bg — without preview-fg, reset text is invisible on dark themes
+fzf_colors+=",preview-bg:${bg},preview-fg:${fg}"
+fzf_colors+=",separator:${muted},scrollbar:${muted},preview-border:${muted}"
+fzf_colors+=",preview-scrollbar:${muted},label:${fg},preview-label:${fg}"
 
 build_list() {
     for theme_dir in "$THEMES_DIR"/*/; do
         [[ -d "$theme_dir" ]] || continue
-        theme=$(basename "$theme_dir")
-        thumb="$PREVIEW_DIR/$theme.jpg"
-        if [[ "$theme" == "$current_theme" ]]; then
+        theme_name=$(basename "$theme_dir")
+        bg_dir="$theme_dir/backgrounds"
+
+        if [[ "$theme_name" == "$current_theme" ]]; then
             marker="●"
         else
             marker="○"
         fi
-        if [[ -f "$thumb" ]]; then
-            echo "${marker}|${theme}|${thumb}"
-        else
-            echo "${marker}|${theme}|"
+
+        echo "$marker $theme_name"
+
+        if [[ -d "$bg_dir" ]]; then
+            find "$bg_dir" -maxdepth 1 -type f \
+                \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) \
+                2>/dev/null | sort | while IFS= read -r wallpaper; do
+                echo "  $theme_name/$(basename "$wallpaper")"
+            done
         fi
-    done | sort -t'|' -k2
+    done
 }
 
 selected=$(build_list | fzf \
     --prompt="Theme: " \
-    --header="Current: $current_theme │ filter │ Enter=apply │ wallpapers: wallpaper" \
-    --delimiter='|' \
-    --with-nth=2 \
-    --preview='
-        thumb={3}
-        theme={2}
-        if [[ -n "$thumb" && -f "$thumb" ]] && command -v wezterm >/dev/null; then
-            wezterm imgcat "$thumb" 2>/dev/null
-        fi
-        '"$DOTFILES_DIR"'/bin/theme-preview "$theme"
-    ' \
-    --preview-window=right:50% \
+    --header="Current: $current_theme │ theme or wallpaper │ Enter=apply" \
+    --preview="$DOTFILES_DIR/bin/theme-preview {}" \
+    --preview-window=right:50%:wrap \
     --height=100% \
     --layout=reverse \
     --border \
@@ -88,5 +91,19 @@ selected=$(build_list | fzf \
 
 [[ -z "$selected" ]] && exit 0
 
-theme_name=$(echo "$selected" | cut -d'|' -f2)
-[[ -n "$theme_name" ]] && "$DOTFILES_DIR/bin/theme" "$theme_name"
+if [[ "$selected" =~ ^[●○] ]]; then
+    theme_name="${selected#* }"
+    "$DOTFILES_DIR/bin/theme" "$theme_name"
+else
+    trimmed="${selected#  }"
+    theme_name="${trimmed%%/*}"
+    bg_name="${trimmed#*/}"
+
+    "$DOTFILES_DIR/bin/theme" "$theme_name"
+
+    bg_path="$THEMES_DIR/$theme_name/backgrounds/$bg_name"
+    if [[ -f "$bg_path" ]]; then
+        osascript -e "tell application \"System Events\" to tell every desktop to set picture to \"$bg_path\"" 2>/dev/null
+        echo "✓ Wallpaper: $bg_name"
+    fi
+fi
