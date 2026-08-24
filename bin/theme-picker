@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Visual theme + wallpaper picker (grouped list, chafa previews in tmux)
+# Visual theme + wallpaper picker (grouped list, color preview)
 #
 
 set -e
@@ -13,11 +13,6 @@ CURRENT_THEME_FILE="$HOME/.current-theme"
 
 if ! command -v fzf &>/dev/null; then
     echo "fzf required. Install: brew install fzf"
-    exit 1
-fi
-
-if ! command -v chafa &>/dev/null; then
-    echo "chafa required for image previews. Install: brew install chafa"
     exit 1
 fi
 

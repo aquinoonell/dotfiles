@@ -140,20 +140,15 @@ local function apply_theme(theme_name)
     if config and config.colorscheme and config.plugin then
         vim.o.background = config.bg or "dark"
 
-        -- Load plugin via lazy.nvim (match by repo URL or short name)
+        -- Load plugin via lazy.nvim (match by repo URL — never guess short names)
         pcall(function()
             local lazy = require("lazy")
-            local short = config.plugin:match("([^/]+)$")
-            -- Prefer explicit names we set (e.g. catppuccin, rose-pine)
-            local candidates = { short, config.colorscheme }
             for _, plug in ipairs(lazy.plugins()) do
-                if plug[1] == config.plugin or plug.name == short or plug.name == config.colorscheme then
+                if plug[1] == config.plugin then
                     lazy.load({ plugins = { plug.name } })
                     break
                 end
             end
-            -- Fallback: try short name
-            lazy.load({ plugins = candidates })
         end)
 
         local ok = pcall(vim.cmd.colorscheme, config.colorscheme)
@@ -172,10 +167,12 @@ local function apply_theme(theme_name)
         return true
     end
 
-    -- Last resort
+    -- Last resort: toml-based default theme
     vim.o.background = "dark"
-    pcall(vim.cmd.colorscheme, "gruvbox")
-    apply_transparency()
+    if apply_from_toml("gruvbox") then
+        apply_transparency()
+        pcall(vim.cmd, "AirlineRefresh")
+    end
     return false
 end
 
@@ -186,8 +183,8 @@ local current_theme = read_theme() or "gruvbox"
 local config = theme_configs[current_theme] or theme_configs["gruvbox"]
 
 return {
-    -- Dedicated theme plugins
-    { "ellisonleao/gruvbox.nvim", lazy = true },
+    -- Dedicated theme plugins (name = lazy plugin id for live theme switching)
+    { "ellisonleao/gruvbox.nvim", name = "gruvbox.nvim", lazy = true },
     { "ribru17/bamboo.nvim", lazy = true },
     { "folke/tokyonight.nvim", lazy = true },
     { "catppuccin/nvim", name = "catppuccin", lazy = true },
