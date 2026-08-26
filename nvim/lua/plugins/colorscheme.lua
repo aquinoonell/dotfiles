@@ -38,17 +38,11 @@ local theme_configs = {
     ["ristretto"] = { plugin = nil, colorscheme = nil, bg = "dark" },
 }
 
-local function apply_transparency()
-    vim.api.nvim_set_hl(0, "Normal", { bg = "none" })
-    vim.api.nvim_set_hl(0, "NormalFloat", { bg = "none" })
-end
-
--- Apply colors from colors.toml when no dedicated colorscheme exists
-local function apply_from_toml(theme_name)
+local function read_toml_colors(theme_name)
     local path = os.getenv("HOME") .. "/dotfiles/themes/" .. theme_name .. "/colors.toml"
     local file = io.open(path, "r")
     if not file then
-        return false
+        return nil
     end
 
     local colors = {}
@@ -59,8 +53,56 @@ local function apply_from_toml(theme_name)
         end
     end
     file:close()
+    return colors
+end
 
-    if not colors.background or not colors.foreground then
+local function apply_transparency()
+    vim.api.nvim_set_hl(0, "Normal", { bg = "none" })
+    vim.api.nvim_set_hl(0, "NormalFloat", { bg = "none" })
+end
+
+-- Solid Telescope surfaces so selection + preview stay readable over transparent NormalFloat
+local function apply_telescope_highlights(theme_name)
+    local colors = read_toml_colors(theme_name or read_theme() or "gruvbox")
+    if not colors or not colors.background or not colors.foreground then
+        return
+    end
+
+    local bg = colors.dark_background or colors.background
+    local prompt_bg = colors.lighter_background or colors.selection or bg
+    local sel = colors.selection or colors.lighter_background or bg
+    local fg = colors.foreground
+    local accent = colors.accent or colors.blue or fg
+    local muted = colors.muted or colors.dark_foreground or fg
+    local yellow = colors.yellow or accent
+
+    local function hi(group, opts)
+        vim.api.nvim_set_hl(0, group, opts)
+    end
+
+    hi("TelescopeNormal", { fg = fg, bg = bg })
+    hi("TelescopeBorder", { fg = muted, bg = bg })
+    hi("TelescopePromptNormal", { fg = fg, bg = prompt_bg })
+    hi("TelescopePromptBorder", { fg = prompt_bg, bg = prompt_bg })
+    hi("TelescopePromptTitle", { fg = bg, bg = accent, bold = true })
+    hi("TelescopePromptPrefix", { fg = accent, bg = prompt_bg })
+    hi("TelescopeResultsNormal", { fg = fg, bg = bg })
+    hi("TelescopeResultsBorder", { fg = muted, bg = bg })
+    hi("TelescopeResultsTitle", { fg = fg, bg = bg })
+    hi("TelescopePreviewNormal", { fg = fg, bg = bg })
+    hi("TelescopePreviewBorder", { fg = muted, bg = bg })
+    hi("TelescopePreviewTitle", { fg = bg, bg = yellow, bold = true })
+    hi("TelescopePreviewLine", { bg = sel })
+    hi("TelescopeSelection", { fg = fg, bg = sel, bold = true })
+    hi("TelescopeSelectionCaret", { fg = accent, bg = sel })
+    hi("TelescopeMultiSelection", { fg = accent, bg = sel })
+    hi("TelescopeMatching", { fg = yellow, bold = true })
+end
+
+-- Apply colors from colors.toml when no dedicated colorscheme exists
+local function apply_from_toml(theme_name)
+    local colors = read_toml_colors(theme_name)
+    if not colors or not colors.background or not colors.foreground then
         return false
     end
 
@@ -154,6 +196,7 @@ local function apply_theme(theme_name)
         local ok = pcall(vim.cmd.colorscheme, config.colorscheme)
         if ok then
             apply_transparency()
+            apply_telescope_highlights(theme_name)
             pcall(vim.cmd, "AirlineRefresh")
             return true
         end
@@ -163,6 +206,7 @@ local function apply_theme(theme_name)
     vim.o.background = (config and config.bg) or "dark"
     if apply_from_toml(theme_name) then
         apply_transparency()
+        apply_telescope_highlights(theme_name)
         pcall(vim.cmd, "AirlineRefresh")
         return true
     end
@@ -171,6 +215,7 @@ local function apply_theme(theme_name)
     vim.o.background = "dark"
     if apply_from_toml("gruvbox") then
         apply_transparency()
+        apply_telescope_highlights("gruvbox")
         pcall(vim.cmd, "AirlineRefresh")
     end
     return false
