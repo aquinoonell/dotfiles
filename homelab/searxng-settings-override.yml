@@ -1,0 +1,54 @@
+# SearXNG settings overlay — merge into /etc/searxng/settings.yml
+# or mount as the only custom file when use_default_settings: true.
+#
+# Disables engines that CAPTCHA-block homelab IPs; keeps engines that work
+# from this network (verified 2026-09-01).
+
+use_default_settings: true
+
+search:
+  # Avoid burning engines with aggressive parallel queries from one IP.
+  max_ban_time_on_fail: 120
+  suspended_times:
+    SearxEngineAccessDenied: 86400
+    SearxEngineCaptcha: 86400
+    SearxEngineTooManyRequests: 3600
+
+engines:
+  # Blocked / unreliable on homelab egress
+  - name: duckduckgo
+    disabled: true
+  - name: startpage
+    disabled: true
+  - name: google
+    disabled: true
+  - name: brave
+    disabled: true
+
+  # Working general web engines (tested from LAN)
+  - name: bing
+    disabled: false
+    weight: 2.0
+  - name: wiby
+    disabled: false
+    weight: 1.5
+  - name: wikipedia
+    disabled: false
+    weight: 1.0
+  - name: seznam
+    disabled: false
+    weight: 0.5
+
+  # Keep enabled but lower priority — may recover after cooldown
+  - name: mojeek
+    disabled: false
+    weight: 0.8
+  - name: qwant
+    disabled: false
+    weight: 0.8
+  - name: yahoo
+    disabled: false
+    weight: 0.5
+  - name: presearch
+    disabled: false
+    weight: 0.5

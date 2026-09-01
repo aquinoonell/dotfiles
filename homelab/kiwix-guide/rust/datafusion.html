@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DataFusion in Rust — Kiwix Guide</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="nav"><a href="../index.html">← Library</a> · <a href="index.html">Rust Data Stack</a> · <a href="../db/index.html">Postgres &amp; DuckDB</a></nav>
+  <article class="content">
+<h1 id="phase-6-apache-datafusion-in-rust">Phase 6 — Apache DataFusion
+in Rust</h1>
+<p>DataFusion is a query engine written in Rust that uses Arrow as its
+data format. It is your primary contribution target. The goal of this
+phase is to go from someone who has never used DataFusion to someone who
+can read its source code, understand its architecture, and make a
+meaningful contribution.</p>
+<h2 id="official-documentation-read-in-this-order">Official
+Documentation — Read in This Order</h2>
+<h3 id="user-guide">User Guide</h3>
+<ul>
+<li>Introduction:
+https://datafusion.apache.org/user-guide/introduction.html</li>
+<li>Example usage:
+https://datafusion.apache.org/user-guide/example-usage.html</li>
+<li>Gentle Arrow Introduction:
+https://datafusion.apache.org/user-guide/arrow-introduction.html</li>
+<li>DataFrame API:
+https://datafusion.apache.org/user-guide/dataframe.html</li>
+<li>SQL Reference:
+https://datafusion.apache.org/user-guide/sql/index.html</li>
+<li>Configuration:
+https://datafusion.apache.org/user-guide/configs.html</li>
+</ul>
+<h3 id="library-user-guide-how-to-extend-datafusion">Library User Guide
+(how to extend DataFusion)</h3>
+<ul>
+<li>Introduction:
+https://datafusion.apache.org/library-user-guide/index.html</li>
+<li>Using the SQL API:
+https://datafusion.apache.org/library-user-guide/using-the-sql-api.html</li>
+<li>Using the DataFrame API:
+https://datafusion.apache.org/library-user-guide/using-the-dataframe-api.html</li>
+<li>Working with Expressions:
+https://datafusion.apache.org/library-user-guide/working-with-exprs.html</li>
+<li>Adding User Defined Functions:
+https://datafusion.apache.org/library-user-guide/functions/adding-udfs.html</li>
+<li>Custom Table Provider:
+https://datafusion.apache.org/library-user-guide/custom-table-providers.html</li>
+<li>Query Optimizer:
+https://datafusion.apache.org/library-user-guide/query-optimizer.html</li>
+</ul>
+<h3 id="contributor-guide">Contributor Guide</h3>
+<ul>
+<li>Architecture:
+https://datafusion.apache.org/contributor-guide/architecture.html</li>
+<li>Development environment:
+https://datafusion.apache.org/contributor-guide/development_environment.html</li>
+<li>Testing:
+https://datafusion.apache.org/contributor-guide/testing.html</li>
+<li>How to submit a PR:
+https://datafusion.apache.org/contributor-guide/howtos.html</li>
+</ul>
+<p>API Reference: https://docs.rs/datafusion/latest/datafusion/</p>
+<h2 id="datafusions-architecture">DataFusion’s Architecture</h2>
+<p>Understanding this pipeline is the most important thing to
+internalize before looking at the source code.</p>
+<pre><code>SQL string you write (e.g. &quot;SELECT name FROM users WHERE age &gt; 25&quot;)
+    |
+    | sqlparser-rs: parses text into a structured AST
+    v
+Abstract Syntax Tree
+    |
+    | datafusion-sql: converts AST to a logical plan
+    v
+LogicalPlan (describes WHAT to compute, not HOW)
+    |
+    | LogicalOptimizer: applies rule-based rewrites
+    |   - PredicatePushdown: move WHERE filters as close to data as possible
+    |   - ProjectionPushdown: only read the columns you actually need
+    |   - CommonSubexprEliminate: compute duplicate expressions only once
+    |   - SimplifyExpressions: fold constants, simplify trivial comparisons
+    v
+Optimized LogicalPlan
+    |
+    | PhysicalPlanner: converts logical plan to physical execution plan
+    v
+ExecutionPlan tree (a tree of operators, each implementing the ExecutionPlan trait)
+    |
+    | ExecutionPlan::execute() is called for each partition
+    v
+SendableRecordBatchStream per partition (runs in parallel on tokio thread pool)
+    |
+    | df.collect().await or df.execute_stream().await
+    v
+Vec&lt;RecordBatch&gt; or an async stream you consume row by row</code></pre>
+<h2 id="key-source-directories">Key Source Directories</h2>
+<pre><code>datafusion/
+    core/src/
+        execution/         SessionContext, TaskContext, the execution entry point
+        physical_planner/  converts LogicalPlan to ExecutionPlan
+    expr/src/
+        logical_plan/      the LogicalPlan type and its variants
+        expr.rs            the Expr enum (logical expressions like col(&quot;x&quot;) + lit(1))
+    optimizer/src/         the LogicalOptimizer rules — Joe&#39;s NULL fixes live here
+    physical-expr/src/     physical expressions — how expressions are evaluated at runtime
+    physical-plan/src/
+        filter.rs          FilterExec — applies a WHERE predicate to a stream
+        sort.rs            SortExec — sorts a stream, spilling to disk if necessary
+        joins/             HashJoinExec, SortMergeJoinExec
+        aggregates/        AggregateExec, accumulator implementations
+    functions/src/
+        string/            built-in string functions — upper(), lower(), trim(), etc.
+        math/              built-in math functions
+        array/             built-in array functions — array_slice is here
+    sql/src/               SQL → LogicalPlan conversion</code></pre>
+<h2 id="running-datafusion">Running DataFusion</h2>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cargo</span> install datafusion-cli</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">datafusion-cli</span></span></code></pre></div>
+<p>At the prompt:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- create an in-memory table</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> employees <span class="kw">AS</span> <span class="kw">VALUES</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    (<span class="st">&#39;alice&#39;</span>, <span class="dv">95000</span>),</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    (<span class="st">&#39;bob&#39;</span>, <span class="dv">87000</span>),</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    (<span class="st">&#39;charlie&#39;</span>, <span class="dv">102000</span>);</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co">-- query it</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> employees <span class="kw">WHERE</span> column2 <span class="op">&gt;</span> <span class="dv">90000</span>;</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co">-- see the execution plan</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="kw">EXPLAIN</span> <span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> employees <span class="kw">WHERE</span> column2 <span class="op">&gt;</span> <span class="dv">90000</span>;</span></code></pre></div>
+<h2 id="your-first-datafusion-program">Your First DataFusion
+Program</h2>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">datafusion::prelude::</span><span class="op">*;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">datafusion::error::</span><span class="dt">Result</span><span class="op">;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span><span class="pp">tokio::</span>main<span class="at">]</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">fn</span> main() <span class="op">-&gt;</span> <span class="dt">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// SessionContext is the entry point — it holds configuration, catalogs, functions</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> ctx <span class="op">=</span> <span class="pp">SessionContext::</span>new()<span class="op">;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Register a CSV file as a queryable table</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    ctx<span class="op">.</span>register_csv(</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;employees&quot;</span><span class="op">,</span>           <span class="co">// the table name to use in SQL</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;employees.csv&quot;</span><span class="op">,</span>       <span class="co">// the file to read</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>        <span class="pp">CsvReadOptions::</span>new()<span class="op">,</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    )<span class="op">.</span><span class="kw">await</span><span class="op">?;</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Run a SQL query — returns a DataFrame (a lazy logical plan)</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> df <span class="op">=</span> ctx<span class="op">.</span>sql(<span class="st">&quot;</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="st">        SELECT name, salary</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="st">        FROM employees</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="st">        WHERE salary &gt; 90000</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="st">        ORDER BY salary DESC</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="st">    &quot;</span>)<span class="op">.</span><span class="kw">await</span><span class="op">?;</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Show the execution plan the optimizer produced</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    df<span class="op">.</span>clone()<span class="op">.</span>explain(<span class="cn">false</span><span class="op">,</span> <span class="cn">false</span>)<span class="op">?.</span>show()<span class="op">.</span><span class="kw">await</span><span class="op">?;</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Execute and print results</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>    df<span class="op">.</span>show()<span class="op">.</span><span class="kw">await</span><span class="op">?;</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>    <span class="cn">Ok</span>(())</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="writing-a-user-defined-function">Writing a User Defined
+Function</h2>
+<p>User defined functions (UDFs) are the most direct path from
+DataFusion user to DataFusion contributor.</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">datafusion::prelude::</span><span class="op">*;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">datafusion::arrow::array::</span><span class="op">{</span>ArrayRef<span class="op">,</span> StringArray<span class="op">};</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">datafusion::arrow::datatypes::</span>DataType<span class="op">;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">datafusion::error::</span><span class="dt">Result</span><span class="op">;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">datafusion::logical_expr::</span><span class="op">{</span>create_udf<span class="op">,</span> Volatility<span class="op">};</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::sync::</span>Arc<span class="op">;</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co">// A scalar UDF that takes a string column and returns it in uppercase</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> make_shout_udf() <span class="op">-&gt;</span> <span class="pp">datafusion::logical_expr::</span>ScalarUDF <span class="op">{</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    create_udf(</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;shout&quot;</span><span class="op">,</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>        <span class="pp">vec!</span>[<span class="pp">DataType::</span>Utf8]<span class="op">,</span>   <span class="co">// input types</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>        <span class="pp">DataType::</span>Utf8<span class="op">,</span>         <span class="co">// output type</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>        <span class="pp">Volatility::</span>Immutable<span class="op">,</span>  <span class="co">// same input always produces same output</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>        <span class="pp">Arc::</span>new(<span class="op">|</span>args<span class="op">:</span> <span class="op">&amp;</span>[ArrayRef]<span class="op">|</span> <span class="op">{</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>            <span class="kw">let</span> input <span class="op">=</span> args[<span class="dv">0</span>]</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span>as_any()</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span><span class="pp">downcast_ref::</span><span class="op">&lt;</span>StringArray<span class="op">&gt;</span>()</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span>unwrap()<span class="op">;</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>            <span class="kw">let</span> output<span class="op">:</span> StringArray <span class="op">=</span> input<span class="op">.</span>iter()</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span>map(<span class="op">|</span>s<span class="op">|</span> s<span class="op">.</span>map(<span class="op">|</span>v<span class="op">|</span> v<span class="op">.</span>to_uppercase()))</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span>collect()<span class="op">;</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>            <span class="cn">Ok</span>(<span class="pp">Arc::</span>new(output) <span class="kw">as</span> ArrayRef)</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span>)<span class="op">,</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Compare your UDF to the built-in <code>upper()</code> function in
+<code>datafusion/functions/src/string/upper.rs</code>.</p>
+<h2 id="finding-your-first-contribution">Finding Your First
+Contribution</h2>
+<ol type="1">
+<li>Clone the repo and make sure all tests pass:
+<code>cargo test</code></li>
+<li>Read Joe’s merged PRs for code style and scope:
+https://github.com/apache/datafusion/pulls?q=is%3Apr+is%3Amerged+author%3Ajkosh44</li>
+<li>Browse good first issues:
+https://github.com/apache/datafusion/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22</li>
+<li>Look specifically for: NULL handling edge cases, missing type
+support (search the source for <code>not yet implemented</code> or
+<code>todo!()</code>), edge cases in array functions.</li>
+<li>Fix it. Add a test that would have caught the bug. Submit a PR.</li>
+</ol>
+  </article>
+</body>
+</html>

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Database Dev Docs — Offline</title>
+  <style>
+    :root { --bg:#0a0e17; --surface:#111827; --accent:#00d4ff; --text:#e2e8f0; --muted:#64748b; --border:#1e293b; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; line-height: 1.6; }
+    header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1.5rem 2rem; }
+    h1 { color: var(--accent); margin: 0 0 0.25rem; font-size: 1.5rem; }
+    .subtitle { color: var(--muted); margin: 0; font-size: 0.9rem; }
+    nav { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+    nav a { color: var(--accent); text-decoration: none; padding: 0.35rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.85rem; }
+    nav a:hover { background: var(--border); }
+    main { max-width: 900px; margin: 0 auto; padding: 2rem; }
+    h2 { color: var(--accent); margin-top: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+    h3 { margin-top: 1.5rem; }
+    a { color: var(--accent); }
+    code { background: #1e293b; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.9em; }
+    pre { background: #1e293b; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+    th, td { border: 1px solid var(--border); padding: 0.5rem 0.75rem; text-align: left; }
+    th { background: var(--surface); }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; margin: 0.75rem 0; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem; }
+    .grid .card { margin: 0; }
+    .tag { display: inline-block; background: rgba(0,212,255,0.15); color: var(--accent); padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; margin-right: 0.25rem; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Database Dev Docs</h1>
+  <p class="subtitle">Offline reference for Rust database development — Arrow, Parquet, DataFusion, internals</p>
+  <nav>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#internals">DB Internals</a>
+    <a href="#arrow">Apache Arrow</a>
+    <a href="#parquet">Parquet</a>
+    <a href="#datafusion">DataFusion</a>
+    <a href="#rust-patterns">Rust Patterns</a>
+    <a href="#parqtool">parq-tool</a>
+    <a href="#resources">Resources</a>
+    <a href="http://kiwix.lan/">Kiwix Library</a>
+    <a href="http://192.168.1.175:8089/rust/index.html">Rust Guide</a>
+  </nav>
+</header>
+<main>
+
+<section id="roadmap">
+<h2>Rust Database Developer Roadmap</h2>
+<p>Goal: specialize as a Rust database developer — storage engines, query engines, open source (DataFusion, Arrow, Postgres).</p>
+<div class="grid">
+  <div class="card"><span class="tag">Phase 0-2</span><strong>Rust Foundation</strong><br>Official book, Rustlings, async/tokio, traits, Arc/Mutex</div>
+  <div class="card"><span class="tag">Phase 3</span><strong>Database Internals</strong><br>CMU 15-445, B+Tree, buffer pool, WAL, MVCC</div>
+  <div class="card"><span class="tag">Phase 4</span><strong>Rust for DBs</strong><br>Volcano model, ExecutionPlan, streams</div>
+  <div class="card"><span class="tag">Phase 5</span><strong>Apache Arrow</strong><br>RecordBatch, Schema, columnar memory</div>
+  <div class="card"><span class="tag">Phase 6</span><strong>DataFusion</strong><br>SQL engine, optimizers, UDFs, contributions</div>
+  <div class="card"><span class="tag">Phase 7-8</span><strong>Distributed + OSS</strong><br>Raft, 6.824, first DataFusion PR</div>
+</div>
+</section>
+
+<section id="internals">
+<h2>Database Internals</h2>
+
+<h3>Key Data Structures</h3>
+<table>
+<tr><th>Structure</th><th>Used In</th><th>Why It Matters</th></tr>
+<tr><td>B+Tree</td><td>Postgres indexes, RocksDB</td><td>Range scans, ordered storage, node splits/merges</td></tr>
+<tr><td>Hash table</td><td>HashJoinExec, AggregateExec</td><td>Hash joins and hash aggregation in query engines</td></tr>
+<tr><td>Bloom filter</td><td>LSM trees (RocksDB)</td><td>Avoid disk reads for keys that don't exist</td></tr>
+<tr><td>Min-heap</td><td>External sort merge</td><td>DataFusion SortExec spills and merges runs</td></tr>
+</table>
+
+<h3>Storage Models</h3>
+<table>
+<tr><th>Model</th><th>Examples</th><th>Best For</th></tr>
+<tr><td>Row-oriented (NSM)</td><td>Postgres, MySQL</td><td>OLTP, point lookups, updates</td></tr>
+<tr><td>Column-oriented (DSM)</td><td>Arrow, Parquet, DataFusion</td><td>Analytics, scanning few columns</td></tr>
+</table>
+
+<h3>Core Concepts</h3>
+<ul>
+<li><strong>Buffer pool</strong> — database-managed page cache. Postgres: <code>shared_buffers</code>. LRU eviction.</li>
+<li><strong>WAL</strong> — write-ahead log. Changes logged before applied. Crash recovery via ARIES.</li>
+<li><strong>MVCC</strong> — multiple row versions. Readers don't block writers. Postgres uses MVCC.</li>
+<li><strong>2PL</strong> — two-phase locking for serializability.</li>
+<li><strong>Volcano model</strong> — operators call <code>next()</code> for one row. Maps to Rust <code>Iterator</code>.</li>
+<li><strong>Vectorized execution</strong> — operators return batches (RecordBatch). DataFusion uses this.</li>
+</ul>
+
+<h3>CMU 15-445 Projects (translate to Rust after C++)</h3>
+<table>
+<tr><th>Project</th><th>Teaches</th></tr>
+<tr><td>1: Buffer Pool</td><td>Page caching, LRU replacement, pinning</td></tr>
+<tr><td>2: B+Tree</td><td>Index structure, splits, concurrent access</td></tr>
+<tr><td>3: Query Execution</td><td>Sequential scan, join, aggregation operators</td></tr>
+<tr><td>4: Concurrency</td><td>2PL, deadlock detection, isolation levels</td></tr>
+</table>
+</section>
+
+<section id="arrow">
+<h2>Apache Arrow in Rust</h2>
+<p>Columnar in-memory format. DataFusion's data layer. Zero-copy sharing between processes/languages.</p>
+
+<h3>Key Types</h3>
+<table>
+<tr><th>Type</th><th>Purpose</th></tr>
+<tr><td><code>Schema</code></td><td>Column names and types</td></tr>
+<tr><td><code>Field</code></td><td>One column: name, DataType, nullable</td></tr>
+<tr><td><code>RecordBatch</code></td><td>Chunk of columnar data — unit of execution</td></tr>
+<tr><td><code>ArrayRef</code></td><td><code>Arc&lt;dyn Array&gt;</code> — type-erased column</td></tr>
+<tr><td><code>Int32Array</code>, <code>StringArray</code></td><td>Typed column arrays</td></tr>
+</table>
+
+<h3>Creating a RecordBatch</h3>
+<pre><code>use arrow::array::{Int32Array, StringArray, ArrayRef};
+use arrow::record_batch::RecordBatch;
+use arrow::datatypes::{DataType, Field, Schema};
+use std::sync::Arc;
+
+let schema = Arc::new(Schema::new(vec![
+    Field::new("id", DataType::Int32, false),
+    Field::new("name", DataType::Utf8, true),
+]));
+
+let batch = RecordBatch::try_new(schema, vec![
+    Arc::new(Int32Array::from(vec![1, 2, 3])),
+    Arc::new(StringArray::from(vec![Some("alice"), None, Some("bob")])),
+])?;</code></pre>
+
+<h3>Downcasting ArrayRef</h3>
+<pre><code>// By index
+let col = batch.column(0);
+let ids = col.as_any().downcast_ref::&lt;Int32Array&gt;().unwrap();
+
+// By name
+let idx = batch.schema().index_of("fare_amount")?;
+let col = batch.column(idx);
+
+// Ergonomic: AsArray trait
+match col.data_type() {
+    DataType::Utf8 =&gt; { /* col.as_string() */ }
+    DataType::Int64 =&gt; { /* col.as_primitive() */ }
+    _ =&gt; {}
+}</code></pre>
+
+<h3>Null Handling</h3>
+<p>Arrow arrays iterate as <code>Option&lt;T&gt;</code>. Use <code>.unwrap_or_default()</code> for nulls, not <code>.unwrap()</code>.</p>
+
+<h3>Version Rule</h3>
+<p>Import Arrow through DataFusion to avoid version mismatches:</p>
+<pre><code>// WRONG: use arrow::array::Int64Array;
+// RIGHT:
+use datafusion::arrow::array::Int64Array;</code></pre>
+</section>
+
+<section id="parquet">
+<h2>Parquet in Rust</h2>
+<p>Columnar on-disk format. Complementary to Arrow (disk vs memory).</p>
+
+<h3>Reading Parquet</h3>
+<pre><code>use std::fs::File;
+use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
+
+let file = File::open("data.parquet")?;
+let builder = ParquetRecordBatchReaderBuilder::try_new(file)?;
+
+println!("Row groups: {}", builder.metadata().num_row_groups());
+println!("Schema: {}", builder.schema());
+
+let mut reader = builder.build()?;
+while let Some(batch) = reader.next() {
+    let batch = batch?;
+    println!("{} rows, {} cols", batch.num_rows(), batch.num_columns());
+}</code></pre>
+
+<h3>Parquet Structure</h3>
+<table>
+<tr><th>Unit</th><th>Description</th></tr>
+<tr><td>Row Group</td><td>Horizontal partition (~50K-1M rows)</td></tr>
+<tr><td>Column Chunk</td><td>All values for one column in a row group</td></tr>
+<tr><td>Page</td><td>Smallest storage unit within a column chunk</td></tr>
+</table>
+
+<h3>Writing Parquet</h3>
+<pre><code>use parquet::arrow::ArrowWriter;
+
+let file = File::create("output.parquet")?;
+let mut writer = ArrowWriter::try_new(file, batch.schema(), None)?;
+writer.write(&amp;batch)?;
+writer.close()?;</code></pre>
+</section>
+
+<section id="datafusion">
+<h2>DataFusion Query Engine</h2>
+
+<h3>Architecture Pipeline</h3>
+<pre><code>SQL string
+  → sqlparser-rs (AST)
+  → LogicalPlan (WHAT to compute)
+  → LogicalOptimizer (predicate/projection pushdown)
+  → PhysicalPlanner
+  → ExecutionPlan tree (HOW to compute)
+  → SendableRecordBatchStream (async batches)
+  → Vec&lt;RecordBatch&gt;</code></pre>
+
+<h3>Basic Usage</h3>
+<pre><code>use datafusion::prelude::*;
+
+#[tokio::main]
+async fn main() -&gt; datafusion::error::Result&lt;()&gt; {
+    let ctx = SessionContext::new();
+    ctx.register_parquet("taxi", "yellow_tripdata.parquet",
+        ParquetReadOptions::default()).await?;
+
+    let df = ctx.sql("
+        SELECT passenger_count, AVG(tip_amount)
+        FROM taxi GROUP BY passenger_count
+    ").await?;
+
+    df.explain(false, false)?.show().await?;  // see the plan
+    df.show().await?;
+    Ok(())
+}</code></pre>
+
+<h3>Column Reference Styles</h3>
+<table>
+<tr><th>Style</th><th>Example</th><th>Use When</th></tr>
+<tr><td><code>col("x")</code></td><td><code>col("a + b")</code></td><td>Parse expression</td></tr>
+<tr><td><code>col("\"Name\"")</code></td><td><code>col("\"VendorID\"")</code></td><td>Preserve case</td></tr>
+<tr><td><code>ident("x")</code></td><td><code>ident("passenger_count")</code></td><td>Direct column ref</td></tr>
+<tr><td><code>lit(v)</code></td><td><code>lit(10)</code></td><td>Literal value</td></tr>
+</table>
+
+<h3>Key Source Directories</h3>
+<table>
+<tr><th>Path</th><th>Contains</th></tr>
+<tr><td><code>core/src/execution/</code></td><td>SessionContext, TaskContext</td></tr>
+<tr><td><code>optimizer/src/</code></td><td>LogicalOptimizer rules</td></tr>
+<tr><td><code>physical-plan/src/</code></td><td>FilterExec, SortExec, joins</td></tr>
+<tr><td><code>functions/src/</code></td><td>Built-in scalar functions</td></tr>
+</table>
+
+<h3>First Contribution Path</h3>
+<ol>
+<li><code>git clone https://github.com/apache/datafusion &amp;&amp; cargo test</code></li>
+<li>Find NULL handling bugs or <code>todo!()</code> in source</li>
+<li>Add a test that reproduces the bug, fix it, submit PR</li>
+</ol>
+</section>
+
+<section id="rust-patterns">
+<h2>Rust Patterns for Databases</h2>
+
+<h3>Buffer Pool with RwLock</h3>
+<pre><code>use std::sync::{Arc, RwLock};
+use std::collections::HashMap;
+
+struct BufferPool {
+    frames: Arc&lt;RwLock&lt;HashMap&lt;PageId, Frame&gt;&gt;&gt;,
+}
+
+impl BufferPool {
+    fn fetch_page(&amp;self, id: PageId) -&gt; bool {
+        self.frames.read().unwrap().contains_key(&amp;id)
+    }
+    fn evict_page(&amp;self, id: PageId) {
+        self.frames.write().unwrap().remove(&amp;id);
+    }
+}</code></pre>
+
+<h3>ExecutionPlan Trait Object</h3>
+<pre><code>// Query plan tree uses Arc&lt;dyn ExecutionPlan&gt;
+// SendableRecordBatchStream = Pin&lt;Box&lt;dyn Stream&lt;Item=Result&lt;RecordBatch&gt;&gt; + Send&gt;&gt;</code></pre>
+
+<h3>WAL Log Sequence Number</h3>
+<pre><code>use std::sync::atomic::{AtomicU64, Ordering};
+
+fn allocate_lsn(counter: &amp;AtomicU64) -&gt; u64 {
+    counter.fetch_add(1, Ordering::SeqCst)
+}</code></pre>
+
+<h3>Rust ↔ Database Concept Map</h3>
+<table>
+<tr><th>DB Concept</th><th>Rust</th></tr>
+<tr><td>Volcano iterator</td><td><code>Iterator</code> trait</td></tr>
+<tr><td>Vectorized batch</td><td><code>Stream&lt;Item=Result&lt;RecordBatch&gt;&gt;</code></td></tr>
+<tr><td>Shared page</td><td><code>Arc&lt;RwLock&lt;Page&gt;&gt;</code></td></tr>
+<tr><td>LSN counter</td><td><code>AtomicU64</code></td></tr>
+<tr><td>Operator tree</td><td><code>Arc&lt;dyn ExecutionPlan&gt;</code></td></tr>
+<tr><td>Schema</td><td><code>Arc&lt;arrow::datatypes::Schema&gt;</code></td></tr>
+</table>
+</section>
+
+<section id="parqtool">
+<h2>parq-tool Build Guide</h2>
+<p>CLI: read Parquet → run SQL via DataFusion → write to Parquet or Postgres.</p>
+
+<h3>Project Layers</h3>
+<table>
+<tr><th>Layer</th><th>Binary</th><th>Teaches</th></tr>
+<tr><td>1</td><td><code>main.rs</code></td><td>ParquetRecordBatchReaderBuilder, schema inspection</td></tr>
+<tr><td>2</td><td><code>query.rs</code></td><td>SessionContext, register_parquet, SQL</td></tr>
+<tr><td>3</td><td><code>write.rs</code></td><td>ArrowWriter, write results to Parquet</td></tr>
+<tr><td>4</td><td><code>pg.rs</code></td><td>tokio-postgres, insert RecordBatch rows</td></tr>
+</table>
+
+<h3>Cargo.toml</h3>
+<pre><code>[dependencies]
+datafusion = "44"          # re-exports arrow — use those imports
+tokio = { version = "1", features = ["full"] }
+parquet = { version = "55", features = ["arrow"] }
+tokio-postgres = "0.7"
+clap = { version = "4", features = ["derive"] }</code></pre>
+
+<h3>Three Questions Before Using Any API</h3>
+<ol>
+<li><strong>Where does it come from?</strong> — full import path from docs</li>
+<li><strong>What does it accept?</strong> — read the function signature</li>
+<li><strong>What does it return?</strong> — <code>Result</code> needs <code>?</code> or <code>.expect()</code></li>
+</ol>
+</section>
+
+<section id="resources">
+<h2>Resources</h2>
+
+<h3>Official Docs (online)</h3>
+<table>
+<tr><th>Resource</th><th>URL</th></tr>
+<tr><td>Arrow Rust</td><td>arrow.apache.org/rust/arrow/</td></tr>
+<tr><td>Parquet Rust</td><td>arrow.apache.org/rust/parquet/</td></tr>
+<tr><td>DataFusion User Guide</td><td>datafusion.apache.org/user-guide/</td></tr>
+<tr><td>DataFusion Contributor Guide</td><td>datafusion.apache.org/contributor-guide/</td></tr>
+<tr><td>PostgreSQL Internals (Suzuki)</td><td>interdb.jp/pg/</td></tr>
+<tr><td>CMU 15-445</td><td>15445.courses.cs.cmu.edu</td></tr>
+<tr><td>MIT 6.824</td><td>pdos.csail.mit.edu/6.824/</td></tr>
+<tr><td>OSTEP</td><td>pages.cs.wisc.edu/~remzi/OSTEP/</td></tr>
+</table>
+
+<h3>Kiwix Offline (LAN)</h3>
+<table>
+<tr><th>ZIM</th><th>Content</th></tr>
+<tr><td>DevDocs Rust</td><td>Rust std library reference</td></tr>
+<tr><td>DBA Stack Exchange</td><td>Database administration Q&amp;A</td></tr>
+<tr><td>Software Engineering SE</td><td>Architecture, design patterns</td></tr>
+<tr><td>Security SE</td><td>Security Q&amp;A</td></tr>
+</table>
+
+<h3>Key Repos</h3>
+<table>
+<tr><th>Repo</th><th>Why</th></tr>
+<tr><td>apache/datafusion</td><td>Primary contribution target</td></tr>
+<tr><td>apache/arrow-rs</td><td>Arrow Rust implementation</td></tr>
+<tr><td>cmu-db/bustub</td><td>CMU teaching database (C++)</td></tr>
+<tr><td>postgres/postgres</td><td>Long-term goal</td></tr>
+<tr><td>pgcentralfoundation/pgrx</td><td>Postgres extensions in Rust</td></tr>
+</table>
+
+<h3>Essential Papers</h3>
+<ul>
+<li>ARIES: A Transaction Recovery Method (WAL recovery)</li>
+<li>MonetDB/X100: Hyper-Pipelining Query Execution (vectorized execution)</li>
+<li>Raft: In Search of an Understandable Consensus Algorithm</li>
+<li>Design of Modern Column-Oriented Database Systems (Arrow foundation)</li>
+</ul>
+</section>
+
+</main>
+</body>
+</html>

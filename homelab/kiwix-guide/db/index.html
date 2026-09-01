@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Postgres, DuckDB, and DataFusion — Kiwix Guide</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="nav"><a href="../index.html">← Library</a> · <a href="index.html">Postgres &amp; DuckDB</a> · <a href="../rust/index.html">Rust Data Stack</a></nav>
+  <article class="content">
+<h1 id="postgres-duckdb-and-datafusion">Postgres, DuckDB, and
+DataFusion</h1>
+<p>Three ways to run SQL on data. They are not interchangeable — that is
+the point.</p>
+<table>
+<colgroup>
+<col style="width: 5%" />
+<col style="width: 35%" />
+<col style="width: 23%" />
+<col style="width: 35%" />
+</colgroup>
+<thead>
+<tr>
+<th></th>
+<th>PostgreSQL</th>
+<th>DuckDB</th>
+<th>DataFusion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kind</td>
+<td>Client–server <strong>OLTP</strong></td>
+<td>Embedded <strong>OLAP</strong></td>
+<td>Embedded <strong>query engine</strong> (you use it as a
+library)</td>
+</tr>
+<tr>
+<td>Process</td>
+<td>Always-on daemon, port 5432</td>
+<td>In-process (CLI or crate)</td>
+<td>In-process (<code>SessionContext</code>)</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td>Its own data directory (row pages, WAL)</td>
+<td><code>.duckdb</code> file <strong>or</strong> Parquet/CSV in
+place</td>
+<td>You bring files (Parquet); it does not own a catalog by default</td>
+</tr>
+<tr>
+<td>On this homelab</td>
+<td><strong>CT 110</strong> · <code>postgres.lan</code></td>
+<td>Install on the Mac — no CT</td>
+<td><code>parq-tool</code> / Rust labs</td>
+</tr>
+</tbody>
+</table>
+<pre><code>Parquet files (columnar, on disk)
+    ├─ DuckDB        SELECT … FROM &#39;data.parquet&#39;
+    ├─ DataFusion    register table, run SQL, get RecordBatches
+    └─ Postgres      COPY/INSERT results into tables (parq-tool Layer 4)</code></pre>
+<h2 id="when-to-use-which">When to use which</h2>
+<ul>
+<li><strong>DuckDB</strong> — explore a file in seconds. No server. Same
+SQL mental model as Postgres, columnar engine underneath.</li>
+<li><strong>DataFusion</strong> — you are <em>building</em> or embedding
+a query engine in Rust (Arrow in, Arrow out).</li>
+<li><strong>Postgres</strong> — a real networked database: users,
+transactions, WAL, indexes that survive reboot. This is what
+<code>tokio-postgres</code> talks to.</li>
+</ul>
+<h2 id="reading-order">Reading order</h2>
+<ol type="1">
+<li><a href="postgres.html">How PostgreSQL works</a> — processes, WAL,
+MVCC, then the homelab CT</li>
+<li><a href="duckdb.html">How DuckDB works</a> — vectorized execution,
+Parquet, CLI</li>
+<li><a href="../rust/database-internals.html">Database internals</a> —
+B+Tree, buffer pool, why WAL exists</li>
+<li>DevDocs ZIMs (API reference): <a
+href="http://kiwix.lan/content/devdocs_en_postgresql_2026-05">PostgreSQL</a>
+· <a
+href="http://kiwix.lan/content/devdocs_en_duckdb_2026-04">DuckDB</a></li>
+</ol>
+<p>Ops (connect, backup, <code>parq-tool</code>): see
+<code>~/dotfiles/homelab/POSTGRES.md</code> on the Mac.</p>
+  </article>
+</body>
+</html>

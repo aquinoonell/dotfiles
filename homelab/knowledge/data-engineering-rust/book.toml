@@ -1,0 +1,10 @@
+[book]
+title = "Data Engineering in Rust"
+authors = ["onell"]
+language = "en"
+multilingual = false
+src = "src"
+
+[output.html]
+default-theme = "navy"
+git-repository-url = "https://github.com/aquinoonell/dotfiles"

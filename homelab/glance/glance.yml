@@ -1,0 +1,167 @@
+server:
+  host: 0.0.0.0
+  port: 8080
+
+branding:
+  logo-text: Rust DB
+  app-name: Learning Cockpit
+  app-background-color: "#111318"
+
+theme:
+  light: false
+  background-color: 220 18 8
+  primary-color: 38 92 50
+  contrast-multiplier: 1.15
+  disable-picker: true
+  custom-css-file: /assets/custom.css
+
+pages:
+  - name: Home
+    hide-desktop-navigation: true
+    columns:
+      - size: small
+        widgets:
+          - type: clock
+            hour-format: 12h
+            timezones:
+              - timezone: America/New_York
+                label: NYC
+
+          - type: calendar
+            first-day-of-week: monday
+
+          - type: to-do
+            title: Study Tasks
+            id: study-tasks
+
+          - type: search
+            title: Search
+            search-engine: http://searxng.lan/search?q={QUERY}
+            placeholder: Search via SearXNG…
+            new-tab: true
+
+      - size: full
+        widgets:
+          - type: monitor
+            title: Homelab Status
+            cache: 1m
+            style: compact
+            sites:
+              - title: Course
+                url: http://192.168.1.175:8089
+                icon: mdi:school
+              - title: Pi-hole
+                url: http://pihole.lan/admin
+                icon: mdi:dns
+                alt-status-codes: [302]
+              - title: SearXNG
+                url: http://searxng.lan
+                icon: mdi:magnify
+              - title: Homepage
+                url: http://homepage.lan
+                icon: mdi:view-dashboard
+
+          - type: bookmarks
+            title: Study — Rust Data Stack
+            groups:
+              - title: Your Course
+                color: 38 92 50
+                links:
+                  - title: Rust DB Course
+                    url: http://192.168.1.175:8089
+                    icon: mdi:school
+              - title: Apache Projects
+                color: 263 70 58
+                links:
+                  - title: Apache Arrow
+                    url: https://arrow.apache.org/docs/
+                    icon: mdi:arrow-right-bold
+                  - title: Apache Parquet
+                    url: https://parquet.apache.org/docs/
+                    icon: mdi:file-table
+                  - title: DataFusion
+                    url: https://datafusion.apache.org/user-guide/introduction.html
+                    icon: mdi:database-search
+                  - title: arrow-rs (docs.rs)
+                    url: https://docs.rs/arrow/latest/arrow/
+                    icon: mdi:language-rust
+                  - title: datafusion (docs.rs)
+                    url: https://docs.rs/datafusion/latest/datafusion/
+                    icon: mdi:language-rust
+              - title: Rust
+                color: 38 92 50
+                links:
+                  - title: The Rust Book
+                    url: https://doc.rust-lang.org/book/
+                    icon: mdi:book-open-variant
+                  - title: Rust by Example
+                    url: https://doc.rust-lang.org/rust-by-example/
+                    icon: mdi:code-tags
+                  - title: Async Book
+                    url: https://rust-lang.github.io/async-book/
+                    icon: mdi:lightning-bolt
+                  - title: Rustlings
+                    url: https://github.com/rust-lang/rustlings
+                    icon: mdi:arm-flex
+              - title: Databases
+                color: 199 89 48
+                links:
+                  - title: PostgreSQL Docs
+                    url: https://www.postgresql.org/docs/current/
+                    icon: mdi:elephant
+                  - title: DuckDB Docs
+                    url: https://duckdb.org/docs/
+                    icon: mdi:duck
+                  - title: CMU 15-445
+                    url: https://15445.courses.cs.cmu.edu/fall2024/
+                    icon: mdi:school
+
+      - size: small
+        widgets:
+          - type: server-stats
+            title: Dashboard Server
+            servers:
+              - type: local
+                name: CT 102
+
+          - type: bookmarks
+            title: Reference
+            groups:
+              - title: DevDocs
+                links:
+                  - title: Rust
+                    url: https://devdocs.io/rust/
+                  - title: PostgreSQL
+                    url: https://devdocs.io/postgresql/
+                  - title: DuckDB
+                    url: https://devdocs.io/duckdb/
+                  - title: C++
+                    url: https://devdocs.io/cpp/
+              - title: OSS
+                links:
+                  - title: apache/datafusion
+                    url: https://github.com/apache/datafusion
+                  - title: apache/arrow-rs
+                    url: https://github.com/apache/arrow-rs
+                  - title: tokio-rs/tokio
+                    url: https://github.com/tokio-rs/tokio
+
+          - type: bookmarks
+            title: Infrastructure
+            groups:
+              - links:
+                  - title: Dotfiles
+                    url: https://github.com/aquinoonell/dotfiles
+                    icon: mdi:github
+                  - title: Pi-hole
+                    url: http://pihole.lan/admin
+                    icon: mdi:dns
+                  - title: Proxmox
+                    url: https://192.168.1.165:8006
+                    icon: mdi:server
+                  - title: Nginx Proxy
+                    url: http://nginx.lan:81
+                    icon: mdi:swap-horizontal
+                  - title: SearXNG
+                    url: http://searxng.lan
+                    icon: mdi:magnify

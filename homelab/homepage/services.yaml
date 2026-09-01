@@ -1,0 +1,29 @@
+- Learn:
+    - Course:
+        href: http://bookstack.lan/books/rust-database-developer-course
+        description: Rust database developer curriculum · Arrow, Parquet, DataFusion
+    - Kiwix Library:
+        href: http://kiwix.lan
+        description: Offline docs · PostgreSQL, Rust, DBA SE
+    - parq-tool:
+        href: http://bookstack.lan/books/parq-tool-build-guide
+        description: Parquet, DataFusion SQL, Postgres CLI tutorial
+
+- Network:
+    - Pi-hole:
+        href: http://pihole.lan/admin
+        description: DNS · *.lan resolution
+    - SearXNG:
+        href: http://searxng.lan
+        description: Private search · needs WAN
+
+- Admin:
+    - BookStack:
+        href: http://bookstack.lan
+        description: Wiki · courses and runbooks
+    - Proxmox:
+        href: https://192.168.1.165:8006
+        description: Hypervisor
+    - Nginx Proxy:
+        href: http://nginx.lan:81
+        description: Reverse proxy

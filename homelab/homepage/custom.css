@@ -1,0 +1,9 @@
+#page_wrapper::before {
+  content: "Offline: Kiwix and BookStack work without internet.";
+  display: block;
+  text-align: center;
+  font-size: 0.72rem;
+  padding: 0.35rem 1rem;
+  background: rgba(124, 58, 237, 0.12);
+  border-bottom: 1px solid rgba(124, 58, 237, 0.25);
+}

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rust Data Stack Overview — Kiwix Guide</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="nav"><a href="../index.html">← Library</a> · <a href="index.html">Rust Data Stack</a> · <a href="../db/index.html">Postgres &amp; DuckDB</a></nav>
+  <article class="content">
+<h1 id="rust-data-engineering-stack">Rust Data Engineering Stack</h1>
+<p>Offline learning path for <strong>Apache Arrow</strong>,
+<strong>Parquet</strong>, and <strong>DataFusion</strong> in Rust.</p>
+<h2 id="how-the-pieces-fit">How the pieces fit</h2>
+<table>
+<colgroup>
+<col style="width: 35%" />
+<col style="width: 35%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Crate</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Memory</strong></td>
+<td><code>arrow</code></td>
+<td>Columnar in-memory format — <code>RecordBatch</code>, arrays,
+schemas</td>
+</tr>
+<tr>
+<td><strong>Storage</strong></td>
+<td><code>parquet</code></td>
+<td>Columnar files on disk — read/write via
+<code>ArrowWriter</code></td>
+</tr>
+<tr>
+<td><strong>Query</strong></td>
+<td><code>datafusion</code></td>
+<td>SQL engine on Arrow — <code>SessionContext</code>,
+<code>ExecutionPlan</code></td>
+</tr>
+</tbody>
+</table>
+<pre><code>Parquet file on disk
+    → parquet crate reads into RecordBatch (Arrow)
+    → datafusion registers as table, runs SQL
+    → results stream as RecordBatch batches
+    → parquet crate writes output files</code></pre>
+<h2 id="reading-order">Reading order</h2>
+<ol type="1">
+<li><a href="patterns.html">Rust for Databases</a> — <code>Arc</code>,
+<code>RwLock</code>, iterators, async streams</li>
+<li><a href="arrow.html">Apache Arrow</a> — <code>RecordBatch</code>,
+downcasting, null handling</li>
+<li><a href="parquet.html">Parquet</a> — read/write files, compression,
+version pitfalls</li>
+<li><a href="datafusion.html">DataFusion</a> — SQL pipeline, UDFs,
+contributing</li>
+<li><a href="database-internals.html">Database Internals</a> — B+Tree,
+WAL, MVCC context</li>
+<li><a href="../db/postgres.html">PostgreSQL</a> — client–server, WAL,
+homelab CT 110</li>
+<li><a href="../db/duckdb.html">DuckDB</a> — embedded OLAP on Parquet
+(Mac CLI, no CT)</li>
+</ol>
+<h2 id="cargo.toml-starter">Cargo.toml starter</h2>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode toml"><code class="sourceCode toml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[dependencies]</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="dt">datafusion</span> <span class="op">=</span> <span class="st">&quot;44&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="dt">tokio</span> <span class="op">=</span> <span class="op">{ </span><span class="dt">version</span><span class="op"> =</span> <span class="st">&quot;1&quot;</span><span class="op">, </span><span class="dt">features</span><span class="op"> =</span> <span class="op">[</span><span class="st">&quot;full&quot;</span><span class="op">] }</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Import Arrow THROUGH datafusion to avoid version mismatch:</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># use datafusion::arrow::array::Int64Array;</span></span></code></pre></div>
+<h2 id="cli-tools">CLI tools</h2>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cargo</span> install datafusion-cli</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">datafusion-cli</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># CREATE EXTERNAL TABLE t STORED AS PARQUET LOCATION &#39;data.parquet&#39;;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># SELECT * FROM t LIMIT 10;</span></span></code></pre></div>
+<h2 id="more-reading">More reading</h2>
+<p>The curated pages in this guide cover Arrow, Parquet, and DataFusion
+in Rust with code examples.</p>
+<p><strong>Postgres and DuckDB</strong> (how they work, vs this stack):
+<a href="../db/index.html">start here</a>. API reference ZIMs: <a
+href="http://kiwix.lan/content/devdocs_en_postgresql_2026-05">PostgreSQL
+DevDocs</a>, <a
+href="http://kiwix.lan/content/devdocs_en_duckdb_2026-04">DuckDB
+DevDocs</a>. Homelab ops:
+<code>~/dotfiles/homelab/POSTGRES.md</code>.</p>
+  </article>
+</body>
+</html>

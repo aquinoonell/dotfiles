@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Database Internals — Kiwix Guide</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="nav"><a href="../index.html">← Library</a> · <a href="index.html">Rust Data Stack</a> · <a href="../db/index.html">Postgres &amp; DuckDB</a></nav>
+  <article class="content">
+<h1 id="phase-3-database-internals">Phase 3 — Database Internals</h1>
+<p>This is the core of the entire roadmap. Rust gives you the language.
+This phase gives you the domain knowledge. Everything after this is
+application.</p>
+<h2 id="cmu-15-445645-database-systems">CMU 15-445/645: Database
+Systems</h2>
+<p>Joe TA’d this course. It is free, it uses real database code, and it
+covers every major topic in storage and query engine internals. This is
+the single most important course on this roadmap.</p>
+<ul>
+<li>YouTube playlist:
+https://www.youtube.com/playlist?list=PLSE8ODhjZXjbj8BMuIrRcacnQh20hmY9g</li>
+<li>Course website (slides, notes, all materials):
+https://15445.courses.cs.cmu.edu/</li>
+<li>BusTub (the teaching database, written in C++):
+https://github.com/cmu-db/bustub</li>
+</ul>
+<p>The course has four programming projects. They are in C++. Do them.
+Then, after completing each one in C++, attempt to rewrite the core of
+it in Rust in your <code>databases-scratch</code> repo.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Project</th>
+<th>What It Teaches</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1: Buffer Pool Manager</td>
+<td>How a database manages memory — keeping hot pages in RAM, evicting
+cold ones to disk. LRU replacement policy. This is the foundation of
+everything else.</td>
+</tr>
+<tr>
+<td>2: B+Tree Index</td>
+<td>How databases index data for fast lookup and range scan. Node
+splitting and merging. Concurrent access to the tree.</td>
+</tr>
+<tr>
+<td>3: Query Execution</td>
+<td>The Volcano iterator model — each operator produces rows one at a
+time. Implementing sequential scan, join, aggregation.</td>
+</tr>
+<tr>
+<td>4: Concurrency Control</td>
+<td>Two-phase locking. Deadlock detection. Isolation levels — what it
+means for transactions to be serializable.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="topic-where-you-see-it-again">Topic → Where You See It
+Again</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Topic</th>
+<th>What It Is</th>
+<th>Where You See It</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Storage models</td>
+<td>Row-oriented (NSM) versus column-oriented (DSM) storage</td>
+<td>Arrow is columnar (DSM) — every RecordBatch is DSM</td>
+</tr>
+<tr>
+<td>Buffer pool</td>
+<td>Database-managed page cache</td>
+<td>Postgres <code>shared_buffers</code> setting; your Project 1</td>
+</tr>
+<tr>
+<td>B+Tree</td>
+<td>Most common index structure</td>
+<td>Postgres index files; your Project 2</td>
+</tr>
+<tr>
+<td>External sort</td>
+<td>Sort algorithm for data larger than memory</td>
+<td>DataFusion’s <code>SortExec</code> spills to disk and merges</td>
+</tr>
+<tr>
+<td>Hash aggregation</td>
+<td>Build a hash table, then aggregate</td>
+<td>DataFusion’s <code>AggregateExec</code></td>
+</tr>
+<tr>
+<td>Volcano model</td>
+<td>Each operator returns one row at a time via <code>next()</code></td>
+<td>Maps to Rust’s <code>Iterator</code> trait; DataFusion uses the
+vectorized version</td>
+</tr>
+<tr>
+<td>Vectorized execution</td>
+<td>Each operator returns a batch of rows at a time</td>
+<td>DataFusion uses this — each batch is an Arrow RecordBatch</td>
+</tr>
+<tr>
+<td>Query optimization</td>
+<td>Rewrite query plans to be faster without changing results</td>
+<td>DataFusion’s <code>LogicalOptimizer</code> applies rule-based
+rewrites</td>
+</tr>
+<tr>
+<td>Two-phase locking</td>
+<td>Acquire locks in growing phase, release in shrinking phase</td>
+<td>Postgres uses 2PL for row-level locking</td>
+</tr>
+<tr>
+<td>MVCC</td>
+<td>Keep multiple versions of rows so readers never block writers</td>
+<td>Postgres uses MVCC; Joe implemented isolation levels at
+Materialize</td>
+</tr>
+<tr>
+<td>WAL</td>
+<td>Write-ahead log — write changes to a log before applying them</td>
+<td>Postgres WAL; Joe’s commits touch the interval arithmetic in
+timestamp.c</td>
+</tr>
+</tbody>
+</table>
+<h2 id="cmu-15-721-advanced-database-systems">CMU 15-721: Advanced
+Database Systems</h2>
+<p>Take this after 15-445. It covers the modern analytical and in-memory
+database landscape, which is directly what DataFusion and Arrow are part
+of.</p>
+<ul>
+<li>YouTube:
+https://www.youtube.com/playlist?list=PLSE8ODhjZXjb9WsGmFBnP3hJ4BArL-mwI</li>
+<li>Course site: https://15721.courses.cs.cmu.edu/</li>
+</ul>
+<p>Key topics: vectorized execution and SIMD, column compression, query
+compilation, modern join algorithms, in-memory storage.</p>
+<h2 id="postgresql-internals">PostgreSQL Internals</h2>
+<p>Joe has over fifteen commits to the Postgres core codebase. The path
+into Postgres starts with understanding how it’s built internally.</p>
+<p><strong>The Internals of PostgreSQL</strong> by Hironobu Suzuki. Free
+online. Short and precise. Read every chapter.
+https://www.interdb.jp/pg/</p>
+<p><strong>PostgreSQL 14 Internals</strong> by Egor Rogov. Free PDF.
+More detailed than Suzuki.
+https://postgrespro.com/community/books/internals</p>
+<p>After reading, explore the source code. Joe’s contribution areas:</p>
+<ul>
+<li><code>src/backend/utils/adt/timestamp.c</code> — interval
+arithmetic, where Joe fixed overflow handling and
+<code>date_trunc()</code> with infinite values.</li>
+<li><code>src/backend/commands/variable.c</code> — session variables,
+where Joe fixed privilege checks for
+<code>SET SESSION AUTHORIZATION</code>.</li>
+</ul>
+<p>Postgres source on GitHub: https://github.com/postgres/postgres</p>
+<p>Developer documentation:
+https://wiki.postgresql.org/wiki/Developer_FAQ</p>
+<p>How patch review works:
+https://wiki.postgresql.org/wiki/Reviewing_a_Patch</p>
+<h2 id="essential-papers">Essential Papers</h2>
+<p>Read these alongside 15-445. Most are available free from CMU’s
+database paper library at https://db.cs.cmu.edu/papers/.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Paper</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A Relational Model of Data for Large Shared Data Banks — Codd
+(1970)</td>
+<td>The origin of relational databases — where SQL comes from</td>
+</tr>
+<tr>
+<td>ARIES: A Transaction Recovery Method — Mohan et al. (1992)</td>
+<td>WAL-based crash recovery; the algorithm Postgres uses</td>
+</tr>
+<tr>
+<td>Bigtable: A Distributed Storage System for Structured Data — Chang
+et al. (2006)</td>
+<td>The model for Apache Accumulo, which Apache Fluo (Joe is PMC) is
+built on</td>
+</tr>
+<tr>
+<td>Dynamo: Amazon’s Highly Available Key-Value Store — DeCandia et
+al. (2007)</td>
+<td>The model for Cassandra; how eventual consistency works in
+practice</td>
+</tr>
+<tr>
+<td>Spanner: Google’s Globally Distributed Database — Corbett et
+al. (2012)</td>
+<td>Distributed transactions with external consistency</td>
+</tr>
+<tr>
+<td>MonetDB/X100: Hyper-Pipelining Query Execution (2005)</td>
+<td>The vectorized execution model DataFusion uses</td>
+</tr>
+<tr>
+<td>The Design and Implementation of Modern Column-Oriented Database
+Systems (2012)</td>
+<td>The theoretical foundation for Arrow’s columnar format</td>
+</tr>
+<tr>
+<td>An Empirical Evaluation of In-Memory Multi-Version Concurrency
+Control — Wu et al., CMU (2017)</td>
+<td>MVCC — what Joe’s isolation level work at Materialize is based
+on</td>
+</tr>
+<tr>
+<td>In Search of an Understandable Consensus Algorithm (Raft) — Ongaro
+and Ousterhout (2014)</td>
+<td>The consensus algorithm behind most modern distributed databases.
+PDF: https://raft.github.io/raft.pdf</td>
+</tr>
+<tr>
+<td>Large-scale Incremental Processing Using Distributed Transactions
+and Notifications (Percolator) — Google (2010)</td>
+<td>The model for Apache Fluo, where Joe is a PMC member</td>
+</tr>
+</tbody>
+</table>
+  </article>
+</body>
+</html>

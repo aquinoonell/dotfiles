@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How DuckDB Works — Kiwix Guide</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="nav"><a href="../index.html">← Library</a> · <a href="index.html">Postgres &amp; DuckDB</a> · <a href="../rust/index.html">Rust Data Stack</a></nav>
+  <article class="content">
+<h1 id="how-duckdb-works">How DuckDB Works</h1>
+<p>DuckDB is an <strong>embedded analytical (OLAP)</strong> database.
+There is no daemon and no port 5432. The engine runs <strong>in your
+process</strong>: the <code>duckdb</code> CLI, a Python session, or the
+Rust <code>duckdb</code> crate. Storage is either a single
+<code>.duckdb</code> file or — more often for this course —
+<strong>Parquet/CSV files you already have</strong>.</p>
+<p>Install on the Mac (not on Proxmox):</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install duckdb</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">duckdb</span></span></code></pre></div>
+<h2 id="why-it-feels-like-postgres-but-is-not">Why it feels like
+Postgres but is not</h2>
+<p>SQL is close (types,
+<code>SELECT</code>/<code>JOIN</code>/<code>GROUP BY</code>,
+<code>EXPLAIN</code>). The engine is not:</p>
+<table>
+<colgroup>
+<col style="width: 55%" />
+<col style="width: 44%" />
+</colgroup>
+<thead>
+<tr>
+<th>Postgres</th>
+<th>DuckDB</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Row-oriented pages, one tuple at a time in the executor (with some
+batching)</td>
+<td><strong>Vectorized / columnar</strong> — operate on batches of
+values in a column</td>
+</tr>
+<tr>
+<td>Buffer pool + WAL for OLTP durability</td>
+<td>Designed for scans and aggregations over files</td>
+</tr>
+<tr>
+<td>Network protocol</td>
+<td>Function calls in-process</td>
+</tr>
+<tr>
+<td><code>INSERT</code> one row from an app</td>
+<td><code>SELECT count(*) FROM 'huge.parquet'</code> in
+milliseconds</td>
+</tr>
+</tbody>
+</table>
+<p>If DataFusion is “a query engine you embed in Rust,” DuckDB is “a
+complete OLAP database you embed,” with a mature SQL parser, optimizer,
+and Parquet reader. Use DuckDB to <strong>explore</strong>; use
+DataFusion to <strong>implement</strong>.</p>
+<h2 id="execution-model-the-part-that-maps-to-internals">Execution model
+(the part that maps to internals)</h2>
+<p>DuckDB is in the MonetDB/X100 family: <strong>vectorized
+execution</strong>. Operators pull <strong>vectors</strong> (chunks of a
+column), not one row per <code>next()</code>. That is the same idea as
+DataFusion’s <code>RecordBatch</code> streams, with a different
+codebase.</p>
+<pre><code>Parquet file on disk
+    → DuckDB scans only the columns the query needs
+    → vectorized operators (filter, hash aggregate, join)
+    → result printed or COPY to another file</code></pre>
+<p>Column pruning and predicate pushdown into Parquet are why
+<code>SELECT a FROM 'data.parquet' WHERE b &gt; 10</code> does not read
+the whole file.</p>
+<h2 id="sql-on-files-no-create-table-required">SQL on files (no CREATE
+TABLE required)</h2>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- inside duckdb CLI</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="fu">count</span>(<span class="op">*</span>) <span class="kw">FROM</span> <span class="st">&#39;data.parquet&#39;</span>;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> col, <span class="fu">avg</span>(x) <span class="kw">FROM</span> <span class="st">&#39;data.parquet&#39;</span> <span class="kw">GROUP</span> <span class="kw">BY</span> <span class="dv">1</span>;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">EXPLAIN</span> <span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> <span class="st">&#39;data.parquet&#39;</span> <span class="kw">WHERE</span> x <span class="op">&gt;</span> <span class="dv">10</span>;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">COPY</span> (<span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> <span class="st">&#39;data.parquet&#39;</span> <span class="kw">WHERE</span> x <span class="op">&gt;</span> <span class="dv">10</span>) <span class="kw">TO</span> <span class="st">&#39;out.parquet&#39;</span> (FORMAT PARQUET);</span></code></pre></div>
+<p>A persistent catalog is optional:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>duckdb analytics.duckdb</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- then:</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> t <span class="kw">AS</span> <span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> <span class="st">&#39;data.parquet&#39;</span>;</span></code></pre></div>
+<p>That <code>.duckdb</code> file is still just a file. Copy it, delete
+it, Syncthing it. No CT.</p>
+<h2 id="talking-to-homelab-postgres-optional">Talking to homelab
+Postgres (optional)</h2>
+<p>DuckDB can <strong>scan</strong> Postgres when you want OLAP SQL over
+OLTP tables:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>INSTALL postgres;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>LOAD postgres;</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>ATTACH <span class="st">&#39;host=postgres.lan user=postgres password=password dbname=parq&#39;</span> <span class="kw">AS</span> pg (<span class="kw">TYPE</span> postgres);</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> pg.<span class="kw">public</span>.some_table <span class="kw">LIMIT</span> <span class="dv">10</span>;</span></code></pre></div>
+<p>That is the triangle on one prompt: files (DuckDB) + server
+(Postgres). Do this after CT 110 is up.</p>
+<h2 id="versus-datafusion-in-rust">Versus DataFusion in Rust</h2>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- DuckDB: engine is the product</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> <span class="st">&#39;data.parquet&#39;</span> <span class="kw">LIMIT</span> <span class="dv">10</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">// DataFusion: you own SessionContext, plans, RecordBatches</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>ctx<span class="op">.</span>register_parquet(<span class="st">&quot;data&quot;</span><span class="op">,</span> <span class="st">&quot;data.parquet&quot;</span><span class="op">,</span> <span class="bu">Default</span><span class="pp">::</span><span class="kw">default</span>())<span class="op">.</span><span class="kw">await</span><span class="op">?;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>ctx<span class="op">.</span>sql(<span class="st">&quot;SELECT * FROM data LIMIT 10&quot;</span>)<span class="op">.</span><span class="kw">await</span><span class="op">?;</span></span></code></pre></div>
+<p>Same files, different job. If a DuckDB query is fast and a DataFusion
+query is slow, that is a learning signal (plan, batch size, predicates)
+— not a reason to delete DataFusion.</p>
+<h2 id="reference-offline">Reference (offline)</h2>
+<ul>
+<li>DevDocs: http://kiwix.lan/content/devdocs_en_duckdb_2026-04</li>
+<li>Curated stack: <a href="../rust/arrow.html">Arrow</a> · <a
+href="../rust/parquet.html">Parquet</a> · <a
+href="../rust/datafusion.html">DataFusion</a></li>
+</ul>
+  </article>
+</body>
+</html>

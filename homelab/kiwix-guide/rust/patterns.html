@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rust for Databases — Kiwix Guide</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="nav"><a href="../index.html">← Library</a> · <a href="index.html">Rust Data Stack</a> · <a href="../db/index.html">Postgres &amp; DuckDB</a></nav>
+  <article class="content">
+<h1 id="phase-4-rust-for-databases-and-systems">Phase 4 — Rust for
+Databases and Systems</h1>
+<p>By this phase you have enough Rust from Phase 2 and enough database
+concepts from Phase 3 to start applying one to the other. This phase is
+about the specific Rust patterns that appear in database and systems
+code — the ones you will encounter constantly when reading DataFusion
+and Arrow source.</p>
+<h2 id="the-volcano-model-as-the-iterator-trait">The Volcano Model as
+the Iterator Trait</h2>
+<p>The Volcano model is the classic database query execution model.
+Every operator in the query plan has a <code>next()</code> method.
+Calling <code>next()</code> on a sort operator causes it to call
+<code>next()</code> on its input, get a row, accumulate it, and
+eventually return the first sorted row. This pull-based model maps
+exactly to Rust’s <code>Iterator</code> trait.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Classic Volcano model — one tuple at a time</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">// Every database operator you implement in 15-445 Project 3 has this shape</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">trait</span> Operator <span class="op">{</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">type</span> Tuple<span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> next(<span class="op">&amp;</span><span class="kw">mut</span> <span class="kw">self</span>) <span class="op">-&gt;</span> <span class="dt">Option</span><span class="op">&lt;</span><span class="dt">Self</span><span class="pp">::</span>Tuple<span class="op">&gt;;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">// Rust&#39;s built-in Iterator is the same interface</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">// DataFusion&#39;s vectorized version returns a batch of rows (RecordBatch) rather</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">// than one row at a time — that is the Stream trait (the async version of Iterator)</span></span></code></pre></div>
+<p>When you implement the sequential scan operator in 15-445 Project 3,
+you are implementing the database version of <code>Iterator</code>. When
+you later read DataFusion’s <code>FilterExec</code> or
+<code>SortExec</code>, you are reading the production async-vectorized
+version of the same idea.</p>
+<h2 id="shared-state-with-arc-and-locks">Shared State with Arc and
+Locks</h2>
+<p>The buffer pool manager from Project 1 requires multiple threads to
+access pages simultaneously. Some threads want to read a page. One
+thread at a time may write. This is the readers-writer problem, and in
+Rust it is solved with <code>RwLock</code>.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::sync::</span><span class="op">{</span>Arc<span class="op">,</span> RwLock<span class="op">};</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::collections::</span>HashMap<span class="op">;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">// A page is 4096 bytes of raw data</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> PageId <span class="op">=</span> <span class="dt">u32</span><span class="op">;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Frame <span class="op">{</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    data<span class="op">:</span> [<span class="dt">u8</span><span class="op">;</span> <span class="dv">4096</span>]<span class="op">,</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    dirty<span class="op">:</span> <span class="dt">bool</span><span class="op">,</span>   <span class="co">// has this page been modified since it was read from disk?</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    pin_count<span class="op">:</span> <span class="dt">u32</span><span class="op">,</span> <span class="co">// how many threads are currently using this page?</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co">// Arc allows this to be shared across threads.</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co">// RwLock allows many concurrent readers, or one writer.</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> BufferPool <span class="op">{</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    frames<span class="op">:</span> Arc<span class="op">&lt;</span>RwLock<span class="op">&lt;</span>HashMap<span class="op">&lt;</span>PageId<span class="op">,</span> Frame<span class="op">&gt;&gt;&gt;,</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="kw">impl</span> BufferPool <span class="op">{</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Many threads can call fetch_page simultaneously</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> fetch_page(<span class="op">&amp;</span><span class="kw">self</span><span class="op">,</span> page_id<span class="op">:</span> PageId) <span class="op">-&gt;</span> <span class="dt">bool</span> <span class="op">{</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> frames <span class="op">=</span> <span class="kw">self</span><span class="op">.</span>frames<span class="op">.</span>read()<span class="op">.</span>unwrap()<span class="op">;</span> <span class="co">// acquire shared read lock</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>        frames<span class="op">.</span>contains_key(<span class="op">&amp;</span>page_id)</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="co">// read lock released here</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Only one thread can call this at a time</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> evict_page(<span class="op">&amp;</span><span class="kw">self</span><span class="op">,</span> page_id<span class="op">:</span> PageId) <span class="op">{</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> <span class="kw">mut</span> frames <span class="op">=</span> <span class="kw">self</span><span class="op">.</span>frames<span class="op">.</span>write()<span class="op">.</span>unwrap()<span class="op">;</span> <span class="co">// acquire exclusive write lock</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>        frames<span class="op">.</span>remove(<span class="op">&amp;</span>page_id)<span class="op">;</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="co">// write lock released here</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>In DataFusion, the <code>CatalogProviderList</code> (the registry of
+databases and tables) uses this same pattern. Joe’s catalog and RBAC
+work at Materialize was building exactly this structure at production
+scale.</p>
+<h2 id="trait-objects-for-query-operator-trees">Trait Objects for Query
+Operator Trees</h2>
+<p>In DataFusion, a query plan is a tree of operators. A sort operator
+has a filter operator as its input, which has a scan operator as its
+input. Each operator implements the <code>ExecutionPlan</code> trait.
+The tree is built from <code>Arc&lt;dyn ExecutionPlan&gt;</code> nodes —
+trait objects behind reference-counted pointers.</p>
+<p>Why <code>Arc&lt;dyn ExecutionPlan&gt;</code> and not just
+<code>Box&lt;dyn ExecutionPlan&gt;</code>? Because the execution engine
+needs to share operator nodes across multiple threads when executing
+partitioned queries. <code>Box</code> gives single ownership.
+<code>Arc</code> gives shared ownership.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// This is a simplified version of DataFusion&#39;s core trait</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">// Every operator — FilterExec, SortExec, HashJoinExec, AggregateExec — implements this</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">trait</span> ExecutionPlan <span class="op">{</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Returns the schema of the output (column names and types)</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> schema(<span class="op">&amp;</span><span class="kw">self</span>) <span class="op">-&gt;</span> Arc<span class="op">&lt;</span>Schema<span class="op">&gt;;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Returns the operator&#39;s inputs (what it reads from)</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> children(<span class="op">&amp;</span><span class="kw">self</span>) <span class="op">-&gt;</span> <span class="dt">Vec</span><span class="op">&lt;</span>Arc<span class="op">&lt;</span><span class="kw">dyn</span> ExecutionPlan<span class="op">&gt;&gt;;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Begins executing this partition of the query</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Returns a stream of RecordBatches</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> execute(<span class="op">&amp;</span><span class="kw">self</span><span class="op">,</span> partition<span class="op">:</span> <span class="dt">usize</span>) <span class="op">-&gt;</span> SendableRecordBatchStream<span class="op">;</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="co">// A SendableRecordBatchStream is:</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="co">// Pin&lt;Box&lt;dyn Stream&lt;Item = Result&lt;RecordBatch&gt;&gt; + Send&gt;&gt;</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="co">// Breaking it down:</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="co">// - Stream&lt;Item = Result&lt;RecordBatch&gt;&gt;: an async iterator over batches of rows</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="co">// - Send: can be sent across threads</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="co">// - Box&lt;dyn ...&gt;: heap-allocated trait object</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="co">// - Pin&lt;...&gt;: cannot be moved in memory once polling starts (required by async)</span></span></code></pre></div>
+<h2 id="async-streams-for-vectorized-execution">Async Streams for
+Vectorized Execution</h2>
+<p>The return type of <code>ExecutionPlan::execute()</code> is a stream
+of <code>RecordBatch</code> values. A <code>RecordBatch</code> is a
+table of data — some number of rows, all with the same schema. The
+stream produces batches one at a time as execution progresses.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">futures::stream::</span>StreamExt<span class="op">;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">// How you consume a DataFusion query result</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">fn</span> consume_results(<span class="kw">mut</span> stream<span class="op">:</span> SendableRecordBatchStream) <span class="op">{</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="kw">let</span> <span class="cn">Some</span>(batch_result) <span class="op">=</span> stream<span class="op">.</span>next()<span class="op">.</span><span class="kw">await</span> <span class="op">{</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">match</span> batch_result <span class="op">{</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>            <span class="cn">Ok</span>(batch) <span class="op">=&gt;</span> <span class="op">{</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                <span class="co">// batch is an Arrow RecordBatch</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>                <span class="co">// batch.num_rows() tells you how many rows are in this batch</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>                <span class="co">// batch.column(0) gives you the first column as an Arc&lt;dyn Array&gt;</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>                <span class="pp">println!</span>(<span class="st">&quot;{} rows in this batch&quot;</span><span class="op">,</span> batch<span class="op">.</span>num_rows())<span class="op">;</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>            <span class="cn">Err</span>(e) <span class="op">=&gt;</span> <span class="op">{</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>                <span class="pp">eprintln!</span>(<span class="st">&quot;Error during execution: {}&quot;</span><span class="op">,</span> e)<span class="op">;</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>The <code>while let Some(...) = stream.next().await</code> pattern is
+the async equivalent of
+<code>while let Some(...) = iterator.next()</code>.</p>
+<h2 id="atomics-for-database-counters">Atomics for Database
+Counters</h2>
+<p>Database systems need to increment counters from multiple threads
+without taking a lock. The most important example is the Log Sequence
+Number (LSN) — every write to a write-ahead log gets a unique,
+monotonically increasing LSN.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::sync::atomic::</span><span class="op">{</span>AtomicU64<span class="op">,</span> Ordering<span class="op">};</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::sync::</span>Arc<span class="op">;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> WriteAheadLog <span class="op">{</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// AtomicU64 can be incremented from multiple threads simultaneously</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// without a Mutex — the CPU handles the synchronization in hardware</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    next_lsn<span class="op">:</span> Arc<span class="op">&lt;</span>AtomicU64<span class="op">&gt;,</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="kw">impl</span> WriteAheadLog <span class="op">{</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> allocate_lsn(<span class="op">&amp;</span><span class="kw">self</span>) <span class="op">-&gt;</span> <span class="dt">u64</span> <span class="op">{</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>        <span class="co">// fetch_add returns the old value and increments atomically</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>        <span class="co">// If two threads call this simultaneously, they get different LSNs</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>        <span class="kw">self</span><span class="op">.</span>next_lsn<span class="op">.</span>fetch_add(<span class="dv">1</span><span class="op">,</span> <span class="pp">Ordering::</span>SeqCst)</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="error-propagation-through-multiple-layers">Error Propagation
+Through Multiple Layers</h2>
+<p>DataFusion functions return
+<code>Result&lt;T, DataFusionError&gt;</code> where the error can
+originate from I/O, Arrow type mismatches, SQL parsing, or execution
+failures. The <code>?</code> operator converts these errors into the
+function’s return type automatically.</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">datafusion::prelude::</span><span class="op">*;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">datafusion::error::</span><span class="dt">Result</span><span class="op">;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co">// This function can fail for several different reasons:</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co">// - the file might not exist (I/O error)</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co">// - the SQL might be invalid (parse error)</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co">// - execution might fail (runtime error)</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co">// The ? operator converts each error to DataFusionError and returns it</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">fn</span> count_rows(path<span class="op">:</span> <span class="op">&amp;</span><span class="dt">str</span>) <span class="op">-&gt;</span> <span class="dt">Result</span><span class="op">&lt;</span><span class="dt">usize</span><span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> ctx <span class="op">=</span> <span class="pp">SessionContext::</span>new()<span class="op">;</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    ctx<span class="op">.</span>register_csv(<span class="st">&quot;data&quot;</span><span class="op">,</span> path<span class="op">,</span> <span class="pp">CsvReadOptions::</span>new())<span class="op">.</span><span class="kw">await</span><span class="op">?;</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> df <span class="op">=</span> ctx<span class="op">.</span>sql(<span class="st">&quot;SELECT COUNT(*) FROM data&quot;</span>)<span class="op">.</span><span class="kw">await</span><span class="op">?;</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> batches <span class="op">=</span> df<span class="op">.</span>collect()<span class="op">.</span><span class="kw">await</span><span class="op">?;</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> count <span class="op">=</span> batches[<span class="dv">0</span>]</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>column(<span class="dv">0</span>)</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>as_any()</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="pp">downcast_ref::</span><span class="op">&lt;</span><span class="pp">arrow::array::</span>Int64Array<span class="op">&gt;</span>()</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>unwrap()</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>value(<span class="dv">0</span>) <span class="kw">as</span> <span class="dt">usize</span><span class="op">;</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    <span class="cn">Ok</span>(count)</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+  </article>
+</body>
+</html>

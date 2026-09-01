@@ -1,0 +1,211 @@
+/* Kiwix guide — warm reading-room theme (distinct from Glance dashboard) */
+:root {
+  --bg: #141210;
+  --surface: #1c1917;
+  --surface-raised: #252220;
+  --accent: #e8622a;
+  --accent-soft: rgba(232, 98, 42, 0.14);
+  --text: #e7e5e4;
+  --text-soft: #a8a29e;
+  --link: #5eead4;
+  --link-hover: #99f6e4;
+  --border: #292524;
+  --code-bg: #0c0a09;
+  --code-border: #44403c;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  background: var(--bg);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(232, 98, 42, 0.08), transparent),
+    linear-gradient(180deg, var(--bg) 0%, #0f0e0d 100%);
+  color: var(--text);
+  margin: 0;
+  padding: 2.5rem 2rem 3rem;
+  line-height: 1.7;
+  max-width: 46rem;
+  min-height: 100vh;
+}
+
+h1 {
+  font-family: system-ui, -apple-system, sans-serif;
+  color: var(--accent);
+  margin-bottom: 0.35rem;
+  font-size: 1.85rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+h2 {
+  font-family: system-ui, -apple-system, sans-serif;
+  color: var(--text);
+  margin-top: 2.25rem;
+  margin-bottom: 0.6rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.4rem;
+}
+
+h3 {
+  font-family: system-ui, -apple-system, sans-serif;
+  color: var(--text-soft);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+}
+
+p, li { color: #d6d3d1; }
+
+a {
+  color: var(--link);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+a:hover {
+  color: var(--link-hover);
+  border-bottom-color: var(--link-hover);
+}
+
+.nav {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  margin-bottom: 2rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.nav a {
+  color: var(--text-soft);
+  border-bottom: none;
+}
+
+.nav a:hover {
+  color: var(--accent);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.85rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.card:hover {
+  background: var(--surface-raised);
+  border-color: #3f3a36;
+}
+
+.card a {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-weight: 600;
+  color: var(--text);
+  border-bottom: none;
+}
+
+.card a:hover {
+  color: var(--accent);
+}
+
+.subtitle {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  margin-top: 0.35rem;
+  line-height: 1.45;
+}
+
+.highlight {
+  background: var(--accent-soft);
+  border: 1px solid rgba(232, 98, 42, 0.28);
+  border-radius: 10px;
+  padding: 1rem 1.15rem;
+  margin: 1.25rem 0;
+  font-size: 0.95rem;
+}
+
+.highlight strong {
+  color: var(--accent);
+}
+
+.footer {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--text-soft);
+}
+
+.content pre {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  overflow-x: auto;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  font-family: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+}
+
+.content code {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  padding: 0.12rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.86em;
+  font-family: "SF Mono", "Fira Code", Consolas, monospace;
+  color: #fcd34d;
+}
+
+.content pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #e7e5e4;
+}
+
+.content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1.25rem 0;
+  font-size: 0.88rem;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.content th, .content td {
+  border: 1px solid var(--code-border);
+  padding: 0.55rem 0.8rem;
+  text-align: left;
+}
+
+.content th {
+  background: var(--surface);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.content ul, .content ol {
+  padding-left: 1.35rem;
+}
+
+.content blockquote {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--text-soft);
+}

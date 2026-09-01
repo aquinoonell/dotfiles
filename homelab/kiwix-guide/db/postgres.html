@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How PostgreSQL Works — Kiwix Guide</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="nav"><a href="../index.html">← Library</a> · <a href="index.html">Postgres &amp; DuckDB</a> · <a href="../rust/index.html">Rust Data Stack</a></nav>
+  <article class="content">
+<h1 id="how-postgresql-works">How PostgreSQL Works</h1>
+<p>Postgres is a <strong>client–server</strong> relational database. A
+daemon owns a data directory on disk. Your Mac (or
+<code>parq-tool</code>) is a <strong>client</strong>: it opens a TCP
+connection to port 5432 and speaks the Postgres wire protocol. That is
+different from DuckDB and DataFusion, which run <em>inside</em> your
+process.</p>
+<p>This homelab runs Postgres on <strong>CT 110</strong> at
+<code>postgres.lan</code>. Full usage (connect, dump,
+<code>parq-tool</code>) is in
+<code>~/dotfiles/homelab/POSTGRES.md</code>.</p>
+<h2 id="process-model">Process model</h2>
+<p>One <strong>postmaster</strong> process starts at boot. Each client
+connection is a <strong>backend</strong> (a forked process). Shared
+state lives in shared memory: buffer pool (<code>shared_buffers</code>),
+locks, WAL buffers.</p>
+<pre><code>psql / tokio-postgres  --TCP 5432--&gt;  postmaster
+                              forks --&gt; backend (your session)
+                              all backends share: buffers + WAL</code></pre>
+<p>That is why “the database is down” means the postmaster died, and why
+one runaway query is usually one backend, not the whole server.</p>
+<h2 id="how-a-write-becomes-durable-wal">How a write becomes durable
+(WAL)</h2>
+<p>MVCC and crash recovery are why Postgres is a <em>server</em> you
+operate, not a library you import.</p>
+<ol type="1">
+<li>You <code>INSERT</code> / <code>UPDATE</code> /
+<code>COMMIT</code>.</li>
+<li>Postgres writes the change to the <strong>write-ahead log</strong>
+(WAL) <strong>before</strong> it is considered committed.</li>
+<li>Dirty pages in the buffer pool are flushed later (checkpoints).</li>
+<li>After a crash, Postgres <strong>replays WAL</strong> from the last
+checkpoint. Committed transactions come back; uncommitted ones do
+not.</li>
+</ol>
+<p>This is the ARIES-style recovery you read about in internals. You do
+not implement it here — you <em>use</em> a system that already does.</p>
+<h2 id="how-reads-do-not-block-writes-mvcc">How reads do not block
+writes (MVCC)</h2>
+<p>Postgres keeps <strong>multiple versions</strong> of a row. A reader
+sees a snapshot; a writer creates a new version. Vacuum later reclaims
+dead versions.</p>
+<p>Practical consequence: <code>SELECT</code> does not take a lock that
+blocks <code>UPDATE</code> the way a naive two-phase-lock textbook
+example might. Isolation levels (<code>READ COMMITTED</code>,
+<code>REPEATABLE READ</code>, <code>SERIALIZABLE</code>) change
+<em>which</em> snapshot you see.</p>
+<p>Inspect a live instance:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>SHOW shared_buffers;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>SHOW wal_level;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> pid, usename, state, <span class="kw">query</span> <span class="kw">FROM</span> pg_stat_activity;</span></code></pre></div>
+<h2 id="sql-you-should-actually-run">SQL you should actually run</h2>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> t (<span class="kw">id</span> BIGINT <span class="kw">PRIMARY</span> <span class="kw">KEY</span>, name TEXT);</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> t <span class="kw">VALUES</span> (<span class="dv">1</span>, <span class="st">&#39;hello&#39;</span>);</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span>;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">UPDATE</span> t <span class="kw">SET</span> name <span class="op">=</span> <span class="st">&#39;x&#39;</span> <span class="kw">WHERE</span> <span class="kw">id</span> <span class="op">=</span> <span class="dv">1</span>;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">ROLLBACK</span>;   <span class="co">-- name is still &#39;hello&#39;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="kw">EXPLAIN</span> <span class="kw">ANALYZE</span> <span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> t <span class="kw">WHERE</span> <span class="kw">id</span> <span class="op">=</span> <span class="dv">1</span>;  <span class="co">-- look for Index Scan</span></span></code></pre></div>
+<p><code>EXPLAIN ANALYZE</code> is how you see seq scans vs index scans.
+That is operating a database, not only storing rows.</p>
+<h2 id="from-rust-tokio-postgres">From Rust
+(<code>tokio-postgres</code>)</h2>
+<p>Layer 4 of <code>parq-tool</code> maps Arrow types to Postgres types,
+<code>CREATE TABLE</code>, then inserts batches. The connection string
+is the only homelab-specific part:</p>
+<pre><code>host=postgres.lan user=postgres password=password dbname=parq</code></pre>
+<p>Pattern from the crate: <code>connect</code> returns
+<code>(Client, Connection)</code> — spawn the <code>Connection</code>
+future or I/O stalls.</p>
+<h2 id="what-this-ct-will-not-teach">What this CT will not teach</h2>
+<p>Replication, failover, and tuning for hundreds of GB. It
+<strong>will</strong> teach connect, SQL, indexes, <code>EXPLAIN</code>,
+dump/restore, and “the server is a process with a data directory.” That
+is the operator loop application developers use.</p>
+<h2 id="reference-offline">Reference (offline)</h2>
+<ul>
+<li>DevDocs (API):
+http://kiwix.lan/content/devdocs_en_postgresql_2026-05</li>
+<li>Internals reading (WAN): https://www.interdb.jp/pg/ (Suzuki)</li>
+<li>DBA questions:
+http://kiwix.lan/content/dba.stackexchange.com_en_all_2026-02</li>
+</ul>
+  </article>
+</body>
+</html>

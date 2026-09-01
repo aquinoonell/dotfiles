@@ -1,0 +1,9 @@
+- resources:
+    cpu: true
+    memory: true
+    disk: /
+
+- search:
+    provider: searxng
+    url: http://searxng.lan/search?q=%s
+    target: _blank

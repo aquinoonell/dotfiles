@@ -1,0 +1,15 @@
+[book]
+title = "Rust Database Developer Course"
+authors = ["onell"]
+description = "Curated path: Rust, database internals, Arrow, Parquet, DataFusion, parq-tool"
+language = "en"
+src = "src"
+
+[output.html]
+default-theme = "rust"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/aquinoonell/dotfiles"
+edit-url-template = "https://github.com/aquinoonell/dotfiles/edit/main/homelab/bookstack-content/course/{path}"
+
+[output.html.search]
+enable = true

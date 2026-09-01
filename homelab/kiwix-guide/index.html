@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kiwix Learning Library</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Kiwix Learning Library</h1>
+  <p>Offline documentation. <a href="http://kiwix.lan/">Browse all ZIMs</a></p>
+
+  <div class="highlight">
+    <strong>Rust Data Engineering:</strong> <a href="rust/index.html">Arrow, Parquet &amp; DataFusion in Rust</a>
+    — structured guide with code examples for the columnar stack.
+    <br><strong>SQL engines:</strong> <a href="db/index.html">PostgreSQL (homelab CT) and DuckDB (Mac CLI)</a>
+    — how they work, then DevDocs ZIMs for the API.
+  </div>
+
+  <h2>Rust Data Stack (curated guide)</h2>
+  <div class="grid">
+    <div class="card">
+      <a href="rust/index.html">Start Here</a>
+      <div class="subtitle">How Arrow, Parquet, DataFusion fit together</div>
+    </div>
+    <div class="card">
+      <a href="rust/arrow.html">Apache Arrow</a>
+      <div class="subtitle">RecordBatch, arrays, downcasting</div>
+    </div>
+    <div class="card">
+      <a href="rust/parquet.html">Parquet Files</a>
+      <div class="subtitle">Read/write, compression, NYC taxi example</div>
+    </div>
+    <div class="card">
+      <a href="rust/datafusion.html">DataFusion SQL</a>
+      <div class="subtitle">Query pipeline, UDFs, architecture</div>
+    </div>
+    <div class="card">
+      <a href="rust/patterns.html">Rust for Databases</a>
+      <div class="subtitle">Arc, RwLock, Iterator, async streams</div>
+    </div>
+    <div class="card">
+      <a href="rust/database-internals.html">Database Internals</a>
+      <div class="subtitle">B+Tree, WAL, MVCC, query execution</div>
+    </div>
+  </div>
+
+  <h2>PostgreSQL &amp; DuckDB (curated guide)</h2>
+  <div class="grid">
+    <div class="card">
+      <a href="db/index.html">Start Here</a>
+      <div class="subtitle">Postgres vs DuckDB vs DataFusion</div>
+    </div>
+    <div class="card">
+      <a href="db/postgres.html">How PostgreSQL Works</a>
+      <div class="subtitle">WAL, MVCC, CT 110 · postgres.lan</div>
+    </div>
+    <div class="card">
+      <a href="db/duckdb.html">How DuckDB Works</a>
+      <div class="subtitle">Embedded OLAP · SQL on Parquet</div>
+    </div>
+  </div>
+
+  <h2>Databases (ZIM reference)</h2>
+  <div class="grid">
+    <div class="card">
+      <a href="http://kiwix.lan/content/devdocs_en_postgresql_2026-05">PostgreSQL DevDocs</a>
+      <div class="subtitle">SQL and catalog reference</div>
+    </div>
+    <div class="card">
+      <a href="http://kiwix.lan/content/devdocs_en_sqlite_2026-04">SQLite</a>
+      <div class="subtitle">DevDocs — official reference</div>
+    </div>
+    <div class="card">
+      <a href="http://kiwix.lan/content/devdocs_en_duckdb_2026-04">DuckDB DevDocs</a>
+      <div class="subtitle">Functions, types, SQL</div>
+    </div>
+    <div class="card">
+      <a href="http://kiwix.lan/content/dba.stackexchange.com_en_all_2026-02">DBA Stack Exchange</a>
+      <div class="subtitle">SQL, Postgres, indexing Q&A</div>
+    </div>
+    <div class="card">
+      <a href="http://kiwix.lan/content/softwareengineering.stackexchange.com_en_all_2026-02">Software Engineering SE</a>
+      <div class="subtitle">Architecture, design patterns</div>
+    </div>
+  </div>
+
+  <h2>Languages</h2>
+  <div class="grid">
+    <div class="card">
+      <a href="http://kiwix.lan/content/devdocs_en_rust_2026-01">Rust</a>
+      <div class="subtitle">DevDocs — std library reference</div>
+    </div>
+    <div class="card">
+      <a href="http://kiwix.lan/content/devdocs_en_cpp_2026-01">C++</a>
+      <div class="subtitle">DevDocs — BusTub / CMU 15-445</div>
+    </div>
+    <div class="card">
+      <a href="http://kiwix.lan/content/devdocs_en_python_2026-02">Python</a>
+      <div class="subtitle">DevDocs</div>
+    </div>
+  </div>
+
+  <h2>Security</h2>
+  <div class="grid">
+    <div class="card">
+      <a href="http://kiwix.lan/content/security.stackexchange.com_en_all_2026-02">Security SE</a>
+      <div class="subtitle">Stack Exchange Q&A</div>
+    </div>
+    <div class="card">
+      <a href="http://kiwix.lan/content/crypto.stackexchange.com_en_all_2026-02">Cryptography SE</a>
+      <div class="subtitle">Stack Exchange Q&A</div>
+    </div>
+  </div>
+
+  <h2>Reference</h2>
+  <div class="grid">
+    <div class="card">
+      <a href="http://kiwix.lan/content/wikipedia_en_all_mini_2026-03">Wikipedia</a>
+      <div class="subtitle">Mini edition</div>
+    </div>
+  </div>
+
+  <div class="footer">Guide at <a href="http://192.168.1.175:8089">:8089</a> · ZIMs at <a href="http://kiwix.lan">kiwix.lan</a></div>
+</body>
+</html>

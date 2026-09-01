@@ -1,0 +1,11 @@
+services:
+  glance:
+    container_name: glance
+    image: glanceapp/glance:latest
+    restart: unless-stopped
+    ports:
+      - "3000:8080"
+    volumes:
+      - /root/glance/config:/app/config
+    environment:
+      - TZ=America/New_York

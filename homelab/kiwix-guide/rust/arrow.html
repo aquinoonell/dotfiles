@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Apache Arrow in Rust — Kiwix Guide</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="nav"><a href="../index.html">← Library</a> · <a href="index.html">Rust Data Stack</a> · <a href="../db/index.html">Postgres &amp; DuckDB</a></nav>
+  <article class="content">
+<h1 id="phase-5-apache-arrow-in-rust">Phase 5 — Apache Arrow in
+Rust</h1>
+<p>Arrow is the columnar memory format that DataFusion uses to represent
+data during query execution. Before you can contribute to DataFusion,
+you need to understand what Arrow is and how it works in Rust. Think of
+Arrow as the data layer and DataFusion as the query engine built on top
+of it.</p>
+<h2 id="what-arrow-is">What Arrow Is</h2>
+<p>Arrow defines a language-agnostic standard for storing tabular data
+in memory. The key idea: instead of storing data row by row, Arrow
+stores data column by column. A table with one million rows and ten
+columns is represented as ten arrays of one million values each.</p>
+<p>Why does this matter for databases? Because analytical queries
+typically scan a few columns across many rows. If you want to sum a
+single column across a million rows, row-oriented storage forces you to
+skip over nine irrelevant columns for every row. Column-oriented storage
+lets you read just the one column you need, sequentially, which is both
+cache-friendly and I/O-efficient.</p>
+<p>Arrow is also designed for zero-copy sharing between processes and
+languages — a Python process can share an Arrow buffer with a Rust
+process without copying the data.</p>
+<h2 id="the-official-arrow-rust-docs">The Official Arrow Rust Docs</h2>
+<p>Start with the top-level crate documentation. This is where the
+overall structure is explained and where all sub-crates are
+re-exported.</p>
+<ul>
+<li>https://arrow.apache.org/rust/arrow/index.html</li>
+</ul>
+<h3 id="key-modules">Key Modules</h3>
+<p><strong><code>arrow::datatypes</code></strong> — the type system.</p>
+<ul>
+<li>https://arrow.apache.org/rust/arrow/datatypes/index.html</li>
+<li><code>DataType</code> is an enum of all possible column types:
+<code>Int32</code>, <code>Int64</code>, <code>Float64</code>,
+<code>Utf8</code> (string), <code>Boolean</code>, <code>List</code>,
+<code>Struct</code>, <code>Dictionary</code>, <code>Duration</code>,
+<code>Timestamp</code>, and many more.</li>
+<li><code>Field</code> describes one column: its name, its
+<code>DataType</code>, and whether it can contain null values.</li>
+<li><code>Schema</code> is a list of <code>Field</code>s describing all
+the columns in a <code>RecordBatch</code>.</li>
+</ul>
+<p><strong><code>arrow::array</code></strong> — the data structures.</p>
+<ul>
+<li>https://arrow.apache.org/rust/arrow/array/index.html</li>
+<li><code>PrimitiveArray&lt;T&gt;</code> — a typed array of primitive
+values. <code>Int32Array</code>, <code>Float64Array</code>,
+<code>TimestampNanosecondArray</code> are all
+<code>PrimitiveArray&lt;T&gt;</code> for different values of
+<code>T</code>.</li>
+<li><code>StringArray</code> — an array of UTF-8 strings.</li>
+<li><code>ListArray</code> — an array where each element is itself a
+list.</li>
+<li><code>NullArray</code> — an array where every element is null.</li>
+<li><code>ArrayRef = Arc&lt;dyn Array&gt;</code> — the type you will see
+everywhere in DataFusion. Every column in a <code>RecordBatch</code> is
+an <code>ArrayRef</code>.</li>
+</ul>
+<h2 id="recordbatch-the-unit-of-execution">RecordBatch — the unit of
+execution</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">arrow::record_batch::</span>RecordBatch<span class="op">;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">arrow::array::</span><span class="op">{</span>Int32Array<span class="op">,</span> StringArray<span class="op">};</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">arrow::datatypes::</span><span class="op">{</span>DataType<span class="op">,</span> Field<span class="op">,</span> Schema<span class="op">};</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::sync::</span>Arc<span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">// A RecordBatch is: a Schema describing columns, plus one Array per column</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">// All arrays in a RecordBatch have the same length</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">// This is the type that DataFusion&#39;s execution engine produces and consumes</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> schema <span class="op">=</span> <span class="pp">Arc::</span>new(<span class="pp">Schema::</span>new(<span class="pp">vec!</span>[</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="pp">Field::</span>new(<span class="st">&quot;id&quot;</span><span class="op">,</span> <span class="pp">DataType::</span>Int32<span class="op">,</span> <span class="cn">false</span>)<span class="op">,</span>    <span class="co">// &quot;id&quot; column, Int32, non-nullable</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="pp">Field::</span>new(<span class="st">&quot;name&quot;</span><span class="op">,</span> <span class="pp">DataType::</span>Utf8<span class="op">,</span> <span class="cn">true</span>)<span class="op">,</span>    <span class="co">// &quot;name&quot; column, string, nullable</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>]))<span class="op">;</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> batch <span class="op">=</span> <span class="pp">RecordBatch::</span>try_new(</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    schema<span class="op">,</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="pp">vec!</span>[</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>        <span class="pp">Arc::</span>new(<span class="pp">Int32Array::</span>from(<span class="pp">vec!</span>[<span class="dv">1</span><span class="op">,</span> <span class="dv">2</span><span class="op">,</span> <span class="dv">3</span>]))<span class="op">,</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>        <span class="co">// None means null — the &quot;name&quot; column has a null in the second position</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>        <span class="pp">Arc::</span>new(<span class="pp">StringArray::</span>from(<span class="pp">vec!</span>[<span class="cn">Some</span>(<span class="st">&quot;alice&quot;</span>)<span class="op">,</span> <span class="cn">None</span><span class="op">,</span> <span class="cn">Some</span>(<span class="st">&quot;charlie&quot;</span>)]))<span class="op">,</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    ]<span class="op">,</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>)<span class="op">.</span>unwrap()<span class="op">;</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="co">// Access data</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="pp">println!</span>(<span class="st">&quot;{} rows, {} columns&quot;</span><span class="op">,</span> batch<span class="op">.</span>num_rows()<span class="op">,</span> batch<span class="op">.</span>num_columns())<span class="op">;</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="co">// To use column data, downcast the Arc&lt;dyn Array&gt; to the concrete type</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> id_column <span class="op">=</span> batch<span class="op">.</span>column(<span class="dv">0</span>)</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>as_any()</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="pp">downcast_ref::</span><span class="op">&lt;</span>Int32Array<span class="op">&gt;</span>()</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>unwrap()<span class="op">;</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a><span class="pp">println!</span>(<span class="st">&quot;First id: {}&quot;</span><span class="op">,</span> id_column<span class="op">.</span>value(<span class="dv">0</span>))<span class="op">;</span></span></code></pre></div>
+<h2 id="downcasting-pattern">Downcasting Pattern</h2>
+<p>From the top-level Arrow docs, how to downcast an
+<code>ArrayRef</code> to a concrete type:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> impl_string(array<span class="op">:</span> <span class="op">&amp;</span>StringArray) <span class="op">{}</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> impl_f32(array<span class="op">:</span> <span class="op">&amp;</span>Float32Array) <span class="op">{}</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> impl_dyn(array<span class="op">:</span> <span class="op">&amp;</span><span class="kw">dyn</span> Array) <span class="op">{</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">match</span> array<span class="op">.</span>data_type() <span class="op">{</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        <span class="co">// downcast `dyn Array` to concrete `StringArray`</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        <span class="pp">DataType::</span>Utf8 <span class="op">=&gt;</span> impl_string(array<span class="op">.</span>as_any()<span class="op">.</span>downcast_ref()<span class="op">.</span>unwrap())<span class="op">,</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        <span class="co">// downcast `dyn Array` to concrete `Float32Array`</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>        <span class="pp">DataType::</span>Float32 <span class="op">=&gt;</span> impl_f32(array<span class="op">.</span>as_any()<span class="op">.</span>downcast_ref()<span class="op">.</span>unwrap())<span class="op">,</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>        _ <span class="op">=&gt;</span> <span class="pp">unimplemented!</span>()</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>The cleaner version using <code>AsArray</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> impl_dyn(array<span class="op">:</span> <span class="op">&amp;</span><span class="kw">dyn</span> Array) <span class="op">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">match</span> array<span class="op">.</span>data_type() <span class="op">{</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>        <span class="pp">DataType::</span>Utf8 <span class="op">=&gt;</span> impl_string(array<span class="op">.</span>as_string())<span class="op">,</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        <span class="pp">DataType::</span>Float32 <span class="op">=&gt;</span> impl_f32(array<span class="op">.</span>as_primitive())<span class="op">,</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        _ <span class="op">=&gt;</span> <span class="pp">unimplemented!</span>()</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="generic-functions-over-numeric-types">Generic Functions Over
+Numeric Types</h2>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> sum<span class="op">&lt;</span>T<span class="op">:</span> ArrowPrimitiveType<span class="op">&gt;</span>(array<span class="op">:</span> <span class="op">&amp;</span>PrimitiveArray<span class="op">&lt;</span>T<span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="pp">T::</span>Native</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">where</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    T<span class="op">:</span> ArrowPrimitiveType<span class="op">,</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="pp">T::</span>Native<span class="op">:</span> <span class="bu">Sum</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    array<span class="op">.</span>iter()<span class="op">.</span>map(<span class="op">|</span>v<span class="op">|</span> v<span class="op">.</span>unwrap_or_default())<span class="op">.</span>sum()</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="pp">assert_eq!</span>(sum(<span class="op">&amp;</span><span class="pp">Float32Array::</span>from(<span class="pp">vec!</span>[<span class="dv">1.1</span><span class="op">,</span> <span class="dv">2.9</span><span class="op">,</span> <span class="dv">3</span><span class="op">.</span>]))<span class="op">,</span> <span class="dv">7</span><span class="op">.</span>)<span class="op">;</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="pp">assert_eq!</span>(sum(<span class="op">&amp;</span><span class="pp">TimestampNanosecondArray::</span>from(<span class="pp">vec!</span>[<span class="dv">1</span><span class="op">,</span> <span class="dv">2</span><span class="op">,</span> <span class="dv">3</span>]))<span class="op">,</span> <span class="dv">6</span>)<span class="op">;</span></span></code></pre></div>
+<p>Note <code>v.unwrap_or_default()</code> — this is how you handle
+nulls. Arrow iterates <code>Option&lt;T&gt;</code>, where
+<code>None</code> means the value is null.</p>
+<h2 id="further-reading">Further Reading</h2>
+<p><strong>The Arrow Cookbook</strong> — practical examples for common
+operations. - https://arrow.apache.org/cookbook/</p>
+<p><strong>Arrow columnar format specification</strong> — the binary
+layout. - https://arrow.apache.org/docs/format/Columnar.html</p>
+<p>Understanding the physical memory layout — how null bitmasks work,
+how variable-length data is stored, what dictionary encoding is — is
+what separates someone who calls Arrow APIs from someone who can
+contribute to Arrow itself.</p>
+<h2 id="exercises">Exercises</h2>
+<p>Build these in your <code>databases-scratch</code> repo.</p>
+<p><strong>Exercise 1:</strong> Without using DataFusion, read a CSV
+file, infer its schema, build <code>RecordBatch</code>es from the data,
+and write them to a Parquet file. Use only the <code>arrow</code> and
+<code>parquet</code> crates.</p>
+<p><strong>Exercise 2:</strong> Read that Parquet file back, iterate the
+<code>RecordBatch</code>es, find a numeric column, downcast it to
+<code>Int64Array</code>, and compute its sum manually.</p>
+<p><strong>Exercise 3:</strong> Find the PR where Joe fixed
+<code>array_slice</code> edge cases in DataFusion. Read the test cases
+he added. Write those same tests yourself against <code>arrow-rs</code>
+directly.</p>
+  </article>
+</body>
+</html>

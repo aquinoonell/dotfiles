@@ -1,0 +1,13 @@
+/* Learning cockpit — amber/slate dashboard */
+:root {
+  --theme-background-color: 220 18% 8%;
+  --theme-primary-color: 38 92% 50%;
+}
+
+.widget {
+  border-color: hsl(220 14% 18%) !important;
+}
+
+.widget-content a {
+  transition: color 0.15s ease;
+}

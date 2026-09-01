@@ -1,0 +1,9 @@
+[package]
+name = "lab01-read-parquet"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+parquet = "54"
+arrow = "54"
+anyhow = "1"

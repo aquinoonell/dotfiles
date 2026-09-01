@@ -1,0 +1,21 @@
+- Learn:
+    - Course:
+        - abbr: GO
+          href: http://bookstack.lan/books/rust-database-developer-course
+    - PostgreSQL:
+        - abbr: PG
+          href: http://kiwix.lan/content/devdocs_en_postgresql_2026-05
+    - Rust:
+        - abbr: RS
+          href: http://kiwix.lan/content/devdocs_en_rust_2026-01
+    - parq-tool:
+        - abbr: PQ
+          href: http://bookstack.lan/books/parq-tool-build-guide
+
+- Homelab:
+    - Runbooks:
+        - abbr: RB
+          href: http://bookstack.lan/books/runbooks
+    - Pi-hole:
+        - abbr: DNS
+          href: http://pihole.lan/admin
