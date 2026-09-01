@@ -146,28 +146,58 @@ set_wallpaper() {
     fi
 }
 
-# Restart borders with new colors
+# Write bordersrc config file for brew service restarts
+write_bordersrc() {
+    local accent="$1"
+    local muted="$2"
+    
+    mkdir -p "$HOME/.config/borders"
+    cat > "$HOME/.config/borders/bordersrc" << EOF
+#!/bin/bash
+borders active_color="$accent" inactive_color="$muted" width=6.0
+EOF
+    chmod +x "$HOME/.config/borders/bordersrc"
+}
+
+# Apply borders colors (IPC update if running, start via brew if not)
 restart_borders() {
     local accent="$1"
     local muted="$2"
     
     # Respect user preference (borders-toggle off)
     if [[ -f "$HOME/.borders-disabled" ]]; then
-        pkill -x borders 2>/dev/null || true
         print_info "Borders disabled (run borders-toggle on to enable)"
         return
     fi
     
-    # Kill existing borders
-    pkill -x borders 2>/dev/null || true
-    sleep 0.2
+    # Always write bordersrc so brew service restarts stay themed
+    write_bordersrc "$accent" "$muted"
     
-    # Start with new colors
+    # If borders is running, IPC update (no pkill needed)
+    if pgrep -x borders >/dev/null; then
+        borders active_color="$accent" inactive_color="$muted" width=6.0
+        print_success "Borders updated ($accent)"
+        return
+    fi
+    
+    # Not running — start via brew services (launchd-managed)
+    if command -v brew &>/dev/null && brew services list 2>/dev/null | grep -q "^borders"; then
+        brew services start borders 2>/dev/null || true
+        sleep 0.3
+        # IPC apply colors after brew starts it
+        if pgrep -x borders >/dev/null; then
+            borders active_color="$accent" inactive_color="$muted" width=6.0
+            print_success "Borders started via brew ($accent)"
+            return
+        fi
+    fi
+    
+    # Fallback: start directly (bordersrc will apply colors on next brew restart)
     borders active_color="$accent" inactive_color="$muted" width=6.0 &
     disown
-    sleep 0.1
+    sleep 0.2
     if pgrep -x borders >/dev/null; then
-        print_success "Borders restarted ($accent)"
+        print_success "Borders started ($accent)"
     else
         print_info "Borders failed to start — try: borders-toggle on"
     fi

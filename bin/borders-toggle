@@ -1,7 +1,9 @@
 #!/bin/bash
 #
 # Toggle JankyBorders on/off
-# Usage: borders-toggle [on|off]
+# Usage: borders-toggle [on|off|toggle|status]
+#
+# Uses brew services to manage launchd so KeepAlive doesn't fight theme changes.
 #
 
 DOTFILES_DIR="$HOME/dotfiles"
@@ -22,6 +24,19 @@ get_border_colors() {
     fi
 }
 
+# Write bordersrc so brew service restarts stay themed
+write_bordersrc() {
+    local accent_hex="$1"
+    local muted_hex="$2"
+    
+    mkdir -p "$HOME/.config/borders"
+    cat > "$HOME/.config/borders/bordersrc" << EOF
+#!/bin/bash
+borders active_color="$accent_hex" inactive_color="$muted_hex" width=6.0
+EOF
+    chmod +x "$HOME/.config/borders/bordersrc"
+}
+
 borders_on() {
     read -r accent muted <<< "$(get_border_colors)"
     # Convert to 0xff format
@@ -29,24 +44,53 @@ borders_on() {
     muted_hex="0xff${muted:1}"
     
     rm -f "$HOME/.borders-disabled"
-    pkill -x borders 2>/dev/null || true
-    sleep 0.1
+    
+    # Write bordersrc so service restarts stay themed
+    write_bordersrc "$accent_hex" "$muted_hex"
+    
+    # Start via brew services (launchd-managed, respects KeepAlive)
+    if command -v brew &>/dev/null && brew services list 2>/dev/null | grep -q "^borders"; then
+        brew services start borders 2>/dev/null || true
+        sleep 0.3
+        # IPC apply colors after brew starts it
+        if pgrep -x borders >/dev/null; then
+            borders active_color="$accent_hex" inactive_color="$muted_hex" width=6.0
+            echo "✓ Borders enabled ($accent_hex)"
+            return
+        fi
+    fi
+    
+    # Fallback: start directly if brew services unavailable
     borders active_color="$accent_hex" inactive_color="$muted_hex" width=6.0 &
     disown
-    echo "✓ Borders enabled"
+    sleep 0.2
+    if pgrep -x borders >/dev/null; then
+        echo "✓ Borders enabled ($accent_hex)"
+    else
+        echo "✗ Borders failed to start"
+    fi
 }
 
 borders_off() {
     touch "$HOME/.borders-disabled"
-    pkill -x borders 2>/dev/null
+    
+    # Stop via brew services first (prevents KeepAlive resurrection)
+    if command -v brew &>/dev/null && brew services list 2>/dev/null | grep -q "^borders"; then
+        brew services stop borders 2>/dev/null || true
+    fi
+    
+    # pkill as backup in case it wasn't started via brew
+    pkill -x borders 2>/dev/null || true
     echo "✓ Borders disabled"
 }
 
 borders_status() {
-    if pgrep -x borders >/dev/null; then
-        echo "Borders: enabled"
+    if [[ -f "$HOME/.borders-disabled" ]]; then
+        echo "Borders: disabled (flag set)"
+    elif pgrep -x borders >/dev/null; then
+        echo "Borders: enabled (running)"
     else
-        echo "Borders: disabled"
+        echo "Borders: stopped"
     fi
 }
 
@@ -58,7 +102,9 @@ case "${1:-toggle}" in
         borders_off
         ;;
     toggle)
-        if pgrep -x borders >/dev/null; then
+        if [[ -f "$HOME/.borders-disabled" ]]; then
+            borders_on
+        elif pgrep -x borders >/dev/null; then
             borders_off
         else
             borders_on

@@ -194,12 +194,13 @@ After adding a plugin, restart nvim once so lazy installs it. Toml-only themes d
 theme-picker
 ```
 
-`theme` writes `~/.current-theme`, regenerates WezTerm + AeroSpace, restarts `borders` (unless `~/.borders-disabled` exists), sets wallpaper, updates tmux popup colors, and pokes running nvim via `nvr`.
+`theme` writes `~/.current-theme`, regenerates WezTerm + AeroSpace, updates `borders` via IPC (and writes `~/.config/borders/bordersrc` so brew-service restarts stay themed), sets wallpaper, updates tmux popup colors, and pokes running nvim via `nvr`. If `~/.borders-disabled` exists, borders are skipped.
 
 Do not apply a theme just to test files unless the user wants their desktop changed.
 
 ## Do not
 
+- Use `pkill borders` from theme scripts or tmux popups — JankyBorders supports IPC updates, and `pkill` races Homebrew's KeepAlive launchd service. Use `borders active_color=... inactive_color=...` to recolor a running instance.
 - Hand-edit generated `~/.wezterm.lua` / aerospace toml as the source of truth.
 - Add a theme only in nvim plugins, or only as a folder with no `colorscheme.lua` mapping.
 - Scrape official show/movie stills into `backgrounds/` (copyright). Generate original images in the same aesthetic.
