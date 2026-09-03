@@ -1,6 +1,6 @@
 # Creating a theme (read this first)
 
-This repo is a unified theme system for macOS: WezTerm, Neovim, AeroSpace/JankyBorders, tmux popup colors, and desktop wallpaper. **Do not invent a parallel theming path.** One folder under `themes/` plus one nvim mapping is enough to theme everything.
+This repo is a unified theme system for macOS: WezTerm, Neovim, JankyBorders, tmux popup colors, and desktop wallpaper. **Do not invent a parallel theming path.** One folder under `themes/` plus one nvim mapping is enough to theme everything.
 
 Repo: `~/dotfiles` (also `https://github.com/aquinoonell/dotfiles`).
 
@@ -22,14 +22,14 @@ Repo: `~/dotfiles` (also `https://github.com/aquinoonell/dotfiles`).
    ~/dotfiles/bin/theme <kebab-name>
    ```
 
-Do **not** edit `.wezterm.lua` or `.aerospace.toml` by hand. `bin/theme` generates them from templates.
+Do **not** edit `.wezterm.lua` by hand. `bin/theme` generates it from templates.
 
 ## What actually gets applied
 
 | Surface | Source | How |
 |---|---|---|
 | WezTerm | `templates/wezterm.lua.tmpl` | Filled from `colors.toml` → `~/.wezterm.lua` |
-| AeroSpace + borders | `templates/aerospace.toml.tmpl` | Filled → `~/.config/aerospace/aerospace.toml`; borders use `accent` / `muted` as `0xffRRGGBB` |
+| JankyBorders | `themes/<name>/colors.toml` `accent` / `muted` | Applied as `0xffRRGGBB` via borders IPC |
 | Neovim | `nvim/lua/plugins/colorscheme.lua` | Live reload via `nvr` calling `OmarchyApplyTheme('<name>')`; next launch reads `~/.current-theme` |
 | Desktop wallpaper | `themes/<name>/backgrounds/` | First file in glob order on theme apply; a specific file if the user picks a wallpaper row |
 | Tmux popup / fzf picker chrome | `colors.toml` `background`, `foreground`, `accent`, `selection`, `muted` | Set when picker opens and when `theme` runs |
@@ -194,14 +194,14 @@ After adding a plugin, restart nvim once so lazy installs it. Toml-only themes d
 theme-picker
 ```
 
-`theme` writes `~/.current-theme`, regenerates WezTerm + AeroSpace, updates `borders` via IPC (and writes `~/.config/borders/bordersrc` so brew-service restarts stay themed), sets wallpaper, updates tmux popup colors, and pokes running nvim via `nvr`. If `~/.borders-disabled` exists, borders are skipped.
+`theme` writes `~/.current-theme`, regenerates WezTerm, updates `borders` via IPC (and writes `~/.config/borders/bordersrc` so brew-service restarts stay themed), sets wallpaper, updates tmux popup colors, and pokes running nvim via `nvr`. If `~/.borders-disabled` exists, borders are skipped.
 
 Do not apply a theme just to test files unless the user wants their desktop changed.
 
 ## Do not
 
 - Use `pkill borders` from theme scripts or tmux popups — JankyBorders supports IPC updates, and `pkill` races Homebrew's KeepAlive launchd service. Use `borders active_color=... inactive_color=...` to recolor a running instance.
-- Hand-edit generated `~/.wezterm.lua` / aerospace toml as the source of truth.
+- Hand-edit generated `~/.wezterm.lua` as the source of truth.
 - Add a theme only in nvim plugins, or only as a folder with no `colorscheme.lua` mapping.
 - Scrape official show/movie stills into `backgrounds/` (copyright). Generate original images in the same aesthetic.
 - Use spaces or uppercase in the theme directory name.

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Theme Switcher - Switch nvim, wezterm, aerospace, and wallpaper themes
+# Theme Switcher - Switch nvim, wezterm, borders, and wallpaper themes
 # Usage: theme <theme-name> | theme --list | theme --current
 #
 
@@ -270,16 +270,7 @@ switch_theme() {
         print_success "WezTerm config updated"
     fi
     
-    # 2. Generate Aerospace config
-    if [[ -f "$TEMPLATES_DIR/aerospace.toml.tmpl" ]]; then
-        fill_template "$TEMPLATES_DIR/aerospace.toml.tmpl" "$HOME/.config/aerospace/aerospace.toml" "$colors_file" "$theme_name"
-        print_success "Aerospace config updated"
-        
-        # Reload aerospace
-        aerospace reload-config 2>/dev/null && print_success "Aerospace reloaded" || print_info "Aerospace reload skipped"
-    fi
-    
-    # 3. Restart borders with new colors
+    # 2. Restart borders with new colors
     local accent muted_color
     accent=$(get_toml_value "$colors_file" "accent")
     muted_color=$(get_toml_value "$colors_file" "muted")

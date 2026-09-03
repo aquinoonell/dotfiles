@@ -1,0 +1,288 @@
+#!/usr/bin/env python3
+"""Move the focused window in a direction.
+
+Windows that share a workspace are tiled as neighbors (place one on the
+right and the other takes the left). A window only jumps to another
+display when it has no neighbor on this screen.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import shutil
+import subprocess
+import sys
+import time
+
+GAP = 8.0
+DIRS = {"left", "right", "up", "down"}
+CLI = os.environ.get("RIFT_CLI") or shutil.which("rift-cli") or "/opt/homebrew/bin/rift-cli"
+
+# Match rift/config.toml app_rules that should stay floating.
+KEEP_FLOATING = {
+    "com.apple.mail",
+    "com.apple.finder",
+    "com.apple.Music",
+    "com.apple.Notes",
+    "com.apple.MobileSMS",
+    "md.obsidian",
+    "us.zoom.xos",
+}
+
+
+def run_json(args: list[str]):
+    out = subprocess.check_output([CLI, *args], text=True).strip()
+    if not out:
+        return None
+    try:
+        return json.loads(out)
+    except json.JSONDecodeError:
+        return None
+
+
+def run_ok(args: list[str]) -> bool:
+    result = subprocess.run(
+        [CLI, *args],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    return result.returncode == 0
+
+
+def same_window(a, b) -> bool:
+    if not a or not b:
+        return False
+    return a.get("idx") == b.get("idx") and a.get("pid") == b.get("pid")
+
+
+def ident_of(window: dict):
+    return window.get("id") or window.get("window_id") or window.get("focused_window")
+
+
+def window_id_json(window: dict) -> str | None:
+    ident = ident_of(window)
+    if not ident:
+        return None
+    return json.dumps({"pid": ident["pid"], "idx": ident["idx"]})
+
+
+def find_path(node, focused, path=None):
+    if not isinstance(node, dict):
+        return None
+    path = list(path or [])
+    path.append(node)
+    if same_window(node.get("window_id"), focused):
+        return path
+    for child in node.get("children") or []:
+        found = find_path(child, focused, path)
+        if found:
+            return found
+    return None
+
+
+def has_tree_neighbor(layout: dict, focused, direction: str) -> bool:
+    path = find_path(layout.get("container_tree"), focused)
+    if not path or len(path) < 2:
+        return False
+    axis = "horizontal" if direction in ("left", "right") else "vertical"
+    want_prev = direction in ("left", "up")
+    for i in range(len(path) - 1, 0, -1):
+        parent = path[i - 1]
+        child = path[i]
+        if parent.get("layout_kind") != axis:
+            continue
+        kids = parent.get("children") or []
+        idx = next((j for j, k in enumerate(kids) if k is child), -1)
+        if idx < 0:
+            continue
+        if want_prev and idx > 0:
+            return True
+        if not want_prev and idx < len(kids) - 1:
+            return True
+    return False
+
+
+def split_axis(layout: dict, focused) -> str | None:
+    path = find_path(layout.get("container_tree"), focused)
+    if not path or len(path) < 2:
+        return None
+    return path[-2].get("layout_kind")
+
+
+def is_floating(window: dict, layout: dict | None = None, focused=None) -> bool:
+    if "is_floating" in window:
+        return bool(window.get("is_floating"))
+    if layout and focused:
+        return any(same_window(w, focused) for w in (layout.get("floating_windows") or []))
+    return False
+
+
+def display_in_direction(displays: list, direction: str) -> bool:
+    if len(displays) < 2:
+        return False
+    active = next((d for d in displays if d.get("is_active_space")), None)
+    if not active:
+        return False
+    ax = active["frame"]["origin"]["x"]
+    ay = active["frame"]["origin"]["y"]
+    for other in displays:
+        if other is active:
+            continue
+        ox = other["frame"]["origin"]["x"]
+        oy = other["frame"]["origin"]["y"]
+        if direction == "right" and ox > ax:
+            return True
+        if direction == "left" and ox < ax:
+            return True
+        if direction == "down" and oy > ay:
+            return True
+        if direction == "up" and oy < ay:
+            return True
+    return False
+
+
+def active_workspace_windows(workspaces: list) -> list:
+    ws = next((w for w in workspaces if w.get("is_active")), None)
+    return list((ws or {}).get("windows") or [])
+
+
+def focus_window(window: dict) -> bool:
+    payload = window_id_json(window)
+    if not payload:
+        return False
+    return run_ok(["execute", "window", "focus", "--window-id", payload])
+
+
+def tile_workspace_floaters(windows: list, focused) -> bool:
+    """Put sibling floaters into the tiling tree so they can split as neighbors."""
+    changed = False
+    to_tile = []
+    for window in windows:
+        if not is_floating(window):
+            continue
+        if window.get("bundle_id") in KEEP_FLOATING:
+            continue
+        to_tile.append(window)
+    if not to_tile:
+        return False
+    for window in to_tile:
+        focus_window(window)
+        run_ok(["execute", "window", "toggle-float"])
+        changed = True
+    target = next((w for w in windows if same_window(ident_of(w), focused)), None)
+    if target:
+        focus_window(target)
+    elif focused:
+        run_ok(
+            [
+                "execute",
+                "window",
+                "focus",
+                "--window-id",
+                json.dumps({"pid": focused["pid"], "idx": focused["idx"]}),
+            ]
+        )
+    if changed:
+        time.sleep(0.08)
+    return changed
+
+
+def align_split(layout: dict, focused, direction: str) -> None:
+    want = "horizontal" if direction in ("left", "right") else "vertical"
+    axis = split_axis(layout, focused)
+    if axis and axis != want:
+        run_ok(["execute", "layout", "toggle-orientation"])
+
+
+def snap_floating(direction: str, display: dict) -> None:
+    frame = display["frame"]
+    dx, dy = frame["origin"]["x"], frame["origin"]["y"]
+    dw, dh = frame["size"]["width"], frame["size"]["height"]
+    half_w = int((dw - GAP * 3) / 2)
+    half_h = int((dh - GAP * 3) / 2)
+    x, y = dx + GAP, dy + GAP
+    w, h = dw - GAP * 2, dh - GAP * 2
+    if direction == "left":
+        w = half_w
+    elif direction == "right":
+        w = half_w
+        x = dx + GAP * 2 + half_w
+    elif direction == "up":
+        h = half_h
+    elif direction == "down":
+        h = half_h
+        y = dy + GAP * 2 + half_h
+    x, y, w, h = int(x), int(y), int(w), int(h)
+    script = f'''
+tell application "System Events"
+    tell (first application process whose frontmost is true)
+        if (count of windows) is 0 then return
+        tell window 1
+            set position to {{{x}, {y}}}
+            set size to {{{w}, {h}}}
+        end tell
+    end tell
+end tell
+'''
+    subprocess.run(
+        ["osascript", "-e", script],
+        check=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+
+def main() -> int:
+    if len(sys.argv) != 2 or sys.argv[1] not in DIRS:
+        print("usage: rift-move left|right|up|down", file=sys.stderr)
+        return 1
+    direction = sys.argv[1]
+    layout = run_json(["query", "layout"]) or {}
+    workspaces = run_json(["query", "workspaces"]) or []
+    displays = run_json(["query", "displays"]) or []
+    windows = active_workspace_windows(workspaces)
+    focused = layout.get("focused_window") or layout.get("selected_window")
+    if not focused:
+        focused = ident_of(next((w for w in windows if w.get("is_focused")), {}) or {})
+    active = next((d for d in displays if d.get("is_active_space")), displays[0] if displays else None)
+
+    siblings = [
+        w
+        for w in windows
+        if not same_window(ident_of(w), focused)
+        and w.get("bundle_id") not in KEEP_FLOATING
+    ]
+
+    just_tiled = False
+    if siblings:
+        just_tiled = tile_workspace_floaters(windows, focused)
+        layout = run_json(["query", "layout"]) or layout
+        focused = layout.get("focused_window") or focused
+        if just_tiled:
+            align_split(layout, focused, direction)
+            run_ok(["execute", "layout", "move-node", direction])
+            return 0
+        if focused and has_tree_neighbor(layout, focused, direction):
+            run_ok(["execute", "layout", "move-node", direction])
+            return 0
+
+    if focused and has_tree_neighbor(layout, focused, direction):
+        run_ok(["execute", "layout", "move-node", direction])
+        return 0
+
+    if display_in_direction(displays, direction):
+        run_ok(["execute", "display", "move-window", "--direction", direction])
+        return 0
+
+    focused_window = next((w for w in windows if same_window(ident_of(w), focused)), None)
+    if focused_window and is_floating(focused_window) and active:
+        snap_floating(direction, active)
+        return 0
+
+    run_ok(["execute", "layout", "move-node", direction])
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

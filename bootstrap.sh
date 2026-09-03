@@ -84,7 +84,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
     brew list tmux &>/dev/null || brew install tmux
     brew list fzf &>/dev/null || brew install fzf
     brew list borders &>/dev/null || brew install FelixKratz/formulae/borders
-    brew list aerospace &>/dev/null || brew install --cask nikitabobko/tap/aerospace
+    brew list rift &>/dev/null || brew install acsandmann/tap/rift
     
     # Fonts
     brew list --cask font-fira-mono-nerd-font &>/dev/null || brew install --cask font-fira-mono-nerd-font

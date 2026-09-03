@@ -13,7 +13,6 @@ echo ""
 
 # Create config directories if they don't exist
 mkdir -p ~/.config/nvim
-mkdir -p ~/.config/aerospace
 
 # Backup and link nvim config
 if [[ -d ~/.config/nvim && ! -L ~/.config/nvim ]]; then
@@ -33,15 +32,6 @@ rm -f ~/.wezterm.lua
 ln -sf "$DOTFILES_DIR/.wezterm.lua" ~/.wezterm.lua
 echo "✓ Linked wezterm config"
 
-# Backup and link aerospace config
-if [[ -f ~/.config/aerospace/aerospace.toml && ! -L ~/.config/aerospace/aerospace.toml ]]; then
-    echo "Backing up existing aerospace config"
-    mv ~/.config/aerospace/aerospace.toml ~/.config/aerospace/aerospace.toml.backup
-fi
-rm -f ~/.config/aerospace/aerospace.toml
-ln -sf "$DOTFILES_DIR/.aerospace.toml" ~/.config/aerospace/aerospace.toml
-echo "✓ Linked aerospace config"
-
 # Backup and link tmux config
 if [[ -f ~/.tmux.conf && ! -L ~/.tmux.conf ]]; then
     echo "Backing up existing tmux config to ~/.tmux.conf.backup"
@@ -50,6 +40,15 @@ fi
 rm -f ~/.tmux.conf
 ln -sf "$DOTFILES_DIR/.tmux.conf" ~/.tmux.conf
 echo "✓ Linked tmux config"
+
+mkdir -p ~/.config/rift
+if [[ -f ~/.config/rift/config.toml && ! -L ~/.config/rift/config.toml ]]; then
+    echo "Backing up existing rift config"
+    mv ~/.config/rift/config.toml ~/.config/rift/config.toml.backup
+fi
+rm -f ~/.config/rift/config.toml
+ln -sf "$DOTFILES_DIR/rift/config.toml" ~/.config/rift/config.toml
+echo "✓ Linked rift config"
 
 # Add bin to PATH if not already there
 if ! echo "$PATH" | grep -q "$DOTFILES_DIR/bin"; then

@@ -1,0 +1,127 @@
+# Rift tiling WM config.
+
+[settings]
+animate = true
+animation_duration = 0.2
+animation_fps = 120.0
+animation_easing = "ease_out_cubic"
+
+default_disable = false
+
+focus_follows_mouse = false
+mouse_follows_focus = true
+mouse_hides_on_focus = false
+
+auto_focus_blacklist = [
+    "com.apple.Spotlight",
+    "com.raycast.macos",
+    "com.apple.dock",
+    "com.apple.systemuiserver",
+    "com.apple.SecurityAgent",
+]
+
+run_on_start = [
+    "/bin/bash -lc '$HOME/dotfiles/bin/borders-toggle on'",
+]
+
+hot_reload = true
+
+[settings.layout]
+mode = "bsp"
+window_insertion_point = "next_to_selection"
+
+[settings.layout.gaps.outer]
+top = 8.0
+left = 8.0
+bottom = 8.0
+right = 8.0
+
+[settings.layout.gaps.inner]
+horizontal = 8.0
+vertical = 8.0
+
+[settings.ui.menu_bar]
+enabled = true
+show_empty = false
+mode = "all"
+active_label = "name"
+display_style = "layout"
+
+[settings.gestures]
+enabled = false
+
+[virtual_workspaces]
+enabled = true
+default_workspace_count = 6
+auto_assign_windows = true
+preserve_focus_per_workspace = true
+workspace_auto_back_and_forth = false
+prevent_wrapping = false
+reapply_app_rules_on_title_change = false
+default_workspace = 0
+workspace_names = ["1", "2", "3", "4", "T", "B"]
+workspace_rules = []
+
+app_rules = [
+    { app_id = "com.apple.mail", floating = true },
+    { app_id = "com.apple.finder", floating = true },
+    { app_id = "com.apple.Music", floating = true },
+    { app_id = "com.apple.Notes", floating = true },
+    { app_id = "com.apple.MobileSMS", floating = true },
+    { app_id = "md.obsidian", floating = true },
+    { app_id = "us.zoom.xos", floating = true },
+]
+
+[modifier_combinations]
+comb1 = "Alt + Shift"
+
+[keys]
+"Alt + Z" = "toggle_space_activated"
+
+"Alt + H" = { move_focus = "left" }
+"Alt + J" = { move_focus = "down" }
+"Alt + K" = { move_focus = "up" }
+"Alt + L" = { move_focus = "right" }
+
+"comb1 + H" = { exec = ["/bin/bash", "-lc", "$HOME/dotfiles/bin/rift-move left"] }
+"comb1 + J" = { exec = ["/bin/bash", "-lc", "$HOME/dotfiles/bin/rift-move down"] }
+"comb1 + K" = { exec = ["/bin/bash", "-lc", "$HOME/dotfiles/bin/rift-move up"] }
+"comb1 + L" = { exec = ["/bin/bash", "-lc", "$HOME/dotfiles/bin/rift-move right"] }
+
+"Alt + F" = "toggle_fullscreen_within_gaps"
+"comb1 + F" = { toggle_window_floating = { center = true, size = "smart" } }
+"comb1 + T" = { toggle_window_floating = { center = true, size = "smart" } }
+
+"Alt + Space" = "toggle_orientation"
+"comb1 + Space" = "toggle_stack"
+
+"Alt + Minus" = { resize_window_shrink = "smart" }
+"Alt + Equal" = { resize_window_grow = "smart" }
+"comb1 + Minus" = "resize_window_shrink"
+"comb1 + Equal" = "resize_window_grow"
+
+"Alt + 1" = { switch_to_workspace = 0 }
+"Alt + 2" = { switch_to_workspace = 1 }
+"Alt + 3" = { switch_to_workspace = 2 }
+"Alt + 4" = { switch_to_workspace = 3 }
+"Alt + 9" = { switch_to_workspace = 4 }
+"Alt + 0" = { switch_to_workspace = 5 }
+
+"comb1 + 1" = { move_window_to_workspace = 0 }
+"comb1 + 2" = { move_window_to_workspace = 1 }
+"comb1 + 3" = { move_window_to_workspace = 2 }
+"comb1 + 4" = { move_window_to_workspace = 3 }
+
+"Alt + Enter" = { exec = ["/usr/bin/open", "-na", "WezTerm"] }
+"Alt + O" = { exec = ["/usr/bin/open", "-a", "Obsidian"] }
+
+"Alt + Tab" = "switch_to_last_workspace"
+"comb1 + Tab" = { move_window_to_display = { selector = "right" } }
+
+"comb1 + R" = "reload_config"
+"comb1 + Semicolon" = "reload_config"
+
+"comb1 + Left" = { join_window = "left" }
+"comb1 + Down" = { join_window = "down" }
+"comb1 + Up" = { join_window = "up" }
+"comb1 + Right" = { join_window = "right" }

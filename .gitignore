@@ -1,5 +1,7 @@
 nvim/nvim.log
 *.log
 .DS_Store
+__pycache__/
+*.pyc
 themes/*/preview*.png
 themes/*/*.png

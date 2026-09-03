@@ -12,7 +12,7 @@ curl -fsSL https://raw.githubusercontent.com/aquinoonell/dotfiles/main/bootstrap
 
 This will:
 - Install Homebrew (if needed)
-- Install WezTerm, Neovim, AeroSpace, Borders, and fonts
+- Install WezTerm, Neovim, Rift, Borders, and fonts
 - Clone this repo to `~/dotfiles`
 - Set up all symlinks
 - Configure your shell
@@ -57,13 +57,30 @@ wallpaper --all     # Pick wallpaper from any theme
 
 Press `Ctrl-s t` to open the theme picker popup (browse all themes and wallpapers).
 
+## Window manager (Rift)
+
+[Rift](https://github.com/acsandmann/rift) is the tiling WM. It uses BSP splits with animated layout changes.
+
+| Shortcut | Action |
+|----------|--------|
+| Option+Return | New WezTerm, tiled on this workspace |
+| Option+H / J / K / L | Focus |
+| Option+Shift+H / J / K / L | Move window; neighbor fills the other side. No neighbor: next display |
+| Option+1–4, 9, 0 | Workspaces 1–4, T, B |
+| Option+Shift+F or Option+Shift+T | Toggle focused window as a centered floater |
+| Option+F | Fullscreen inside the gaps (borders stay visible) |
+| Option+Z | Toggle Rift management on the current macOS Space |
+| Option+Shift+R | Reload Rift config |
+
+Finder, Mail, Notes, Messages, Music, Obsidian, and Zoom still float. Gaps and JankyBorders are unchanged. The menu bar shows a layout icon only for workspaces that currently have windows.
+
 ### What Gets Themed
 
 | Component | What Changes |
 |-----------|--------------|
 | WezTerm | Terminal colors |
 | Neovim | Colorscheme |
-| AeroSpace | Window border colors |
+| JankyBorders | Window border colors |
 | Desktop | Wallpaper |
 
 ### Available Themes
@@ -91,7 +108,11 @@ Press `Ctrl-s t` to open the theme picker popup (browse all themes and wallpaper
 ├── bin/
 │   ├── theme              # Theme switcher CLI
 │   ├── theme-picker       # Interactive theme browser (fzf)
-│   └── wallpaper          # Wallpaper picker
+│   ├── wallpaper          # Wallpaper picker
+│   ├── rift-move          # Move/tile window in a direction
+│   └── borders-toggle     # JankyBorders on/off
+├── rift/
+│   └── config.toml        # Live Rift WM config
 ├── themes/                # All 22 omarchy themes
 │   ├── osaka-jade/
 │   │   ├── colors.toml    # Color definitions
@@ -99,11 +120,9 @@ Press `Ctrl-s t` to open the theme picker popup (browse all themes and wallpaper
 │   │   └── neovim.lua     # Nvim colorscheme info
 │   └── ...
 ├── templates/             # Config templates
-│   ├── wezterm.lua.tmpl
-│   └── aerospace.toml.tmpl
+│   └── wezterm.lua.tmpl
 ├── nvim/                  # Neovim config
 ├── .wezterm.lua           # WezTerm config (generated)
-├── .aerospace.toml        # AeroSpace config (generated)
 ├── .tmux.conf             # Tmux config
 ├── bootstrap.sh           # One-line installer
 └── install.sh             # Local installation
@@ -116,7 +135,7 @@ Press `Ctrl-s t` to open the theme picker popup (browse all themes and wallpaper
 - [Neovim](https://neovim.io/) - Editor
 - [tmux](https://github.com/tmux/tmux) - Terminal multiplexer
 - [fzf](https://github.com/junegunn/fzf) - Fuzzy finder (for pickers)
-- [AeroSpace](https://github.com/nikitabobko/AeroSpace) - Tiling WM
+- [Rift](https://github.com/acsandmann/rift) - Tiling WM
 - [JankyBorders](https://github.com/FelixKratz/JankyBorders) - Window borders
 
 All dependencies are auto-installed by the bootstrap script.
