@@ -52,14 +52,14 @@ enabled = false
 
 [virtual_workspaces]
 enabled = true
-default_workspace_count = 6
+default_workspace_count = 4
 auto_assign_windows = true
 preserve_focus_per_workspace = true
 workspace_auto_back_and_forth = false
 prevent_wrapping = false
 reapply_app_rules_on_title_change = false
 default_workspace = 0
-workspace_names = ["1", "2", "3", "4", "T", "B"]
+workspace_names = ["1", "2", "3", "4"]
 workspace_rules = []
 
 app_rules = [
@@ -89,8 +89,8 @@ comb1 = "Alt + Shift"
 "comb1 + L" = { exec = ["/bin/bash", "-lc", "$HOME/dotfiles/bin/rift-move right"] }
 
 "Alt + F" = "toggle_fullscreen_within_gaps"
-"comb1 + F" = { toggle_window_floating = { center = true, size = "smart" } }
-"comb1 + T" = { toggle_window_floating = { center = true, size = "smart" } }
+"comb1 + F" = { toggle_window_floating = { center = true, size = { width = 0.45, height = 0.55 } } }
+"comb1 + T" = { toggle_window_floating = { center = true, size = { width = 0.45, height = 0.55 } } }
 
 "Alt + Space" = "toggle_orientation"
 "comb1 + Space" = "toggle_stack"
@@ -104,16 +104,13 @@ comb1 = "Alt + Shift"
 "Alt + 2" = { switch_to_workspace = 1 }
 "Alt + 3" = { switch_to_workspace = 2 }
 "Alt + 4" = { switch_to_workspace = 3 }
-"Alt + 9" = { switch_to_workspace = 4 }
-"Alt + 0" = { switch_to_workspace = 5 }
 
 "comb1 + 1" = { move_window_to_workspace = 0 }
 "comb1 + 2" = { move_window_to_workspace = 1 }
 "comb1 + 3" = { move_window_to_workspace = 2 }
 "comb1 + 4" = { move_window_to_workspace = 3 }
 
-"Alt + Enter" = { exec = ["/usr/bin/open", "-na", "WezTerm"] }
-"Alt + O" = { exec = ["/usr/bin/open", "-a", "Obsidian"] }
+"Alt + Enter" = { exec = ["/usr/bin/open", "-na", "kitty"] }
 
 "Alt + Tab" = "switch_to_last_workspace"
 "comb1 + Tab" = { move_window_to_display = { selector = "right" } }

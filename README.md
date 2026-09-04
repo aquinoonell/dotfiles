@@ -66,7 +66,7 @@ Press `Ctrl-s t` to open the theme picker popup (browse all themes and wallpaper
 | Option+Return | New WezTerm, tiled on this workspace |
 | Option+H / J / K / L | Focus |
 | Option+Shift+H / J / K / L | Move window; neighbor fills the other side. No neighbor: next display |
-| Option+1–4, 9, 0 | Workspaces 1–4, T, B |
+| Option+1–4 | Workspaces 1–4 |
 | Option+Shift+F or Option+Shift+T | Toggle focused window as a centered floater |
 | Option+F | Fullscreen inside the gaps (borders stay visible) |
 | Option+Z | Toggle Rift management on the current macOS Space |

@@ -175,7 +175,7 @@ After adding a plugin, restart nvim once so lazy installs it. Toml-only themes d
   ```
 - 3–5 images is enough. `wallpaper` / `wallpaper --all` also list these files.
 
-`theme-picker` preview is **color swatches only** (no image render in fzf). Do not add chafa/imgcat to the preview path unless the user asks — kitty/iterm graphics do not show in fzf, and `--symbols all` breaks FiraMono Nerd Font (`U+1FBxx`).
+`theme-picker` preview shows the wallpaper via `kitten icat --unicode-placeholder` (fzf + tmux popup under kitty), then color swatches. Fallback is chafa **braille** symbols, not `--symbols all` (U+1FBxx is missing from FiraMono Nerd Font). Do not use `--place` in the preview command — it needs `/dev/tty` and paints in screen coordinates. Keep `--passthrough=none` so fzf sees raw kitty APC and forwards it.
 
 ## Apply / verify
 
@@ -206,7 +206,7 @@ Do not apply a theme just to test files unless the user wants their desktop chan
 - Scrape official show/movie stills into `backgrounds/` (copyright). Generate original images in the same aesthetic.
 - Use spaces or uppercase in the theme directory name.
 - Put wallpapers next to `colors.toml`; they will not show in the picker and root `*.png` is gitignored.
-- Require `chafa` for the picker.
+- Require `chafa` for the picker (optional fallback only; kitty `kitten icat` is the image path).
 - Commit unless the user asks.
 
 ## Checklist
