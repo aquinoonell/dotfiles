@@ -44,11 +44,18 @@ vertical = 8.0
 enabled = true
 show_empty = false
 mode = "all"
-active_label = "name"
-display_style = "layout"
+active_label = "index"
+display_style = "label"
 
 [settings.gestures]
 enabled = false
+consume_dock_swipe = true
+invert_horizontal_swipe = false
+fingers = 3
+haptics_enabled = true
+
+[settings.window_snapping]
+drag_swap_fraction = 0.5
 
 [virtual_workspaces]
 enabled = true
@@ -63,43 +70,50 @@ workspace_names = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
 workspace_rules = []
 
 app_rules = [
-    { app_id = "com.apple.mail", floating = true },
-    { app_id = "com.apple.finder", floating = true },
-    { app_id = "com.apple.Music", floating = true },
-    { app_id = "com.apple.Notes", floating = true },
+    { app_id = "com.apple.mail",      floating = true },
+    { app_id = "com.apple.finder",    floating = true },
+    { app_id = "com.apple.Music",     floating = true },
+    { app_id = "com.apple.Notes",     floating = true },
     { app_id = "com.apple.MobileSMS", floating = true },
-    { app_id = "md.obsidian", floating = true },
-    { app_id = "us.zoom.xos", floating = true },
+    { app_id = "md.obsidian",         floating = true },
+    { app_id = "us.zoom.xos",         floating = true },
 ]
 
 [modifier_combinations]
 comb1 = "Alt + Shift"
 
 [keys]
+# Space management
 "Alt + Z" = "toggle_space_activated"
 
+# Focus movement
 "Alt + H" = { move_focus = "left" }
 "Alt + J" = { move_focus = "down" }
 "Alt + K" = { move_focus = "up" }
 "Alt + L" = { move_focus = "right" }
 
+# Window movement
 "comb1 + H" = { exec = ["/bin/bash", "-lc", "$HOME/dotfiles/bin/rift-move left"] }
 "comb1 + J" = { exec = ["/bin/bash", "-lc", "$HOME/dotfiles/bin/rift-move down"] }
 "comb1 + K" = { exec = ["/bin/bash", "-lc", "$HOME/dotfiles/bin/rift-move up"] }
 "comb1 + L" = { exec = ["/bin/bash", "-lc", "$HOME/dotfiles/bin/rift-move right"] }
 
-"Alt + F" = "toggle_fullscreen_within_gaps"
+# Fullscreen and float
+"Alt + F"   = "toggle_fullscreen_within_gaps"
 "comb1 + F" = { toggle_window_floating = { center = true, size = "smart" } }
-"comb1 + T" = { toggle_window_floating = { center = true, size = "smart" } }
+"comb1 + G" = "toggle_focus_floating"
 
-"Alt + Space" = "toggle_orientation"
+# Layout
+"Alt + Space"   = "toggle_orientation"
 "comb1 + Space" = "toggle_stack"
 
-"Alt + Minus" = { resize_window_shrink = "smart" }
-"Alt + Equal" = { resize_window_grow = "smart" }
+# Resize
+"Alt + Minus"   = { resize_window_shrink = "smart" }
+"Alt + Equal"   = { resize_window_grow = "smart" }
 "comb1 + Minus" = "resize_window_shrink"
 "comb1 + Equal" = "resize_window_grow"
 
+# Workspace switching
 "Alt + 1" = { switch_to_workspace = 0 }
 "Alt + 2" = { switch_to_workspace = 1 }
 "Alt + 3" = { switch_to_workspace = 2 }
@@ -110,6 +124,7 @@ comb1 = "Alt + Shift"
 "Alt + 8" = { switch_to_workspace = 7 }
 "Alt + 9" = { switch_to_workspace = 8 }
 
+# Move window to workspace
 "comb1 + 1" = { move_window_to_workspace = 0 }
 "comb1 + 2" = { move_window_to_workspace = 1 }
 "comb1 + 3" = { move_window_to_workspace = 2 }
@@ -120,15 +135,22 @@ comb1 = "Alt + Shift"
 "comb1 + 8" = { move_window_to_workspace = 7 }
 "comb1 + 9" = { move_window_to_workspace = 8 }
 
+# Join windows into BSP container
+"comb1 + Left"  = { join_window = "left" }
+"comb1 + Down"  = { join_window = "down" }
+"comb1 + Up"    = { join_window = "up" }
+"comb1 + Right" = { join_window = "right" }
+
+# Launch terminal
 "Alt + Enter" = { exec = ["/opt/homebrew/bin/kitty", "--single-instance", "-d", "/Users/onell"] }
 
-"Alt + Tab" = "switch_to_last_workspace"
+# Workspace navigation
+"Alt + Tab"   = "switch_to_last_workspace"
 "comb1 + Tab" = { move_window_to_display = { selector = "right" } }
 
-"comb1 + R" = "reload_config"
+# Config
+"comb1 + R"         = "reload_config"
 "comb1 + Semicolon" = "reload_config"
 
-"comb1 + Left" = { join_window = "left" }
-"comb1 + Down" = { join_window = "down" }
-"comb1 + Up" = { join_window = "up" }
-"comb1 + Right" = { join_window = "right" }
+# Debug
+"comb1 + P" = "serialize"
