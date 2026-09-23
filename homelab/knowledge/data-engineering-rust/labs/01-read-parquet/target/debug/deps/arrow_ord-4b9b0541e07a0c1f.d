@@ -1,0 +1,11 @@
+/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/deps/arrow_ord-4b9b0541e07a0c1f.d: /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-ord-54.3.1/src/lib.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-ord-54.3.1/src/cmp.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-ord-54.3.1/src/comparison.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-ord-54.3.1/src/ord.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-ord-54.3.1/src/partition.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-ord-54.3.1/src/rank.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-ord-54.3.1/src/sort.rs
+
+/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/deps/libarrow_ord-4b9b0541e07a0c1f.rmeta: /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-ord-54.3.1/src/lib.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-ord-54.3.1/src/cmp.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-ord-54.3.1/src/comparison.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-ord-54.3.1/src/ord.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-ord-54.3.1/src/partition.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-ord-54.3.1/src/rank.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-ord-54.3.1/src/sort.rs
+
+/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-ord-54.3.1/src/lib.rs:
+/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-ord-54.3.1/src/cmp.rs:
+/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-ord-54.3.1/src/comparison.rs:
+/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-ord-54.3.1/src/ord.rs:
+/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-ord-54.3.1/src/partition.rs:
+/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-ord-54.3.1/src/rank.rs:
+/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-ord-54.3.1/src/sort.rs:

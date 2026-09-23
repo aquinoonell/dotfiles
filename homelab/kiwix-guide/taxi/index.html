@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lake → job → Postgres — Kiwix Guide</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="nav"><a href="../index.html">← Course</a> · <a href="index.html">Taxi pipeline</a> · <a href="../db/index.html">Postgres &amp; DuckDB</a> · <a href="../rust/index.html">Rust Data Stack</a></nav>
+  <article class="content">
+<h1 id="lake-job-postgres">Lake → job → Postgres</h1>
+<p>A lab course for <strong>your</strong> homelab: NYC yellow taxi
+Parquet on the Mac, DataFusion as the job, PostgreSQL on <strong>CT
+110</strong> (<code>postgres.lan</code>) as the serving database.</p>
+<p>You <strong>write the Rust crate yourself</strong>
+(<code>cargo new taxi-pg</code>). These pages are the textbook:
+concepts, commented snippets, and what to read.</p>
+<h2 id="the-story-why-this-shape-is-real">The story (why this shape is
+“real”)</h2>
+<p>Finance wants January 2026 <strong>how people paid</strong> and
+<strong>how busy each day was</strong>. Millions of trip rows stay in a
+<strong>file</strong> (a stand-in for a data lake / S3). A
+<strong>job</strong> scans and aggregates. Postgres only stores
+<strong>small marts</strong> a dashboard would query — plus a
+<strong>run log</strong>.</p>
+<pre class="text" data-file="diagram" data-do="the pipeline"><code>Parquet on disk (lake)
+    → DataFusion SQL (job, in-process on the Mac)
+    → INSERT into parq.payment_mix + parq.trips_daily
+    → etl_runs records success/failure
+    → you SELECT / EXPLAIN in psql (dashboard user)</code></pre>
+<p>That is congruent with <strong>analytics → serving</strong>, not with
+writing Postgres internals. You are <em>using</em> two engines.</p>
+<h2 id="what-you-need-on-the-homelab">What you need on the homelab</h2>
+<table>
+<colgroup>
+<col style="width: 46%" />
+<col style="width: 53%" />
+</colgroup>
+<thead>
+<tr>
+<th>Piece</th>
+<th>Where</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Postgres 16</td>
+<td>CT 110 · <code>postgres.lan:5432</code> · db <code>parq</code></td>
+</tr>
+<tr>
+<td>HTML guides</td>
+<td><a href="index.html">this site</a> · also <a
+href="../rust/index.html">Rust stack</a> · <a
+href="../db/index.html">Postgres/DuckDB</a></td>
+</tr>
+<tr>
+<td>ZIM API docs</td>
+<td><a
+href="http://kiwix.lan/content/devdocs_en_postgresql_2026-05">kiwix.lan
+PostgreSQL</a></td>
+</tr>
+<tr>
+<td>Taxi file</td>
+<td><code>/Users/onell/Downloads/yellow_tripdata_2026-01.parquet</code>
+(~61 MB)</td>
+</tr>
+</tbody>
+</table>
+<p>Do <strong>not</strong> load the whole Parquet file into Postgres.
+The CT is 16 GB; the lesson is <strong>scan in DataFusion, store the
+answer</strong>.</p>
+<h2 id="pages">Pages</h2>
+<ol type="1">
+<li><a href="connect.html">Connect</a> — <code>psql</code>, DNS, Docker
+<code>172.18.0.2</code></li>
+<li><a href="schema.html">Schema</a> — <code>CREATE TABLE</code>,
+primary keys</li>
+<li><a href="datafusion.html">DataFusion</a> —
+<code>register_parquet</code>, <code>sql</code>,
+<code>collect</code></li>
+<li><a href="arrow.html">Arrow batches</a> — downcast columns</li>
+<li><a href="client.html">tokio-postgres</a> — <code>connect</code> +
+spawn</li>
+<li><a href="job.html">The job</a> — upsert + <code>etl_runs</code></li>
+<li><a href="reading.html">Reading list</a> — docs mapped to each
+idea</li>
+</ol>
+<h2 id="docs-to-read-first-overview">Docs to read first (overview)</h2>
+<ul>
+<li><a href="../db/postgres.html">How PostgreSQL works</a> — process
+model, WAL (why it is a server)</li>
+<li><a href="../rust/datafusion.html">DataFusion in Rust</a> — logical
+vs physical plan</li>
+<li><a href="../rust/arrow.html">Apache Arrow</a> —
+<code>RecordBatch</code></li>
+</ul>
+  </article>
+</body>
+</html>

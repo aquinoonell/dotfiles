@@ -21,7 +21,8 @@ ssh root@proxmox 'pct push 102 /tmp/glance.yml /root/glance/config/glance.yml'
 
 - Homepage (gethomepage.dev) — archived in `homepage/`
 - BookStack (CT 106)
-- Kiwix (CT 107) — online docs + course mdBook on `:8089` instead
+
+Kiwix (CT 107) is live at `http://kiwix.lan` (ZIM API library). HTML courses stay on `:8089`.
 
 ## Course book
 

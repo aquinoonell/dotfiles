@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Schema: serving tables — Kiwix Guide</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="nav"><a href="../index.html">← Course</a> · <a href="index.html">Taxi pipeline</a> · <a href="../db/index.html">Postgres &amp; DuckDB</a> · <a href="../rust/index.html">Rust Data Stack</a></nav>
+  <article class="content">
+<h1 id="schema-serving-tables-not-the-lake">Schema: serving tables, not
+the lake</h1>
+<h2 id="docs-to-read-first">Docs to read first</h2>
+<ul>
+<li><a
+href="https://www.postgresql.org/docs/16/sql-createtable.html">CREATE
+TABLE</a></li>
+<li><a href="https://www.postgresql.org/docs/16/sql-insert.html">INSERT
+… ON CONFLICT</a> (you will use this in the job)</li>
+<li><a
+href="https://www.postgresql.org/docs/16/datatype-datetime.html">DATE /
+TIMESTAMPTZ</a></li>
+<li>DevDocs: <a
+href="http://kiwix.lan/content/devdocs_en_postgresql_2026-05">PostgreSQL</a></li>
+</ul>
+<h2 id="why-three-tables">Why three tables</h2>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Role in a real team</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>etl_runs</code></td>
+<td>Job observability: did last night’s load succeed?</td>
+</tr>
+<tr>
+<td><code>payment_mix</code></td>
+<td>Mart: payment_type × month</td>
+</tr>
+<tr>
+<td><code>trips_daily</code></td>
+<td>Mart: one row per calendar day</td>
+</tr>
+</tbody>
+</table>
+<p>Raw trips <strong>stay in Parquet</strong>. These tables are what a
+dashboard would hit.</p>
+<h2 id="sql-to-run-in-psql-type-this">SQL to run in <code>psql</code>
+(type this)</h2>
+<div class="sourceCode" id="cb1" data-file="psql"
+data-do="type this — creates the three tables"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Job log: one row per cargo run</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="cf">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> etl_runs (</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">id</span>           SERIAL <span class="kw">PRIMARY</span> <span class="kw">KEY</span>,           <span class="co">-- auto-increment run id</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  job          TEXT <span class="kw">NOT</span> <span class="kw">NULL</span>,                <span class="co">-- name, e.g. taxi_january_marts</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  period       <span class="dt">DATE</span> <span class="kw">NOT</span> <span class="kw">NULL</span>,                <span class="co">-- month grain: 2026-01-01</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  started_at   TIMESTAMPTZ <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> now(),</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  finished_at  TIMESTAMPTZ,                  <span class="co">-- null while running</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  rows_written <span class="dt">INT</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  status       TEXT <span class="kw">NOT</span> <span class="kw">NULL</span>                 <span class="co">-- running | success | failed</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>);</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">-- Serving mart: how people paid (TLC codes 1=card, 2=cash, …)</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="cf">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> payment_mix (</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  period        <span class="dt">DATE</span> <span class="kw">NOT</span> <span class="kw">NULL</span>,               <span class="co">-- first of month</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  payment_type  <span class="dt">INT</span> <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  trips         BIGINT <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  revenue       <span class="dt">DOUBLE</span> <span class="dt">PRECISION</span> <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  loaded_at     TIMESTAMPTZ <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> now(),</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="co">-- re-running the job updates the same month, does not duplicate</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">PRIMARY</span> <span class="kw">KEY</span> (period, payment_type)</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>);</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="co">-- Serving mart: volume by day (~31 rows for January, not millions)</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="cf">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> trips_daily (</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>  <span class="dt">day</span>         <span class="dt">DATE</span> <span class="kw">PRIMARY</span> <span class="kw">KEY</span>,</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>  trips       BIGINT <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>  revenue     <span class="dt">DOUBLE</span> <span class="dt">PRECISION</span> <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  avg_miles   <span class="dt">DOUBLE</span> <span class="dt">PRECISION</span>,</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>  loaded_at   TIMESTAMPTZ <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> now()</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>);</span></code></pre></div>
+<p>Check:</p>
+<div class="sourceCode" id="cb2" data-file="psql"
+data-do="confirm the tables exist"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>\d payment_mix</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>\d trips_daily</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>\d etl_runs</span></code></pre></div>
+<p><code>DOUBLE PRECISION</code> is easier from Rust <code>f64</code>
+than <code>NUMERIC</code> (which needs extra crates). Fine for a
+lab.</p>
+<h2 id="concept-primary-key-upsert-target">Concept: primary key = upsert
+target</h2>
+<p><code>ON CONFLICT (period, payment_type)</code> only works if that
+uniqueness exists. The PK <strong>is</strong> the conflict target. Read
+the INSERT page section <strong>ON CONFLICT</strong>.</p>
+  </article>
+</body>
+</html>

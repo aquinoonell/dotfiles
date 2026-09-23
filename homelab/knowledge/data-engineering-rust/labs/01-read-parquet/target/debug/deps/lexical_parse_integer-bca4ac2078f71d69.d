@@ -1,0 +1,9 @@
+/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/deps/lexical_parse_integer-bca4ac2078f71d69.d: /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lexical-parse-integer-1.0.6/src/lib.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lexical-parse-integer-1.0.6/src/algorithm.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lexical-parse-integer-1.0.6/src/options.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lexical-parse-integer-1.0.6/src/parse.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lexical-parse-integer-1.0.6/src/api.rs
+
+/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/deps/liblexical_parse_integer-bca4ac2078f71d69.rmeta: /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lexical-parse-integer-1.0.6/src/lib.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lexical-parse-integer-1.0.6/src/algorithm.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lexical-parse-integer-1.0.6/src/options.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lexical-parse-integer-1.0.6/src/parse.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lexical-parse-integer-1.0.6/src/api.rs
+
+/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lexical-parse-integer-1.0.6/src/lib.rs:
+/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lexical-parse-integer-1.0.6/src/algorithm.rs:
+/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lexical-parse-integer-1.0.6/src/options.rs:
+/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lexical-parse-integer-1.0.6/src/parse.rs:
+/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lexical-parse-integer-1.0.6/src/api.rs:

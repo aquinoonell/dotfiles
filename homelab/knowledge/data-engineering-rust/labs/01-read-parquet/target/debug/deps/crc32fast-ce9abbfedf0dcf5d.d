@@ -1,0 +1,10 @@
+/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/deps/crc32fast-ce9abbfedf0dcf5d.d: /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crc32fast-1.5.1/src/lib.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crc32fast-1.5.1/src/baseline.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crc32fast-1.5.1/src/combine.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crc32fast-1.5.1/src/specialized/mod.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crc32fast-1.5.1/src/table.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crc32fast-1.5.1/src/specialized/aarch64.rs
+
+/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/deps/libcrc32fast-ce9abbfedf0dcf5d.rmeta: /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crc32fast-1.5.1/src/lib.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crc32fast-1.5.1/src/baseline.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crc32fast-1.5.1/src/combine.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crc32fast-1.5.1/src/specialized/mod.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crc32fast-1.5.1/src/table.rs /Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crc32fast-1.5.1/src/specialized/aarch64.rs
+
+/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crc32fast-1.5.1/src/lib.rs:
+/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crc32fast-1.5.1/src/baseline.rs:
+/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crc32fast-1.5.1/src/combine.rs:
+/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crc32fast-1.5.1/src/specialized/mod.rs:
+/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crc32fast-1.5.1/src/table.rs:
+/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crc32fast-1.5.1/src/specialized/aarch64.rs:

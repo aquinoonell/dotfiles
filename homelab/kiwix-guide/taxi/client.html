@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>tokio-postgres — Kiwix Guide</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="nav"><a href="../index.html">← Course</a> · <a href="index.html">Taxi pipeline</a> · <a href="../db/index.html">Postgres &amp; DuckDB</a> · <a href="../rust/index.html">Rust Data Stack</a></nav>
+  <article class="content">
+<h1 id="tokio-postgres-the-same-protocol-as-psql">tokio-postgres: the
+same protocol as psql</h1>
+<h2 id="docs-to-read-first">Docs to read first</h2>
+<ul>
+<li><a
+href="https://docs.rs/tokio-postgres/latest/tokio_postgres/fn.connect.html"><code>connect</code></a>
+— <strong>read the <code>(Client, Connection)</code>
+paragraph</strong></li>
+<li><a
+href="https://docs.rs/tokio-postgres/latest/tokio_postgres/struct.NoTls.html"><code>NoTls</code></a></li>
+<li><a
+href="https://docs.rs/tokio-postgres/latest/tokio_postgres/struct.Client.html#method.execute"><code>Client::execute</code></a></li>
+<li><a
+href="https://docs.rs/tokio-postgres/latest/tokio_postgres/struct.Client.html#method.query_one"><code>Client::query_one</code></a></li>
+<li><a
+href="https://docs.rs/tokio-postgres/latest/tokio_postgres/struct.Row.html#method.get"><code>Row::get</code></a></li>
+<li><a
+href="https://docs.rs/tokio-postgres/latest/tokio_postgres/types/trait.ToSql.html"><code>ToSql</code></a></li>
+<li>Course copy:
+<code>~/dotfiles/homelab/bookstack-content/course/parqtool/04-layer4-postgres.md</code></li>
+</ul>
+<p>This homelab has <strong>no TLS</strong> on 5432. <code>NoTls</code>
+is correct. Production would use rustls/native-tls.</p>
+<h2 id="cargo">Cargo</h2>
+<div class="sourceCode" id="cb1" data-file="Cargo.toml"
+data-do="add these dependencies"><pre
+class="sourceCode toml"><code class="sourceCode toml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="dt">tokio-postgres</span> <span class="op">=</span> <span class="op">{ </span><span class="dt">version</span><span class="op"> =</span> <span class="st">&quot;0.7&quot;</span><span class="op">, </span><span class="dt">features</span><span class="op"> =</span> <span class="op">[</span><span class="st">&quot;with-chrono-0_4&quot;</span><span class="op">] }</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="dt">chrono</span> <span class="op">=</span> <span class="op">{ </span><span class="dt">version</span><span class="op"> =</span> <span class="st">&quot;0.4&quot;</span><span class="op">, </span><span class="dt">default-features</span><span class="op"> =</span> <span class="cn">false</span><span class="op">, </span><span class="dt">features</span><span class="op"> =</span> <span class="op">[</span><span class="st">&quot;std&quot;</span><span class="op">,</span> <span class="st">&quot;clock&quot;</span><span class="op">] }</span></span></code></pre></div>
+<p><code>with-chrono-0_4</code> lets you pass
+<code>chrono::NaiveDate</code> as Postgres <code>DATE</code>.</p>
+<h2 id="connect-do-this-as-its-own-tiny-program-first">Connect (do this
+as its own tiny program first)</h2>
+<div class="sourceCode" id="cb2" data-file="src/main.rs"
+data-do="tiny program — prove connect first"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">tokio_postgres::</span>NoTls<span class="op">;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span><span class="pp">tokio::</span>main<span class="at">]</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">fn</span> main() <span class="op">-&gt;</span> <span class="dt">Result</span><span class="op">&lt;</span>()<span class="op">,</span> <span class="dt">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="pp">std::error::</span><span class="bu">Error</span><span class="op">&gt;&gt;</span> <span class="op">{</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> dsn <span class="op">=</span> <span class="st">&quot;host=postgres.lan user=postgres password=password dbname=parq&quot;</span><span class="op">;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Client = API you call (execute, query)</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Connection = TCP/state machine — MUST be polled or everything hangs</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> (client<span class="op">,</span> connection) <span class="op">=</span> <span class="pp">tokio_postgres::</span>connect(dsn<span class="op">,</span> NoTls)<span class="op">.</span><span class="kw">await</span><span class="op">?;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="pp">tokio::</span>spawn(<span class="kw">async</span> <span class="kw">move</span> <span class="op">{</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="kw">let</span> <span class="cn">Err</span>(e) <span class="op">=</span> connection<span class="op">.</span><span class="kw">await</span> <span class="op">{</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>            <span class="pp">eprintln!</span>(<span class="st">&quot;connection error: {e}&quot;</span>)<span class="op">;</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span>)<span class="op">;</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> row <span class="op">=</span> client<span class="op">.</span>query_one(<span class="st">&quot;SELECT 1 AS n&quot;</span><span class="op">,</span> <span class="op">&amp;</span>[])<span class="op">.</span><span class="kw">await</span><span class="op">?;</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> n<span class="op">:</span> <span class="dt">i32</span> <span class="op">=</span> row<span class="op">.</span>get(<span class="st">&quot;n&quot;</span>)<span class="op">;</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    <span class="pp">println!</span>(<span class="st">&quot;postgres said {n}&quot;</span>)<span class="op">;</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    <span class="cn">Ok</span>(())</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>If this hangs: you did not spawn <code>connection</code>. That is the
+#1 bug.</p>
+<h2 id="parameters">Parameters</h2>
+<div class="sourceCode" id="cb3" data-file="src/main.rs"
+data-do="INSERT with $1…$4"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// $1, $2 must implement ToSql — i32, i64, f64, NaiveDate with the chrono feature</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>client</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>execute(</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;INSERT INTO payment_mix (period, payment_type, trips, revenue) </span><span class="sc">\</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="st">         VALUES ($1, $2, $3, $4)&quot;</span><span class="op">,</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>        <span class="op">&amp;</span>[<span class="op">&amp;</span>period<span class="op">,</span> <span class="op">&amp;</span>payment_type<span class="op">,</span> <span class="op">&amp;</span>trips<span class="op">,</span> <span class="op">&amp;</span>revenue]<span class="op">,</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="kw">await</span><span class="op">?;</span></span></code></pre></div>
+<p><code>&amp;[]</code> is “no parameters.” Slice of
+<strong>references</strong> to values.</p>
+<h2 id="returning-etl_runs">RETURNING (etl_runs)</h2>
+<div class="sourceCode" id="cb4" data-file="src/main.rs"
+data-do="start the job log"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> row <span class="op">=</span> client</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span>query_one(</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;INSERT INTO etl_runs (job, period, status) </span><span class="sc">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="st">         VALUES ($1, $2, &#39;running&#39;) RETURNING id&quot;</span><span class="op">,</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        <span class="op">&amp;</span>[<span class="op">&amp;</span><span class="st">&quot;taxi_january_marts&quot;</span><span class="op">,</span> <span class="op">&amp;</span>period]<span class="op">,</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="kw">await</span><span class="op">?;</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> run_id<span class="op">:</span> <span class="dt">i32</span> <span class="op">=</span> row<span class="op">.</span>get(<span class="dv">0</span>)<span class="op">;</span> <span class="co">// column 0 of RETURNING</span></span></code></pre></div>
+<h2 id="concept">Concept</h2>
+<p><code>psql</code> and <code>tokio-postgres</code> are the
+<strong>same protocol</strong>. If <code>psql</code> works and Rust
+hangs, the bug is almost always the un-spawned <code>Connection</code>,
+not DNS.</p>
+  </article>
+</body>
+</html>

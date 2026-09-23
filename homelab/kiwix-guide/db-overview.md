@@ -7,13 +7,13 @@ Three ways to run SQL on data. They are not interchangeable — that is the poin
 | Kind | Client–server **OLTP** | Embedded **OLAP** | Embedded **query engine** (you use it as a library) |
 | Process | Always-on daemon, port 5432 | In-process (CLI or crate) | In-process (`SessionContext`) |
 | Storage | Its own data directory (row pages, WAL) | `.duckdb` file **or** Parquet/CSV in place | You bring files (Parquet); it does not own a catalog by default |
-| On this homelab | **CT 110** · `postgres.lan` | Install on the Mac — no CT | `parq-tool` / Rust labs |
+| On this homelab | **CT 110** · `postgres.lan` | Install on the Mac — no CT | `parq-tool` / [taxi pipeline lab](../taxi/index.html) |
 
 ```
 Parquet files (columnar, on disk)
     ├─ DuckDB        SELECT … FROM 'data.parquet'
     ├─ DataFusion    register table, run SQL, get RecordBatches
-    └─ Postgres      COPY/INSERT results into tables (parq-tool Layer 4)
+    └─ Postgres      INSERT marts (parq-tool Layer 4 · taxi lab)
 ```
 
 ## When to use which
@@ -28,5 +28,6 @@ Parquet files (columnar, on disk)
 2. [How DuckDB works](duckdb.html) — vectorized execution, Parquet, CLI
 3. [Database internals](../rust/database-internals.html) — B+Tree, buffer pool, why WAL exists
 4. DevDocs ZIMs (API reference): [PostgreSQL](http://kiwix.lan/content/devdocs_en_postgresql_2026-05) · [DuckDB](http://kiwix.lan/content/devdocs_en_duckdb_2026-04)
+5. [Lake → job → Postgres](../taxi/index.html) — scan NYC taxi Parquet with DataFusion, write small marts to CT 110
 
 Ops (connect, backup, `parq-tool`): see `~/dotfiles/homelab/POSTGRES.md` on the Mac.

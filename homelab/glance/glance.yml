@@ -37,7 +37,7 @@ pages:
           - type: search
             title: Search
             search-engine: http://searxng.lan/search?q={QUERY}
-            placeholder: Search via SearXNG…
+            placeholder: Search (DuckDuckGo via SearXNG)
             new-tab: true
 
       - size: full
@@ -50,6 +50,9 @@ pages:
               - title: Course
                 url: http://192.168.1.175:8089
                 icon: mdi:school
+              - title: Kiwix
+                url: http://kiwix.lan
+                icon: mdi:book-open-page-variant
               - title: Pi-hole
                 url: http://pihole.lan/admin
                 icon: mdi:dns
@@ -70,6 +73,12 @@ pages:
                   - title: Rust DB Course
                     url: http://192.168.1.175:8089
                     icon: mdi:school
+                  - title: Taxi pipeline lab
+                    url: http://192.168.1.175:8089/taxi/
+                    icon: mdi:taxi
+                  - title: Kiwix library
+                    url: http://kiwix.lan
+                    icon: mdi:book-open-page-variant
               - title: Apache Projects
                 color: 263 70 58
                 links:
@@ -137,6 +146,12 @@ pages:
                     url: https://devdocs.io/duckdb/
                   - title: C++
                     url: https://devdocs.io/cpp/
+              - title: Crate Docs
+                links:
+                  - title: docs.rs
+                    url: https://docs.rs/
+                  - title: crates.io
+                    url: https://crates.io/
               - title: OSS
                 links:
                   - title: apache/datafusion
@@ -153,6 +168,9 @@ pages:
                   - title: Dotfiles
                     url: https://github.com/aquinoonell/dotfiles
                     icon: mdi:github
+                  - title: Kiwix
+                    url: http://kiwix.lan
+                    icon: mdi:book-open-page-variant
                   - title: Pi-hole
                     url: http://pihole.lan/admin
                     icon: mdi:dns

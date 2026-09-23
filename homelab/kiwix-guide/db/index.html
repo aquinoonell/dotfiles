@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../style.css">
 </head>
 <body>
-  <nav class="nav"><a href="../index.html">← Library</a> · <a href="index.html">Postgres &amp; DuckDB</a> · <a href="../rust/index.html">Rust Data Stack</a></nav>
+  <nav class="nav"><a href="../index.html">← Library</a> · <a href="index.html">Postgres &amp; DuckDB</a> · <a href="../rust/index.html">Rust Data Stack</a> · <a href="../taxi/index.html">Taxi pipeline</a></nav>
   <article class="content">
 <h1 id="postgres-duckdb-and-datafusion">Postgres, DuckDB, and
 DataFusion</h1>
@@ -53,14 +53,15 @@ place</td>
 <td>On this homelab</td>
 <td><strong>CT 110</strong> · <code>postgres.lan</code></td>
 <td>Install on the Mac — no CT</td>
-<td><code>parq-tool</code> / Rust labs</td>
+<td><code>parq-tool</code> / <a href="../taxi/index.html">taxi pipeline
+lab</a></td>
 </tr>
 </tbody>
 </table>
 <pre><code>Parquet files (columnar, on disk)
     ├─ DuckDB        SELECT … FROM &#39;data.parquet&#39;
     ├─ DataFusion    register table, run SQL, get RecordBatches
-    └─ Postgres      COPY/INSERT results into tables (parq-tool Layer 4)</code></pre>
+    └─ Postgres      INSERT marts (parq-tool Layer 4 · taxi lab)</code></pre>
 <h2 id="when-to-use-which">When to use which</h2>
 <ul>
 <li><strong>DuckDB</strong> — explore a file in seconds. No server. Same
@@ -83,6 +84,8 @@ B+Tree, buffer pool, why WAL exists</li>
 href="http://kiwix.lan/content/devdocs_en_postgresql_2026-05">PostgreSQL</a>
 · <a
 href="http://kiwix.lan/content/devdocs_en_duckdb_2026-04">DuckDB</a></li>
+<li><a href="../taxi/index.html">Lake → job → Postgres</a> — scan NYC
+taxi Parquet with DataFusion, write small marts to CT 110</li>
 </ol>
 <p>Ops (connect, backup, <code>parq-tool</code>): see
 <code>~/dotfiles/homelab/POSTGRES.md</code> on the Mac.</p>

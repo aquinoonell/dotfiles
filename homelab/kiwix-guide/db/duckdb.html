@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../style.css">
 </head>
 <body>
-  <nav class="nav"><a href="../index.html">← Library</a> · <a href="index.html">Postgres &amp; DuckDB</a> · <a href="../rust/index.html">Rust Data Stack</a></nav>
+  <nav class="nav"><a href="../index.html">← Library</a> · <a href="index.html">Postgres &amp; DuckDB</a> · <a href="../rust/index.html">Rust Data Stack</a> · <a href="../taxi/index.html">Taxi pipeline</a></nav>
   <article class="content">
 <h1 id="how-duckdb-works">How DuckDB Works</h1>
 <p>DuckDB is an <strong>embedded analytical (OLAP)</strong> database.
@@ -113,9 +113,10 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb7-1"><a href="
 <p>Same files, different job. If a DuckDB query is fast and a DataFusion
 query is slow, that is a learning signal (plan, batch size, predicates)
 — not a reason to delete DataFusion.</p>
-<h2 id="reference-offline">Reference (offline)</h2>
+<h2 id="reference">Reference</h2>
 <ul>
-<li>DevDocs: http://kiwix.lan/content/devdocs_en_duckdb_2026-04</li>
+<li><a href="https://duckdb.org/docs/">DuckDB docs</a></li>
+<li><a href="https://devdocs.io/duckdb/">DevDocs</a></li>
 <li>Curated stack: <a href="../rust/arrow.html">Arrow</a> · <a
 href="../rust/parquet.html">Parquet</a> · <a
 href="../rust/datafusion.html">DataFusion</a></li>

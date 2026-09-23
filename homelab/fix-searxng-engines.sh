@@ -1,128 +1,112 @@
 #!/usr/bin/env bash
-# Fix SearXNG CAPTCHA / no-results issue on homelab.
-# Run on the host that serves http://192.168.1.168:8080 (as root).
+# Deploy SearXNG configuration to CT 103 (DuckDuckGo primary + IT extras).
+# Run from Mac: ./fix-searxng-engines.sh
+#
+# Deploys:
+#   - searxng-settings-override.yml → /etc/searxng/settings.yml (inside container)
+#   - searxng-hostnames.yml → /etc/searxng/searxng-hostnames.yml (for hostnames plugin)
+#
+# Requires: ssh access to root@proxmox, CT 103 running with searxng container.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OVERRIDE_SRC="${SCRIPT_DIR}/searxng-settings-override.yml"
-OVERRIDE_TMP=""
+HOSTNAMES_SRC="${SCRIPT_DIR}/searxng-hostnames.yml"
 
-write_override() {
-  cat >"$1" <<'YAML'
-use_default_settings: true
-
-search:
-  max_ban_time_on_fail: 120
-  suspended_times:
-    SearxEngineAccessDenied: 86400
-    SearxEngineCaptcha: 86400
-    SearxEngineTooManyRequests: 3600
-
-engines:
-  - name: duckduckgo
-    disabled: true
-  - name: startpage
-    disabled: true
-  - name: google
-    disabled: true
-  - name: brave
-    disabled: true
-  - name: bing
-    disabled: false
-    weight: 2.0
-  - name: wiby
-    disabled: false
-    weight: 1.5
-  - name: wikipedia
-    disabled: false
-    weight: 1.0
-  - name: seznam
-    disabled: false
-    weight: 0.5
-  - name: mojeek
-    disabled: false
-    weight: 0.8
-  - name: qwant
-    disabled: false
-    weight: 0.8
-  - name: yahoo
-    disabled: false
-    weight: 0.5
-  - name: presearch
-    disabled: false
-    weight: 0.5
-YAML
-}
-
-if [[ ! -f "$OVERRIDE_SRC" ]]; then
-  OVERRIDE_TMP="$(mktemp)"
-  OVERRIDE_SRC="$OVERRIDE_TMP"
-  write_override "$OVERRIDE_SRC"
-  trap 'rm -f "$OVERRIDE_TMP"' EXIT
-fi
-SETTINGS_PATHS=(
-  /etc/searxng/settings.yml
-  /opt/searxng/settings.yml
-  /usr/local/searxng/settings.yml
-)
+PROXMOX_HOST="${PROXMOX_HOST:-proxmox}"
+CT_ID="103"
+CONTAINER="searxng"
+SEARXNG_URL="http://searxng.lan"
 
 log() { printf '==> %s\n' "$*"; }
+warn() { printf 'WARN: %s\n' "$*" >&2; }
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 
 [[ -f "$OVERRIDE_SRC" ]] || die "Missing $OVERRIDE_SRC"
+[[ -f "$HOSTNAMES_SRC" ]] || die "Missing $HOSTNAMES_SRC"
 
-log "Outbound IP (what search engines see):"
-curl -fsS --max-time 8 https://ifconfig.me/ip || curl -fsS --max-time 8 https://api.ipify.org || true
-echo
+log "Deploying SearXNG config to CT $CT_ID..."
 
-SETTINGS=""
-for path in "${SETTINGS_PATHS[@]}"; do
-  if [[ -f "$path" ]]; then
-    SETTINGS="$path"
-    break
-  fi
-done
+ssh_pct() {
+  ssh "root@${PROXMOX_HOST}" "pct exec $CT_ID -- $*"
+}
 
-if [[ -z "$SETTINGS" ]]; then
-  log "settings.yml not on disk — checking Docker..."
-  CONTAINER="$(docker ps --format '{{.Names}}' | grep -Ei 'searx' | head -1 || true)"
-  [[ -n "$CONTAINER" ]] || die "No SearXNG container found. Is Docker running?"
+log "Checking SearXNG container..."
+ssh_pct docker ps --format "'{{.Names}}'" | grep -q "$CONTAINER" || die "Container $CONTAINER not running on CT $CT_ID"
 
-  log "Found container: $CONTAINER"
-  SETTINGS_IN_CONTAINER="$(docker exec "$CONTAINER" sh -c 'for p in /etc/searxng/settings.yml /usr/local/searxng/searx/settings.yml; do [ -f "$p" ] && echo "$p" && exit 0; done; exit 1')"
-  BACKUP="settings.yml.bak.$(date +%Y%m%d-%H%M%S)"
-  docker exec "$CONTAINER" cp "$SETTINGS_IN_CONTAINER" "$(dirname "$SETTINGS_IN_CONTAINER")/$BACKUP"
-  docker cp "$OVERRIDE_SRC" "$CONTAINER:$SETTINGS_IN_CONTAINER"
-  log "Backed up to $BACKUP inside container; applied override."
-  docker restart "$CONTAINER"
-  log "Restarted $CONTAINER"
-else
-  BACKUP="${SETTINGS}.bak.$(date +%Y%m%d-%H%M%S)"
-  cp "$SETTINGS" "$BACKUP"
-  cp "$OVERRIDE_SRC" "$SETTINGS"
-  log "Backed up to $BACKUP; applied override at $SETTINGS"
+log "Backing up current settings..."
+BACKUP="settings.yml.bak.$(date +%Y%m%d-%H%M%S)"
+ssh_pct docker exec "$CONTAINER" cp /etc/searxng/settings.yml "/etc/searxng/$BACKUP" 2>/dev/null || warn "No existing settings.yml to backup"
 
-  if systemctl is-active --quiet searxng 2>/dev/null; then
-    systemctl restart searxng
-    log "Restarted searxng systemd service"
-  elif docker ps --format '{{.Names}}' | grep -Eiq 'searx'; then
-    docker restart "$(docker ps --format '{{.Names}}' | grep -Ei 'searx' | head -1)"
-    log "Restarted SearXNG Docker container"
-  else
-    log "Restart SearXNG manually if searches still fail."
-  fi
-fi
+log "Copying settings overlay..."
+cat "$OVERRIDE_SRC" | ssh "root@${PROXMOX_HOST}" "pct exec $CT_ID -- docker exec -i $CONTAINER tee /etc/searxng/settings.yml > /dev/null"
 
-log "Waiting for SearXNG..."
-for _ in $(seq 1 20); do
-  if curl -fsS --max-time 2 "http://127.0.0.1:8080/" >/dev/null 2>&1; then
+log "Copying hostnames file..."
+cat "$HOSTNAMES_SRC" | ssh "root@${PROXMOX_HOST}" "pct exec $CT_ID -- docker exec -i $CONTAINER tee /etc/searxng/searxng-hostnames.yml > /dev/null"
+
+log "Restarting container..."
+ssh_pct docker restart "$CONTAINER"
+
+log "Waiting for SearXNG to come up..."
+for i in $(seq 1 30); do
+  if curl -fsS --max-time 2 "$SEARXNG_URL/" >/dev/null 2>&1; then
     break
   fi
   sleep 1
 done
 
-log "Smoke test (should return results, no CAPTCHA in engine messages):"
-curl -fsS --max-time 15 -X POST "http://127.0.0.1:8080/search" -d "q=rust+programming" \
-  | grep -E 'class="result |response-error|CAPTCHA' | head -20 || true
+log "Running smoke tests..."
+FAILED=0
 
-log "Done. Retry a search in Zen Browser."
+smoke_test() {
+  local name="$1"
+  local query="$2"
+  local expected_pattern="$3"
+  local exclude_pattern="${4:-}"
+  
+  log "  Test: $name"
+  local result
+  result=$(curl -fsS --max-time 15 "$SEARXNG_URL/search?q=$(echo "$query" | sed 's/ /+/g')" 2>&1) || {
+    warn "    FAIL: Request failed"
+    FAILED=$((FAILED + 1))
+    return
+  }
+  
+  if echo "$result" | grep -qE "$expected_pattern"; then
+    log "    PASS: Found expected results"
+  else
+    warn "    FAIL: Expected pattern not found: $expected_pattern"
+    FAILED=$((FAILED + 1))
+  fi
+  
+  if [[ -n "$exclude_pattern" ]] && echo "$result" | grep -qE "$exclude_pattern"; then
+    warn "    FAIL: Found unwanted pattern: $exclude_pattern"
+    FAILED=$((FAILED + 1))
+  fi
+}
+
+smoke_test "DuckDuckGo general search" \
+  "rust programming&engines=duckduckgo" \
+  "(rust-lang\.org|github\.com|wikipedia\.org|class=\"result)" \
+  ""
+
+smoke_test "Default search uses DuckDuckGo or fallback" \
+  "rust programming" \
+  "(duckduckgo|bing|rust-lang\.org|class=\"result)" \
+  ""
+
+smoke_test "DataFusion RecordBatch (IT search)" \
+  "DataFusion RecordBatch&categories=it,general" \
+  "(apache\.org|docs\.rs|github\.com)" \
+  "(ebay\.com|autoparts|squarespace)"
+
+if [[ $FAILED -eq 0 ]]; then
+  log "All smoke tests passed!"
+else
+  warn "$FAILED smoke test(s) failed — check configuration"
+fi
+
+log "Deployed engines:"
+ssh_pct docker exec "$CONTAINER" grep -E "^  - name:|disabled:|weight:" /etc/searxng/settings.yml | head -40
+
+log "Done. Test at: $SEARXNG_URL"

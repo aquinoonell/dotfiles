@@ -1,0 +1,43 @@
+#!/bin/bash
+# music — cliamp daemon controller
+# Usage: music [start|stop|toggle|next|prev|status|search|now]
+
+PLAYLIST="${CLIAMP_PLAYLIST:-Liked Music}"
+
+case "$1" in
+  start)
+    # Launch daemon in background; won't open a window
+    cliamp --daemon --auto-play --playlist "$PLAYLIST" &
+    echo "▶ cliamp daemon started (playlist: $PLAYLIST)"
+    ;;
+  stop)
+    cliamp stop
+    pkill -f "cliamp --daemon" 2>/dev/null
+    echo "■ cliamp stopped"
+    ;;
+  toggle)
+    cliamp toggle
+    ;;
+  next)
+    cliamp next
+    ;;
+  prev)
+    cliamp prev
+    ;;
+  search)
+    # e.g.: music search "tame impala let it happen"
+    cliamp search "${@:2}"
+    ;;
+  now|status)
+    cliamp status --json 2>/dev/null \
+      | jq -r '"♪ \(.title) — \(.artist)"' 2>/dev/null \
+      || echo "cliamp not running"
+    ;;
+  vol)
+    # e.g.: music vol -3   or   music vol +3
+    cliamp volume "$2"
+    ;;
+  *)
+    echo "Usage: music [start|stop|toggle|next|prev|search <query>|now|vol <dB>]"
+    ;;
+esac

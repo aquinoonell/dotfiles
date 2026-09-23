@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connect to homelab Postgres — Kiwix Guide</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="nav"><a href="../index.html">← Course</a> · <a href="index.html">Taxi pipeline</a> · <a href="../db/index.html">Postgres &amp; DuckDB</a> · <a href="../rust/index.html">Rust Data Stack</a></nav>
+  <article class="content">
+<h1 id="connect-to-homelab-postgres">Connect to homelab Postgres</h1>
+<h2 id="docs-to-read-first">Docs to read first</h2>
+<ul>
+<li>Homelab ops: <code>~/dotfiles/homelab/POSTGRES.md</code> on the
+Mac</li>
+<li><a href="../db/postgres.html">How PostgreSQL works</a></li>
+<li><code>psql</code> connection strings: <a
+href="https://www.postgresql.org/docs/16/libpq-connect.html#LIBPQ-CONNSTRING">libpq</a></li>
+<li>Offline SQL reference: <a
+href="http://kiwix.lan/content/devdocs_en_postgresql_2026-05">PostgreSQL
+DevDocs</a></li>
+</ul>
+<h2 id="what-connection-means">What “connection” means</h2>
+<p>Postgres is a <strong>network service</strong>. Your Mac is a
+<strong>client</strong>. The wire protocol is <strong>not HTTP</strong>,
+so it does <strong>not</strong> go through Nginx Proxy Manager the way
+<code>kiwix.lan</code> pages do.</p>
+<pre class="text" data-file="diagram"
+data-do="where the packets go"><code>Mac psql / tokio-postgres
+    → DNS postgres.lan
+    → 192.168.1.179:5432   (CT 110)
+    → Docker publishes 5432
+    → container IP 172.18.0.2  (only visible *inside* Docker)</code></pre>
+<p><code>SELECT inet_server_addr();</code> returning
+<code>172.18.0.2</code> is <strong>normal</strong>. You never type that
+IP on the Mac.</p>
+<h2 id="prove-it-with-psql">Prove it with psql</h2>
+<div class="sourceCode" id="cb2" data-file="terminal"
+data-do="open a session"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># same string you will put in Rust</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">psql</span> <span class="st">&quot;host=postgres.lan user=postgres password=password dbname=parq&quot;</span></span></code></pre></div>
+<p>At the <code>parq=#</code> prompt:</p>
+<div class="sourceCode" id="cb3" data-file="psql"
+data-do="type this at parq=#"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- which engine and version</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> version();</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- you are in the serving database, not &quot;postgres&quot; default db</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> current_database();</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">-- LAN vs Docker: this is the container address</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> inet_server_addr();</span></code></pre></div>
+<p>If <code>postgres.lan</code> does not resolve (DNS not Pi-hole /
+Tailscale):</p>
+<div class="sourceCode" id="cb4" data-file="terminal"
+data-do="if postgres.lan does not resolve"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">psql</span> <span class="st">&quot;host=192.168.1.179 user=postgres password=password dbname=parq&quot;</span></span></code></pre></div>
+<p>Lab password matches Phase 0 notes. LAN/Tailscale only — do not
+publish 5432 to the internet.</p>
+<h2 id="concepts-to-understand">Concepts to understand</h2>
+<table>
+<colgroup>
+<col style="width: 42%" />
+<col style="width: 57%" />
+</colgroup>
+<thead>
+<tr>
+<th>Term</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Host</td>
+<td>Machine running <code>postmaster</code> (here: LXC + Docker)</td>
+</tr>
+<tr>
+<td>Port 5432</td>
+<td>Postgres default; clients speak the <strong>Postgres
+protocol</strong></td>
+</tr>
+<tr>
+<td>Database <code>parq</code></td>
+<td>Catalog name; <code>\l</code> lists databases, <code>\c parq</code>
+switches</td>
+</tr>
+<tr>
+<td>Role <code>postgres</code></td>
+<td>Superuser in this lab image</td>
+</tr>
+</tbody>
+</table>
+<p>Read: <a
+href="https://www.postgresql.org/docs/16/app-psql.html">psql</a>
+(<code>\d</code>, <code>\dt</code>, <code>\q</code>).</p>
+  </article>
+</body>
+</html>

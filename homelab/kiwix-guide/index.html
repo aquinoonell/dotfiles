@@ -15,6 +15,8 @@
     — structured guide with code examples for the columnar stack.
     <br><strong>SQL engines:</strong> <a href="db/index.html">PostgreSQL (homelab CT) and DuckDB (Mac CLI)</a>
     — how they work, then DevDocs ZIMs for the API.
+    <br><strong>Lab:</strong> <a href="taxi/index.html">Lake → job → Postgres</a>
+    — NYC taxi Parquet through DataFusion into CT 110 marts. You write the crate; this is the textbook.
   </div>
 
   <h2>Rust Data Stack (curated guide)</h2>
@@ -58,6 +60,42 @@
     <div class="card">
       <a href="db/duckdb.html">How DuckDB Works</a>
       <div class="subtitle">Embedded OLAP · SQL on Parquet</div>
+    </div>
+  </div>
+
+  <h2>Lake → job → Postgres (lab course)</h2>
+  <div class="grid">
+    <div class="card">
+      <a href="taxi/index.html">Start Here</a>
+      <div class="subtitle">Finance marts · lake vs serving DB</div>
+    </div>
+    <div class="card">
+      <a href="taxi/connect.html">Connect</a>
+      <div class="subtitle">psql · postgres.lan · Docker IP</div>
+    </div>
+    <div class="card">
+      <a href="taxi/schema.html">Schema</a>
+      <div class="subtitle">payment_mix · trips_daily · etl_runs</div>
+    </div>
+    <div class="card">
+      <a href="taxi/datafusion.html">DataFusion</a>
+      <div class="subtitle">register_parquet · sql · collect</div>
+    </div>
+    <div class="card">
+      <a href="taxi/arrow.html">Arrow</a>
+      <div class="subtitle">Downcast columns for INSERT</div>
+    </div>
+    <div class="card">
+      <a href="taxi/client.html">tokio-postgres</a>
+      <div class="subtitle">connect + spawn Connection</div>
+    </div>
+    <div class="card">
+      <a href="taxi/job.html">The Job</a>
+      <div class="subtitle">ON CONFLICT upsert · run log</div>
+    </div>
+    <div class="card">
+      <a href="taxi/reading.html">Reading list</a>
+      <div class="subtitle">Crate docs + Kiwix DevDocs</div>
     </div>
   </div>
 

@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../style.css">
 </head>
 <body>
-  <nav class="nav"><a href="../index.html">← Library</a> · <a href="index.html">Postgres &amp; DuckDB</a> · <a href="../rust/index.html">Rust Data Stack</a></nav>
+  <nav class="nav"><a href="../index.html">← Library</a> · <a href="index.html">Postgres &amp; DuckDB</a> · <a href="../rust/index.html">Rust Data Stack</a> · <a href="../taxi/index.html">Taxi pipeline</a></nav>
   <article class="content">
 <h1 id="how-postgresql-works">How PostgreSQL Works</h1>
 <p>Postgres is a <strong>client–server</strong> relational database. A
@@ -19,7 +19,9 @@ process.</p>
 <p>This homelab runs Postgres on <strong>CT 110</strong> at
 <code>postgres.lan</code>. Full usage (connect, dump,
 <code>parq-tool</code>) is in
-<code>~/dotfiles/homelab/POSTGRES.md</code>.</p>
+<code>~/dotfiles/homelab/POSTGRES.md</code>. Hands-on lab that writes
+aggregated taxi stats into this instance: <a
+href="../taxi/index.html">Lake → job → Postgres</a>.</p>
 <h2 id="process-model">Process model</h2>
 <p>One <strong>postmaster</strong> process starts at boot. Each client
 connection is a <strong>backend</strong> (a forked process). Shared
@@ -85,13 +87,13 @@ future or I/O stalls.</p>
 <strong>will</strong> teach connect, SQL, indexes, <code>EXPLAIN</code>,
 dump/restore, and “the server is a process with a data directory.” That
 is the operator loop application developers use.</p>
-<h2 id="reference-offline">Reference (offline)</h2>
+<h2 id="reference">Reference</h2>
 <ul>
-<li>DevDocs (API):
-http://kiwix.lan/content/devdocs_en_postgresql_2026-05</li>
+<li><a href="https://www.postgresql.org/docs/current/">PostgreSQL
+docs</a></li>
+<li><a href="https://devdocs.io/postgresql/">DevDocs</a></li>
 <li>Internals reading (WAN): https://www.interdb.jp/pg/ (Suzuki)</li>
-<li>DBA questions:
-http://kiwix.lan/content/dba.stackexchange.com_en_all_2026-02</li>
+<li><a href="https://dba.stackexchange.com/">DBA Stack Exchange</a></li>
 </ul>
   </article>
 </body>

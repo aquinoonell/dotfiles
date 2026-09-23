@@ -12,7 +12,7 @@ curl -fsSL https://raw.githubusercontent.com/aquinoonell/dotfiles/main/bootstrap
 
 This will:
 - Install Homebrew (if needed)
-- Install WezTerm, Neovim, Rift, Borders, and fonts
+- Install Kitty, Neovim, Rift, Borders, and fonts
 - Clone this repo to `~/dotfiles`
 - Set up all symlinks
 - Configure your shell
@@ -63,7 +63,7 @@ Press `Ctrl-s t` to open the theme picker popup (browse all themes and wallpaper
 
 | Shortcut | Action |
 |----------|--------|
-| Option+Return | New WezTerm, tiled on this workspace |
+| Option+Return | New Kitty window, tiled on this workspace |
 | Option+H / J / K / L | Focus |
 | Option+Shift+H / J / K / L | Move window; neighbor fills the other side. No neighbor: next display |
 | Option+1–4 | Workspaces 1–4 |
@@ -72,13 +72,13 @@ Press `Ctrl-s t` to open the theme picker popup (browse all themes and wallpaper
 | Option+Z | Toggle Rift management on the current macOS Space |
 | Option+Shift+R | Reload Rift config |
 
-Finder, Mail, Notes, Messages, Music, Obsidian, and Zoom still float. Gaps and JankyBorders are unchanged. The menu bar shows a layout icon only for workspaces that currently have windows.
+Finder, Mail, Notes, Messages, Music, Obsidian, and Zoom still float. Gaps and JankyBorders are unchanged. The menu bar shows numbered square icons only for workspaces that currently have windows.
 
 ### What Gets Themed
 
 | Component | What Changes |
 |-----------|--------------|
-| WezTerm | Terminal colors |
+| Kitty | Terminal colors (via `current-theme.conf`) |
 | Neovim | Colorscheme |
 | JankyBorders | Window border colors |
 | Desktop | Wallpaper |
@@ -110,7 +110,8 @@ Finder, Mail, Notes, Messages, Music, Obsidian, and Zoom still float. Gaps and J
 │   ├── theme-picker       # Interactive theme browser (fzf)
 │   ├── wallpaper          # Wallpaper picker
 │   ├── rift-move          # Move/tile window in a direction
-│   └── borders-toggle     # JankyBorders on/off
+│   ├── borders-toggle     # JankyBorders on/off
+│   └── music              # cliamp daemon controller (play/pause/next/search)
 ├── rift/
 │   └── config.toml        # Live Rift WM config
 ├── themes/                # All 22 omarchy themes
@@ -119,11 +120,8 @@ Finder, Mail, Notes, Messages, Music, Obsidian, and Zoom still float. Gaps and J
 │   │   ├── backgrounds/   # Wallpapers
 │   │   └── neovim.lua     # Nvim colorscheme info
 │   └── ...
-├── templates/             # Config templates
-│   └── wezterm.lua.tmpl
 ├── nvim/                  # Neovim config
-├── .wezterm.lua           # WezTerm config (generated)
-├── .tmux.conf             # Tmux config
+├── .tmux.conf             # Tmux config (includes cliamp now-playing status)
 ├── bootstrap.sh           # One-line installer
 └── install.sh             # Local installation
 ```
@@ -131,12 +129,15 @@ Finder, Mail, Notes, Messages, Music, Obsidian, and Zoom still float. Gaps and J
 ## Requirements
 
 - macOS (tested on Sonoma+)
-- [WezTerm](https://wezfurlong.org/wezterm/) - Terminal
+- [Kitty](https://sw.kovidgoyal.net/kitty/) - Terminal
 - [Neovim](https://neovim.io/) - Editor
 - [tmux](https://github.com/tmux/tmux) - Terminal multiplexer
 - [fzf](https://github.com/junegunn/fzf) - Fuzzy finder (for pickers)
 - [Rift](https://github.com/acsandmann/rift) - Tiling WM
 - [JankyBorders](https://github.com/FelixKratz/JankyBorders) - Window borders
+- [cliamp](https://github.com/bjarneo/cliamp) - Terminal music player (Spotify + YouTube Music)
+- [jq](https://jqlang.github.io/jq/) - JSON parser (for tmux music status)
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp) - YouTube streaming backend for cliamp
 
 All dependencies are auto-installed by the bootstrap script.
 
@@ -148,6 +149,30 @@ git pull
 ./install.sh
 theme $(cat ~/.current-theme)  # Re-apply current theme
 ```
+
+## Music (cliamp)
+
+[cliamp](https://github.com/bjarneo/cliamp) runs as a headless daemon and is controlled via the `music` script in `bin/`. It streams from Spotify and YouTube Music using your existing credentials in `~/.config/cliamp/config.toml`.
+
+```bash
+music start          # Launch daemon, start playing Liked Music
+music stop           # Stop daemon
+music toggle         # Play/pause
+music next           # Next track
+music prev           # Previous track
+music search "query" # Search YouTube and stream result
+music now            # Print current track to terminal
+music vol -3         # Adjust volume in dB
+```
+
+The tmux status bar shows the current track automatically (updates every 5 seconds):
+```
+♪ Track Name — Artist | 14:32
+```
+
+Kitty auto-starts the daemon on launch via `~/.config/kitty/startup.session`. The daemon has no UI — all control goes through the `music` command or `cliamp` IPC directly.
+
+> **Note:** Keep `~/.config/cliamp/config.toml` out of version control — it contains your Google OAuth credentials and Spotify client secret.
 
 ## Credits
 

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reading list — Kiwix Guide</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="nav"><a href="../index.html">← Course</a> · <a href="index.html">Taxi pipeline</a> · <a href="../db/index.html">Postgres &amp; DuckDB</a> · <a href="../rust/index.html">Rust Data Stack</a></nav>
+  <article class="content">
+<h1 id="reading-list-concepts-pages">Reading list (concepts →
+pages)</h1>
+<p>Read <strong>in this order</strong> while you type the crate.
+Official docs win over blog posts.</p>
+<h2 id="connection-and-postgres-as-a-server">Connection and Postgres as
+a server</h2>
+<table>
+<colgroup>
+<col style="width: 60%" />
+<col style="width: 40%" />
+</colgroup>
+<thead>
+<tr>
+<th>Concept</th>
+<th>Read</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>What a postmaster/backend is</td>
+<td><a href="../db/postgres.html">How PostgreSQL works</a></td>
+</tr>
+<tr>
+<td>Connection string</td>
+<td><a
+href="https://www.postgresql.org/docs/16/libpq-connect.html#LIBPQ-CONNSTRING">libpq</a></td>
+</tr>
+<tr>
+<td><code>psql</code></td>
+<td><a
+href="https://www.postgresql.org/docs/16/app-psql.html">psql</a></td>
+</tr>
+<tr>
+<td>SQL reference (offline)</td>
+<td><a
+href="http://kiwix.lan/content/devdocs_en_postgresql_2026-05">DevDocs
+PostgreSQL</a></td>
+</tr>
+<tr>
+<td>Homelab CT</td>
+<td><code>~/dotfiles/homelab/POSTGRES.md</code></td>
+</tr>
+<tr>
+<td>WAL / why not a library</td>
+<td><a href="../rust/database-internals.html">Database internals</a>
+(WAL, MVCC)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="schema-and-sql-on-the-server">Schema and SQL on the server</h2>
+<table>
+<colgroup>
+<col style="width: 60%" />
+<col style="width: 40%" />
+</colgroup>
+<thead>
+<tr>
+<th>Concept</th>
+<th>Read</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CREATE TABLE</td>
+<td>https://www.postgresql.org/docs/16/sql-createtable.html</td>
+</tr>
+<tr>
+<td>ON CONFLICT</td>
+<td>https://www.postgresql.org/docs/16/sql-insert.html</td>
+</tr>
+<tr>
+<td>EXPLAIN</td>
+<td>https://www.postgresql.org/docs/16/sql-explain.html</td>
+</tr>
+<tr>
+<td>Dates</td>
+<td>https://www.postgresql.org/docs/16/datatype-datetime.html</td>
+</tr>
+</tbody>
+</table>
+<h2 id="datafusion-job">DataFusion (job)</h2>
+<table>
+<colgroup>
+<col style="width: 60%" />
+<col style="width: 40%" />
+</colgroup>
+<thead>
+<tr>
+<th>Concept</th>
+<th>Read</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SessionContext</code></td>
+<td>https://docs.rs/datafusion/54.1.0/datafusion/execution/context/struct.SessionContext.html</td>
+</tr>
+<tr>
+<td><code>collect</code></td>
+<td>https://docs.rs/datafusion/54.1.0/datafusion/dataframe/struct.DataFrame.html#method.collect</td>
+</tr>
+<tr>
+<td>SQL</td>
+<td>https://datafusion.apache.org/user-guide/sql/index.html</td>
+</tr>
+<tr>
+<td>Architecture</td>
+<td><a href="../rust/datafusion.html">DataFusion guide</a> +
+https://datafusion.apache.org/contributor-guide/architecture.html</td>
+</tr>
+<tr>
+<td>Tokio</td>
+<td>https://docs.rs/tokio/latest/tokio/attr.main.html</td>
+</tr>
+</tbody>
+</table>
+<h2 id="arrow-values">Arrow (values)</h2>
+<table>
+<colgroup>
+<col style="width: 60%" />
+<col style="width: 40%" />
+</colgroup>
+<thead>
+<tr>
+<th>Concept</th>
+<th>Read</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RecordBatch</td>
+<td>https://docs.rs/arrow/latest/arrow/array/struct.RecordBatch.html</td>
+</tr>
+<tr>
+<td>Downcast</td>
+<td>Int64Array / Float64Array / Date32Array on docs.rs/arrow</td>
+</tr>
+<tr>
+<td>Columnar vs row</td>
+<td><a href="../rust/arrow.html">Arrow</a>, <a
+href="../rust/parquet.html">Parquet</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="rust-client">Rust client</h2>
+<table>
+<colgroup>
+<col style="width: 60%" />
+<col style="width: 40%" />
+</colgroup>
+<thead>
+<tr>
+<th>Concept</th>
+<th>Read</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>connect + spawn</td>
+<td>https://docs.rs/tokio-postgres/latest/tokio_postgres/fn.connect.html</td>
+</tr>
+<tr>
+<td>Client</td>
+<td>https://docs.rs/tokio-postgres/latest/tokio_postgres/struct.Client.html</td>
+</tr>
+<tr>
+<td>Layer 4 notes</td>
+<td><code>~/dotfiles/homelab/bookstack-content/course/parqtool/04-layer4-postgres.md</code></td>
+</tr>
+<tr>
+<td>Cargo.toml</td>
+<td>https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html</td>
+</tr>
+</tbody>
+</table>
+<h2 id="optional-contrast">Optional contrast</h2>
+<ul>
+<li><a href="../db/duckdb.html">DuckDB</a> — same Parquet, no server;
+can <code>ATTACH</code> Postgres later</li>
+<li><a href="http://kiwix.lan/content/devdocs_en_duckdb_2026-04">DuckDB
+DevDocs</a></li>
+</ul>
+<h2 id="zim-library">ZIM library</h2>
+<p>Full offline catalog: <a
+href="http://kiwix.lan">http://kiwix.lan</a></p>
+  </article>
+</body>
+</html>

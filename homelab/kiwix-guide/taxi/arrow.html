@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Arrow RecordBatches — Kiwix Guide</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <nav class="nav"><a href="../index.html">← Course</a> · <a href="index.html">Taxi pipeline</a> · <a href="../db/index.html">Postgres &amp; DuckDB</a> · <a href="../rust/index.html">Rust Data Stack</a></nav>
+  <article class="content">
+<h1 id="arrow-reading-values-out-of-a-recordbatch">Arrow: reading values
+out of a RecordBatch</h1>
+<h2 id="docs-to-read-first">Docs to read first</h2>
+<ul>
+<li><a
+href="https://docs.rs/arrow/latest/arrow/array/struct.RecordBatch.html">RecordBatch</a>
+— <code>num_rows</code>, <code>column</code>, <code>schema</code></li>
+<li><a
+href="https://docs.rs/arrow/latest/arrow/array/struct.Int64Array.html">Int64Array</a>,
+<a
+href="https://docs.rs/arrow/latest/arrow/array/struct.Float64Array.html">Float64Array</a>,
+<a
+href="https://docs.rs/arrow/latest/arrow/array/struct.Date32Array.html">Date32Array</a></li>
+<li><a
+href="https://docs.rs/arrow/latest/arrow/datatypes/enum.DataType.html">DataType</a></li>
+<li>Homelab: <a href="../rust/arrow.html">Apache Arrow</a></li>
+</ul>
+<p><strong>Import from <code>datafusion::arrow::...</code></strong>, not
+a separate <code>arrow</code> crate, so versions match DataFusion
+54.</p>
+<h2 id="why-downcast">Why downcast</h2>
+<p><code>collect()</code> gives <strong>typed columns as trait
+objects</strong> (<code>&amp;dyn Array</code>). Rust needs a concrete
+array type to call <code>.value(i)</code>. The schema you printed tells
+you which struct to use.</p>
+<p><code>count(*)</code> is often <strong><code>UInt64</code></strong>,
+not <code>Int64</code>. <code>payment_type</code> in TLC Parquet is
+often <strong><code>Int64</code></strong> or
+<strong><code>Int32</code></strong>. If downcast returns
+<code>None</code>, you used the wrong type — look at
+<code>col.data_type()</code>.</p>
+<h2 id="pattern">Pattern</h2>
+<div class="sourceCode" id="cb1" data-file="src/main.rs"
+data-do="add these helpers"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">datafusion::arrow::array::</span><span class="op">{</span>Array<span class="op">,</span> Float64Array<span class="op">,</span> Int32Array<span class="op">,</span> Int64Array<span class="op">,</span> UInt64Array<span class="op">};</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">/// Integer-like column → i64 for Postgres BIGINT / INT</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> as_i64(col<span class="op">:</span> <span class="op">&amp;</span><span class="kw">dyn</span> Array<span class="op">,</span> row<span class="op">:</span> <span class="dt">usize</span>) <span class="op">-&gt;</span> <span class="dt">i64</span> <span class="op">{</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">let</span> <span class="cn">Some</span>(a) <span class="op">=</span> col<span class="op">.</span>as_any()<span class="op">.</span><span class="pp">downcast_ref::</span><span class="op">&lt;</span>Int64Array<span class="op">&gt;</span>() <span class="op">{</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        a<span class="op">.</span>value(row)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">else</span> <span class="cf">if</span> <span class="kw">let</span> <span class="cn">Some</span>(a) <span class="op">=</span> col<span class="op">.</span>as_any()<span class="op">.</span><span class="pp">downcast_ref::</span><span class="op">&lt;</span>UInt64Array<span class="op">&gt;</span>() <span class="op">{</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>        a<span class="op">.</span>value(row) <span class="kw">as</span> <span class="dt">i64</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">else</span> <span class="cf">if</span> <span class="kw">let</span> <span class="cn">Some</span>(a) <span class="op">=</span> col<span class="op">.</span>as_any()<span class="op">.</span><span class="pp">downcast_ref::</span><span class="op">&lt;</span>Int32Array<span class="op">&gt;</span>() <span class="op">{</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        a<span class="op">.</span>value(row) <span class="kw">as</span> <span class="dt">i64</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        <span class="pp">panic!</span>(<span class="st">&quot;not an integer column: {:?}&quot;</span><span class="op">,</span> col<span class="op">.</span>data_type())<span class="op">;</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> as_f64(col<span class="op">:</span> <span class="op">&amp;</span><span class="kw">dyn</span> Array<span class="op">,</span> row<span class="op">:</span> <span class="dt">usize</span>) <span class="op">-&gt;</span> <span class="dt">f64</span> <span class="op">{</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    col<span class="op">.</span>as_any()</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="pp">downcast_ref::</span><span class="op">&lt;</span>Float64Array<span class="op">&gt;</span>()</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>unwrap_or_else(<span class="op">||</span> <span class="pp">panic!</span>(<span class="st">&quot;expected Float64, got {:?}&quot;</span><span class="op">,</span> col<span class="op">.</span>data_type()))</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>value(row)</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="co">// After collect():</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> batch <span class="kw">in</span> <span class="op">&amp;</span>batches <span class="op">{</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="dv">0</span><span class="op">..</span>batch<span class="op">.</span>num_rows() <span class="op">{</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> payment_type <span class="op">=</span> as_i64(batch<span class="op">.</span>column(<span class="dv">0</span>)<span class="op">,</span> i) <span class="kw">as</span> <span class="dt">i32</span><span class="op">;</span> <span class="co">// Postgres INT</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> trips <span class="op">=</span> as_i64(batch<span class="op">.</span>column(<span class="dv">1</span>)<span class="op">,</span> i)<span class="op">;</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> revenue <span class="op">=</span> as_f64(batch<span class="op">.</span>column(<span class="dv">2</span>)<span class="op">,</span> i)<span class="op">;</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>        <span class="pp">println!</span>(<span class="st">&quot;{payment_type} {trips} {revenue}&quot;</span>)<span class="op">;</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="dates">Dates</h2>
+<p><code>CAST(... AS DATE)</code> often yields <strong>Date32</strong>
+(days since Unix epoch):</p>
+<div class="sourceCode" id="cb2" data-file="src/main.rs"
+data-do="add after the helpers"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">chrono::</span>NaiveDate<span class="op">;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">datafusion::arrow::array::</span>Date32Array<span class="op">;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> as_date(col<span class="op">:</span> <span class="op">&amp;</span><span class="kw">dyn</span> Array<span class="op">,</span> row<span class="op">:</span> <span class="dt">usize</span>) <span class="op">-&gt;</span> NaiveDate <span class="op">{</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> days <span class="op">=</span> col</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>as_any()</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="pp">downcast_ref::</span><span class="op">&lt;</span>Date32Array<span class="op">&gt;</span>()</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>expect(<span class="st">&quot;expected Date32&quot;</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>value(row)<span class="op">;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="pp">NaiveDate::</span>from_ymd_opt(<span class="dv">1970</span><span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="dv">1</span>)<span class="op">.</span>unwrap() <span class="op">+</span> <span class="pp">chrono::Duration::</span>days(days <span class="kw">as</span> <span class="dt">i64</span>)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>If the schema says <code>Timestamp(...)</code>, downcast
+<code>TimestampMicrosecondArray</code> /
+<code>TimestampNanosecondArray</code> instead (see Arrow timestamp
+docs). <strong>Always print schema first.</strong></p>
+<h2 id="concept">Concept</h2>
+<p>Arrow is <strong>in-memory columnar</strong>. Postgres insert is
+<strong>row at a time</strong> (<code>$1,$2,$3</code>). This loop is the
+boundary between the two models.</p>
+  </article>
+</body>
+</html>

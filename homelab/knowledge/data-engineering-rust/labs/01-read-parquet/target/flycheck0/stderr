@@ -1,0 +1,1721 @@
+    Blocking waiting for file lock on build directory
+   0.704301291s  INFO prepare_target{force=false package_id=lab01-read-parquet v0.1.0 (/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet) target="lab01-read-parquet"}: cargo::core::compiler::fingerprint: fingerprint error for lab01-read-parquet v0.1.0 (/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet)/Check { test: false }/TargetInner { name: "lab01-read-parquet", doc: true, ..: with_path("/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/src/main.rs", Edition2021) }
+   0.704328083s  INFO prepare_target{force=false package_id=lab01-read-parquet v0.1.0 (/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet) target="lab01-read-parquet"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/lab01-read-parquet-063f07feb91d0465/bin-lab01-read-parquet`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   7: cargo::ops::cargo_compile::compile_ws
+   8: cargo::ops::cargo_compile::compile_with_exec
+   9: cargo::ops::cargo_compile::compile
+  10: cargo::commands::check::exec
+  11: <cargo::cli::Exec>::exec
+  12: cargo::main
+  13: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  14: std::rt::lang_start::<()>::{closure#0}
+  15: std::rt::lang_start_internal
+  16: _main
+   0.707786333s  INFO prepare_target{force=false package_id=anyhow v1.0.104 target="anyhow"}: cargo::core::compiler::fingerprint: fingerprint error for anyhow v1.0.104/Check { test: false }/TargetInner { ..: lib_target("anyhow", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anyhow-1.0.104/src/lib.rs", Edition2021) }
+   0.707803166s  INFO prepare_target{force=false package_id=anyhow v1.0.104 target="anyhow"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/anyhow-bcb2f4e28dd6c50e/lib-anyhow`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   8: cargo::ops::cargo_compile::compile_ws
+   9: cargo::ops::cargo_compile::compile_with_exec
+  10: cargo::ops::cargo_compile::compile
+  11: cargo::commands::check::exec
+  12: <cargo::cli::Exec>::exec
+  13: cargo::main
+  14: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  15: std::rt::lang_start::<()>::{closure#0}
+  16: std::rt::lang_start_internal
+  17: _main
+   0.708975375s  INFO prepare_target{force=false package_id=arrow v54.3.1 target="arrow"}: cargo::core::compiler::fingerprint: fingerprint error for arrow v54.3.1/Check { test: false }/TargetInner { benched: false, ..: lib_target("arrow", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-54.3.1/src/lib.rs", Edition2021) }
+   0.709014416s  INFO prepare_target{force=false package_id=arrow v54.3.1 target="arrow"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/arrow-264edf37cd3f4e08/lib-arrow`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   8: cargo::ops::cargo_compile::compile_ws
+   9: cargo::ops::cargo_compile::compile_with_exec
+  10: cargo::ops::cargo_compile::compile
+  11: cargo::commands::check::exec
+  12: <cargo::cli::Exec>::exec
+  13: cargo::main
+  14: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  15: std::rt::lang_start::<()>::{closure#0}
+  16: std::rt::lang_start_internal
+  17: _main
+   0.709913125s  INFO prepare_target{force=false package_id=arrow-arith v54.3.1 target="arrow_arith"}: cargo::core::compiler::fingerprint: fingerprint error for arrow-arith v54.3.1/Check { test: false }/TargetInner { benched: false, ..: lib_target("arrow_arith", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-arith-54.3.1/src/lib.rs", Edition2021) }
+   0.709931000s  INFO prepare_target{force=false package_id=arrow-arith v54.3.1 target="arrow_arith"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/arrow-arith-573126fec341c981/lib-arrow_arith`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   9: cargo::ops::cargo_compile::compile_ws
+  10: cargo::ops::cargo_compile::compile_with_exec
+  11: cargo::ops::cargo_compile::compile
+  12: cargo::commands::check::exec
+  13: <cargo::cli::Exec>::exec
+  14: cargo::main
+  15: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  16: std::rt::lang_start::<()>::{closure#0}
+  17: std::rt::lang_start_internal
+  18: _main
+   0.710253458s  INFO prepare_target{force=false package_id=arrow-array v54.3.1 target="arrow_array"}: cargo::core::compiler::fingerprint: fingerprint error for arrow-array v54.3.1/Check { test: false }/TargetInner { benched: false, ..: lib_target("arrow_array", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-array-54.3.1/src/lib.rs", Edition2021) }
+   0.710259750s  INFO prepare_target{force=false package_id=arrow-array v54.3.1 target="arrow_array"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/arrow-array-f8c27f7bc6583e52/lib-arrow_array`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  10: cargo::ops::cargo_compile::compile_ws
+  11: cargo::ops::cargo_compile::compile_with_exec
+  12: cargo::ops::cargo_compile::compile
+  13: cargo::commands::check::exec
+  14: <cargo::cli::Exec>::exec
+  15: cargo::main
+  16: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  17: std::rt::lang_start::<()>::{closure#0}
+  18: std::rt::lang_start_internal
+  19: _main
+   0.710510000s  INFO prepare_target{force=false package_id=ahash v0.8.12 target="ahash"}: cargo::core::compiler::fingerprint: fingerprint error for ahash v0.8.12/Check { test: false }/TargetInner { ..: lib_target("ahash", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ahash-0.8.12/src/lib.rs", Edition2018) }
+   0.710518083s  INFO prepare_target{force=false package_id=ahash v0.8.12 target="ahash"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/ahash-35e79d682b5e4d47/lib-ahash`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: cargo::core::compiler::compile
+  10: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  11: cargo::ops::cargo_compile::compile_ws
+  12: cargo::ops::cargo_compile::compile_with_exec
+  13: cargo::ops::cargo_compile::compile
+  14: cargo::commands::check::exec
+  15: <cargo::cli::Exec>::exec
+  16: cargo::main
+  17: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  18: std::rt::lang_start::<()>::{closure#0}
+  19: std::rt::lang_start_internal
+  20: _main
+   0.712090166s  INFO prepare_target{force=false package_id=zerocopy v0.8.56 target="zerocopy"}: cargo::core::compiler::fingerprint: fingerprint error for zerocopy v0.8.56/Check { test: false }/TargetInner { ..: lib_target("zerocopy", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zerocopy-0.8.56/src/lib.rs", Edition2021) }
+   0.712102583s  INFO prepare_target{force=false package_id=zerocopy v0.8.56 target="zerocopy"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/zerocopy-bc62944dd3c294ff/lib-zerocopy`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: cargo::core::compiler::compile
+  10: cargo::core::compiler::compile
+  11: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  12: cargo::ops::cargo_compile::compile_ws
+  13: cargo::ops::cargo_compile::compile_with_exec
+  14: cargo::ops::cargo_compile::compile
+  15: cargo::commands::check::exec
+  16: <cargo::cli::Exec>::exec
+  17: cargo::main
+  18: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  19: std::rt::lang_start::<()>::{closure#0}
+  20: std::rt::lang_start_internal
+  21: _main
+   0.713180500s  INFO prepare_target{force=false package_id=arrow-buffer v54.3.1 target="arrow_buffer"}: cargo::core::compiler::fingerprint: fingerprint error for arrow-buffer v54.3.1/Check { test: false }/TargetInner { benched: false, ..: lib_target("arrow_buffer", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-buffer-54.3.1/src/lib.rs", Edition2021) }
+   0.713192750s  INFO prepare_target{force=false package_id=arrow-buffer v54.3.1 target="arrow_buffer"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/arrow-buffer-45fef31f03b6fa4f/lib-arrow_buffer`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: cargo::core::compiler::compile
+  10: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  11: cargo::ops::cargo_compile::compile_ws
+  12: cargo::ops::cargo_compile::compile_with_exec
+  13: cargo::ops::cargo_compile::compile
+  14: cargo::commands::check::exec
+  15: <cargo::cli::Exec>::exec
+  16: cargo::main
+  17: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  18: std::rt::lang_start::<()>::{closure#0}
+  19: std::rt::lang_start_internal
+  20: _main
+   0.713835416s  INFO prepare_target{force=false package_id=half v2.7.1 target="half"}: cargo::core::compiler::fingerprint: fingerprint error for half v2.7.1/Check { test: false }/TargetInner { ..: lib_target("half", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/half-2.7.1/src/lib.rs", Edition2021) }
+   0.713843000s  INFO prepare_target{force=false package_id=half v2.7.1 target="half"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/half-162684e03052c267/lib-half`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: cargo::core::compiler::compile
+  10: cargo::core::compiler::compile
+  11: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  12: cargo::ops::cargo_compile::compile_ws
+  13: cargo::ops::cargo_compile::compile_with_exec
+  14: cargo::ops::cargo_compile::compile
+  15: cargo::commands::check::exec
+  16: <cargo::cli::Exec>::exec
+  17: cargo::main
+  18: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  19: std::rt::lang_start::<()>::{closure#0}
+  20: std::rt::lang_start_internal
+  21: _main
+   0.714038541s  INFO prepare_target{force=false package_id=num-traits v0.2.19 target="num_traits"}: cargo::core::compiler::fingerprint: fingerprint error for num-traits v0.2.19/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("num_traits", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num-traits-0.2.19/src/lib.rs", Edition2021) }
+   0.714044916s  INFO prepare_target{force=false package_id=num-traits v0.2.19 target="num_traits"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/num-traits-18e0d4f1a3ff6b3c/lib-num_traits`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: cargo::core::compiler::compile
+  10: cargo::core::compiler::compile
+  11: cargo::core::compiler::compile
+  12: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  13: cargo::ops::cargo_compile::compile_ws
+  14: cargo::ops::cargo_compile::compile_with_exec
+  15: cargo::ops::cargo_compile::compile
+  16: cargo::commands::check::exec
+  17: <cargo::cli::Exec>::exec
+  18: cargo::main
+  19: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  20: std::rt::lang_start::<()>::{closure#0}
+  21: std::rt::lang_start_internal
+  22: _main
+   0.714666333s  INFO prepare_target{force=false package_id=num v0.4.3 target="num"}: cargo::core::compiler::fingerprint: fingerprint error for num v0.4.3/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("num", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num-0.4.3/src/lib.rs", Edition2021) }
+   0.714672750s  INFO prepare_target{force=false package_id=num v0.4.3 target="num"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/num-d4fba039b1e232e5/lib-num`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: cargo::core::compiler::compile
+  10: cargo::core::compiler::compile
+  11: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  12: cargo::ops::cargo_compile::compile_ws
+  13: cargo::ops::cargo_compile::compile_with_exec
+  14: cargo::ops::cargo_compile::compile
+  15: cargo::commands::check::exec
+  16: <cargo::cli::Exec>::exec
+  17: cargo::main
+  18: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  19: std::rt::lang_start::<()>::{closure#0}
+  20: std::rt::lang_start_internal
+  21: _main
+   0.714844958s  INFO prepare_target{force=false package_id=num-bigint v0.4.8 target="num_bigint"}: cargo::core::compiler::fingerprint: fingerprint error for num-bigint v0.4.8/Check { test: false }/TargetInner { ..: lib_target("num_bigint", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num-bigint-0.4.8/src/lib.rs", Edition2021) }
+   0.714849208s  INFO prepare_target{force=false package_id=num-bigint v0.4.8 target="num_bigint"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/num-bigint-b030b805b68bd497/lib-num_bigint`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: cargo::core::compiler::compile
+  10: cargo::core::compiler::compile
+  11: cargo::core::compiler::compile
+  12: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  13: cargo::ops::cargo_compile::compile_ws
+  14: cargo::ops::cargo_compile::compile_with_exec
+  15: cargo::ops::cargo_compile::compile
+  16: cargo::commands::check::exec
+  17: <cargo::cli::Exec>::exec
+  18: cargo::main
+  19: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  20: std::rt::lang_start::<()>::{closure#0}
+  21: std::rt::lang_start_internal
+  22: _main
+   0.715012541s  INFO prepare_target{force=false package_id=num-integer v0.1.47 target="num_integer"}: cargo::core::compiler::fingerprint: fingerprint error for num-integer v0.1.47/Check { test: false }/TargetInner { ..: lib_target("num_integer", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num-integer-0.1.47/src/lib.rs", Edition2018) }
+   0.715018375s  INFO prepare_target{force=false package_id=num-integer v0.1.47 target="num_integer"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/num-integer-0d155ea6d60cc2e7/lib-num_integer`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: cargo::core::compiler::compile
+  10: cargo::core::compiler::compile
+  11: cargo::core::compiler::compile
+  12: cargo::core::compiler::compile
+  13: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  14: cargo::ops::cargo_compile::compile_ws
+  15: cargo::ops::cargo_compile::compile_with_exec
+  16: cargo::ops::cargo_compile::compile
+  17: cargo::commands::check::exec
+  18: <cargo::cli::Exec>::exec
+  19: cargo::main
+  20: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  21: std::rt::lang_start::<()>::{closure#0}
+  22: std::rt::lang_start_internal
+  23: _main
+   0.715171833s  INFO prepare_target{force=false package_id=num-complex v0.4.6 target="num_complex"}: cargo::core::compiler::fingerprint: fingerprint error for num-complex v0.4.6/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("num_complex", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num-complex-0.4.6/src/lib.rs", Edition2021) }
+   0.715177500s  INFO prepare_target{force=false package_id=num-complex v0.4.6 target="num_complex"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/num-complex-a65fc1e7ac8d3831/lib-num_complex`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: cargo::core::compiler::compile
+  10: cargo::core::compiler::compile
+  11: cargo::core::compiler::compile
+  12: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  13: cargo::ops::cargo_compile::compile_ws
+  14: cargo::ops::cargo_compile::compile_with_exec
+  15: cargo::ops::cargo_compile::compile
+  16: cargo::commands::check::exec
+  17: <cargo::cli::Exec>::exec
+  18: cargo::main
+  19: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  20: std::rt::lang_start::<()>::{closure#0}
+  21: std::rt::lang_start_internal
+  22: _main
+   0.715327333s  INFO prepare_target{force=false package_id=num-iter v0.1.46 target="num_iter"}: cargo::core::compiler::fingerprint: fingerprint error for num-iter v0.1.46/Check { test: false }/TargetInner { ..: lib_target("num_iter", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num-iter-0.1.46/src/lib.rs", Edition2018) }
+   0.715333083s  INFO prepare_target{force=false package_id=num-iter v0.1.46 target="num_iter"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/num-iter-78ecd6252ede3442/lib-num_iter`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: cargo::core::compiler::compile
+  10: cargo::core::compiler::compile
+  11: cargo::core::compiler::compile
+  12: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  13: cargo::ops::cargo_compile::compile_ws
+  14: cargo::ops::cargo_compile::compile_with_exec
+  15: cargo::ops::cargo_compile::compile
+  16: cargo::commands::check::exec
+  17: <cargo::cli::Exec>::exec
+  18: cargo::main
+  19: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  20: std::rt::lang_start::<()>::{closure#0}
+  21: std::rt::lang_start_internal
+  22: _main
+   0.715480625s  INFO prepare_target{force=false package_id=num-rational v0.4.2 target="num_rational"}: cargo::core::compiler::fingerprint: fingerprint error for num-rational v0.4.2/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("num_rational", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num-rational-0.4.2/src/lib.rs", Edition2021) }
+   0.715485500s  INFO prepare_target{force=false package_id=num-rational v0.4.2 target="num_rational"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/num-rational-aa14952d4d6d2ffe/lib-num_rational`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: cargo::core::compiler::compile
+  10: cargo::core::compiler::compile
+  11: cargo::core::compiler::compile
+  12: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  13: cargo::ops::cargo_compile::compile_ws
+  14: cargo::ops::cargo_compile::compile_with_exec
+  15: cargo::ops::cargo_compile::compile
+  16: cargo::commands::check::exec
+  17: <cargo::cli::Exec>::exec
+  18: cargo::main
+  19: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  20: std::rt::lang_start::<()>::{closure#0}
+  21: std::rt::lang_start_internal
+  22: _main
+   0.715637583s  INFO prepare_target{force=false package_id=arrow-data v54.3.1 target="arrow_data"}: cargo::core::compiler::fingerprint: fingerprint error for arrow-data v54.3.1/Check { test: false }/TargetInner { benched: false, ..: lib_target("arrow_data", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-data-54.3.1/src/lib.rs", Edition2021) }
+   0.715641541s  INFO prepare_target{force=false package_id=arrow-data v54.3.1 target="arrow_data"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/arrow-data-42ec24cecb0cfd76/lib-arrow_data`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: cargo::core::compiler::compile
+  10: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  11: cargo::ops::cargo_compile::compile_ws
+  12: cargo::ops::cargo_compile::compile_with_exec
+  13: cargo::ops::cargo_compile::compile
+  14: cargo::commands::check::exec
+  15: <cargo::cli::Exec>::exec
+  16: cargo::main
+  17: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  18: std::rt::lang_start::<()>::{closure#0}
+  19: std::rt::lang_start_internal
+  20: _main
+   0.715893583s  INFO prepare_target{force=false package_id=chrono v0.4.45 target="chrono"}: cargo::core::compiler::fingerprint: fingerprint error for chrono v0.4.45/Check { test: false }/TargetInner { ..: lib_target("chrono", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/chrono-0.4.45/src/lib.rs", Edition2021) }
+   0.715898958s  INFO prepare_target{force=false package_id=chrono v0.4.45 target="chrono"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/chrono-1a4d493f19342e02/lib-chrono`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: cargo::core::compiler::compile
+  10: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  11: cargo::ops::cargo_compile::compile_ws
+  12: cargo::ops::cargo_compile::compile_with_exec
+  13: cargo::ops::cargo_compile::compile
+  14: cargo::commands::check::exec
+  15: <cargo::cli::Exec>::exec
+  16: cargo::main
+  17: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  18: std::rt::lang_start::<()>::{closure#0}
+  19: std::rt::lang_start_internal
+  20: _main
+   0.716433583s  INFO prepare_target{force=false package_id=arrow-cast v54.3.1 target="arrow_cast"}: cargo::core::compiler::fingerprint: fingerprint error for arrow-cast v54.3.1/Check { test: false }/TargetInner { benched: false, ..: lib_target("arrow_cast", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-cast-54.3.1/src/lib.rs", Edition2021) }
+   0.716439625s  INFO prepare_target{force=false package_id=arrow-cast v54.3.1 target="arrow_cast"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/arrow-cast-6aa84defbd6a2233/lib-arrow_cast`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   9: cargo::ops::cargo_compile::compile_ws
+  10: cargo::ops::cargo_compile::compile_with_exec
+  11: cargo::ops::cargo_compile::compile
+  12: cargo::commands::check::exec
+  13: <cargo::cli::Exec>::exec
+  14: cargo::main
+  15: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  16: std::rt::lang_start::<()>::{closure#0}
+  17: std::rt::lang_start_internal
+  18: _main
+   0.716653750s  INFO prepare_target{force=false package_id=arrow-select v54.3.1 target="arrow_select"}: cargo::core::compiler::fingerprint: fingerprint error for arrow-select v54.3.1/Check { test: false }/TargetInner { benched: false, ..: lib_target("arrow_select", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-select-54.3.1/src/lib.rs", Edition2021) }
+   0.716659333s  INFO prepare_target{force=false package_id=arrow-select v54.3.1 target="arrow_select"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/arrow-select-e922ad6ed7c565aa/lib-arrow_select`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  10: cargo::ops::cargo_compile::compile_ws
+  11: cargo::ops::cargo_compile::compile_with_exec
+  12: cargo::ops::cargo_compile::compile
+  13: cargo::commands::check::exec
+  14: <cargo::cli::Exec>::exec
+  15: cargo::main
+  16: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  17: std::rt::lang_start::<()>::{closure#0}
+  18: std::rt::lang_start_internal
+  19: _main
+   0.716836291s  INFO prepare_target{force=false package_id=atoi v2.0.0 target="atoi"}: cargo::core::compiler::fingerprint: fingerprint error for atoi v2.0.0/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("atoi", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/atoi-2.0.0/src/lib.rs", Edition2021) }
+   0.716842625s  INFO prepare_target{force=false package_id=atoi v2.0.0 target="atoi"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/atoi-927c0e230d9b00a3/lib-atoi`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  10: cargo::ops::cargo_compile::compile_ws
+  11: cargo::ops::cargo_compile::compile_with_exec
+  12: cargo::ops::cargo_compile::compile
+  13: cargo::commands::check::exec
+  14: <cargo::cli::Exec>::exec
+  15: cargo::main
+  16: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  17: std::rt::lang_start::<()>::{closure#0}
+  18: std::rt::lang_start_internal
+  19: _main
+   0.717627083s  INFO prepare_target{force=false package_id=arrow-csv v54.3.1 target="arrow_csv"}: cargo::core::compiler::fingerprint: fingerprint error for arrow-csv v54.3.1/Check { test: false }/TargetInner { benched: false, ..: lib_target("arrow_csv", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-csv-54.3.1/src/lib.rs", Edition2021) }
+   0.717634125s  INFO prepare_target{force=false package_id=arrow-csv v54.3.1 target="arrow_csv"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/arrow-csv-d3085589ddc25160/lib-arrow_csv`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   9: cargo::ops::cargo_compile::compile_ws
+  10: cargo::ops::cargo_compile::compile_with_exec
+  11: cargo::ops::cargo_compile::compile
+  12: cargo::commands::check::exec
+  13: <cargo::cli::Exec>::exec
+  14: cargo::main
+  15: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  16: std::rt::lang_start::<()>::{closure#0}
+  17: std::rt::lang_start_internal
+  18: _main
+   0.717845708s  INFO prepare_target{force=false package_id=csv v1.4.0 target="csv"}: cargo::core::compiler::fingerprint: fingerprint error for csv v1.4.0/Check { test: false }/TargetInner { benched: false, ..: lib_target("csv", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/csv-1.4.0/src/lib.rs", Edition2021) }
+   0.717851916s  INFO prepare_target{force=false package_id=csv v1.4.0 target="csv"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/csv-e6e081fdd75efd0d/lib-csv`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  10: cargo::ops::cargo_compile::compile_ws
+  11: cargo::ops::cargo_compile::compile_with_exec
+  12: cargo::ops::cargo_compile::compile
+  13: cargo::commands::check::exec
+  14: <cargo::cli::Exec>::exec
+  15: cargo::main
+  16: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  17: std::rt::lang_start::<()>::{closure#0}
+  18: std::rt::lang_start_internal
+  19: _main
+   0.718014958s  INFO prepare_target{force=false package_id=csv-core v0.1.13 target="csv_core"}: cargo::core::compiler::fingerprint: fingerprint error for csv-core v0.1.13/Check { test: false }/TargetInner { benched: false, ..: lib_target("csv_core", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/csv-core-0.1.13/src/lib.rs", Edition2018) }
+   0.718020750s  INFO prepare_target{force=false package_id=csv-core v0.1.13 target="csv_core"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/csv-core-9976c5128eed6724/lib-csv_core`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: cargo::core::compiler::compile
+  10: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  11: cargo::ops::cargo_compile::compile_ws
+  12: cargo::ops::cargo_compile::compile_with_exec
+  13: cargo::ops::cargo_compile::compile
+  14: cargo::commands::check::exec
+  15: <cargo::cli::Exec>::exec
+  16: cargo::main
+  17: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  18: std::rt::lang_start::<()>::{closure#0}
+  19: std::rt::lang_start_internal
+  20: _main
+   0.718306916s  INFO prepare_target{force=false package_id=serde_core v1.0.229 target="serde_core"}: cargo::core::compiler::fingerprint: fingerprint error for serde_core v1.0.229/Check { test: false }/TargetInner { ..: lib_target("serde_core", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_core-1.0.229/src/lib.rs", Edition2021) }
+   0.718312875s  INFO prepare_target{force=false package_id=serde_core v1.0.229 target="serde_core"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/serde_core-df61a36a5f8ca568/lib-serde_core`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: cargo::core::compiler::compile
+  10: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  11: cargo::ops::cargo_compile::compile_ws
+  12: cargo::ops::cargo_compile::compile_with_exec
+  13: cargo::ops::cargo_compile::compile
+  14: cargo::commands::check::exec
+  15: <cargo::cli::Exec>::exec
+  16: cargo::main
+  17: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  18: std::rt::lang_start::<()>::{closure#0}
+  19: std::rt::lang_start_internal
+  20: _main
+   0.718972625s  INFO prepare_target{force=false package_id=lazy_static v1.5.0 target="lazy_static"}: cargo::core::compiler::fingerprint: fingerprint error for lazy_static v1.5.0/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("lazy_static", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lazy_static-1.5.0/src/lib.rs", Edition2015) }
+   0.718992875s  INFO prepare_target{force=false package_id=lazy_static v1.5.0 target="lazy_static"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/lazy_static-3a717104648bb681/lib-lazy_static`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  10: cargo::ops::cargo_compile::compile_ws
+  11: cargo::ops::cargo_compile::compile_with_exec
+  12: cargo::ops::cargo_compile::compile
+  13: cargo::commands::check::exec
+  14: <cargo::cli::Exec>::exec
+  15: cargo::main
+  16: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  17: std::rt::lang_start::<()>::{closure#0}
+  18: std::rt::lang_start_internal
+  19: _main
+   0.719377833s  INFO prepare_target{force=false package_id=regex v1.13.1 target="regex"}: cargo::core::compiler::fingerprint: fingerprint error for regex v1.13.1/Check { test: false }/TargetInner { ..: lib_target("regex", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/regex-1.13.1/src/lib.rs", Edition2021) }
+   0.719389541s  INFO prepare_target{force=false package_id=regex v1.13.1 target="regex"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/regex-69f42faaf0fce6ac/lib-regex`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  10: cargo::ops::cargo_compile::compile_ws
+  11: cargo::ops::cargo_compile::compile_with_exec
+  12: cargo::ops::cargo_compile::compile
+  13: cargo::commands::check::exec
+  14: <cargo::cli::Exec>::exec
+  15: cargo::main
+  16: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  17: std::rt::lang_start::<()>::{closure#0}
+  18: std::rt::lang_start_internal
+  19: _main
+   0.719995833s  INFO prepare_target{force=false package_id=regex-automata v0.4.18 target="regex_automata"}: cargo::core::compiler::fingerprint: fingerprint error for regex-automata v0.4.18/Check { test: false }/TargetInner { benched: false, ..: lib_target("regex_automata", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/regex-automata-0.4.18/src/lib.rs", Edition2021) }
+   0.720013166s  INFO prepare_target{force=false package_id=regex-automata v0.4.18 target="regex_automata"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/regex-automata-9e86330b1a4062ff/lib-regex_automata`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: cargo::core::compiler::compile
+  10: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  11: cargo::ops::cargo_compile::compile_ws
+  12: cargo::ops::cargo_compile::compile_with_exec
+  13: cargo::ops::cargo_compile::compile
+  14: cargo::commands::check::exec
+  15: <cargo::cli::Exec>::exec
+  16: cargo::main
+  17: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  18: std::rt::lang_start::<()>::{closure#0}
+  19: std::rt::lang_start_internal
+  20: _main
+   0.720484708s  INFO prepare_target{force=false package_id=regex-syntax v0.8.11 target="regex_syntax"}: cargo::core::compiler::fingerprint: fingerprint error for regex-syntax v0.8.11/Check { test: false }/TargetInner { ..: lib_target("regex_syntax", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/regex-syntax-0.8.11/src/lib.rs", Edition2021) }
+   0.720497250s  INFO prepare_target{force=false package_id=regex-syntax v0.8.11 target="regex_syntax"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/regex-syntax-866127288af579ff/lib-regex_syntax`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: cargo::core::compiler::compile
+  10: cargo::core::compiler::compile
+  11: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  12: cargo::ops::cargo_compile::compile_ws
+  13: cargo::ops::cargo_compile::compile_with_exec
+  14: cargo::ops::cargo_compile::compile
+  15: cargo::commands::check::exec
+  16: <cargo::cli::Exec>::exec
+  17: cargo::main
+  18: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  19: std::rt::lang_start::<()>::{closure#0}
+  20: std::rt::lang_start_internal
+  21: _main
+   0.720848333s  INFO prepare_target{force=false package_id=arrow-ipc v54.3.1 target="arrow_ipc"}: cargo::core::compiler::fingerprint: fingerprint error for arrow-ipc v54.3.1/Check { test: false }/TargetInner { benched: false, ..: lib_target("arrow_ipc", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-ipc-54.3.1/src/lib.rs", Edition2021) }
+   0.720857000s  INFO prepare_target{force=false package_id=arrow-ipc v54.3.1 target="arrow_ipc"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/arrow-ipc-ccc5efd98cc0bbc7/lib-arrow_ipc`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   9: cargo::ops::cargo_compile::compile_ws
+  10: cargo::ops::cargo_compile::compile_with_exec
+  11: cargo::ops::cargo_compile::compile
+  12: cargo::commands::check::exec
+  13: <cargo::cli::Exec>::exec
+  14: cargo::main
+  15: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  16: std::rt::lang_start::<()>::{closure#0}
+  17: std::rt::lang_start_internal
+  18: _main
+   0.721679875s  INFO prepare_target{force=false package_id=arrow-json v54.3.1 target="arrow_json"}: cargo::core::compiler::fingerprint: fingerprint error for arrow-json v54.3.1/Check { test: false }/TargetInner { benched: false, ..: lib_target("arrow_json", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-json-54.3.1/src/lib.rs", Edition2021) }
+   0.721695125s  INFO prepare_target{force=false package_id=arrow-json v54.3.1 target="arrow_json"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/arrow-json-4fc7c3d20bb359ca/lib-arrow_json`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   9: cargo::ops::cargo_compile::compile_ws
+  10: cargo::ops::cargo_compile::compile_with_exec
+  11: cargo::ops::cargo_compile::compile
+  12: cargo::commands::check::exec
+  13: <cargo::cli::Exec>::exec
+  14: cargo::main
+  15: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  16: std::rt::lang_start::<()>::{closure#0}
+  17: std::rt::lang_start_internal
+  18: _main
+   0.722029541s  INFO prepare_target{force=false package_id=indexmap v2.14.1 target="indexmap"}: cargo::core::compiler::fingerprint: fingerprint error for indexmap v2.14.1/Check { test: false }/TargetInner { benched: false, ..: lib_target("indexmap", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/indexmap-2.14.1/src/lib.rs", Edition2024) }
+   0.722047625s  INFO prepare_target{force=false package_id=indexmap v2.14.1 target="indexmap"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/indexmap-0f916ff70a42b76e/lib-indexmap`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  10: cargo::ops::cargo_compile::compile_ws
+  11: cargo::ops::cargo_compile::compile_with_exec
+  12: cargo::ops::cargo_compile::compile
+  13: cargo::commands::check::exec
+  14: <cargo::cli::Exec>::exec
+  15: cargo::main
+  16: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  17: std::rt::lang_start::<()>::{closure#0}
+  18: std::rt::lang_start_internal
+  19: _main
+   0.722225375s  INFO prepare_target{force=false package_id=equivalent v1.0.2 target="equivalent"}: cargo::core::compiler::fingerprint: fingerprint error for equivalent v1.0.2/Check { test: false }/TargetInner { ..: lib_target("equivalent", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/equivalent-1.0.2/src/lib.rs", Edition2015) }
+   0.722231250s  INFO prepare_target{force=false package_id=equivalent v1.0.2 target="equivalent"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/equivalent-5ef00d82adf99b1b/lib-equivalent`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: cargo::core::compiler::compile
+  10: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  11: cargo::ops::cargo_compile::compile_ws
+  12: cargo::ops::cargo_compile::compile_with_exec
+  13: cargo::ops::cargo_compile::compile
+  14: cargo::commands::check::exec
+  15: <cargo::cli::Exec>::exec
+  16: cargo::main
+  17: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  18: std::rt::lang_start::<()>::{closure#0}
+  19: std::rt::lang_start_internal
+  20: _main
+   0.722368541s  INFO prepare_target{force=false package_id=hashbrown v0.17.1 target="hashbrown"}: cargo::core::compiler::fingerprint: fingerprint error for hashbrown v0.17.1/Check { test: false }/TargetInner { ..: lib_target("hashbrown", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hashbrown-0.17.1/src/lib.rs", Edition2024) }
+   0.722374041s  INFO prepare_target{force=false package_id=hashbrown v0.17.1 target="hashbrown"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/hashbrown-4c90d7a256d6312d/lib-hashbrown`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: cargo::core::compiler::compile
+  10: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  11: cargo::ops::cargo_compile::compile_ws
+  12: cargo::ops::cargo_compile::compile_with_exec
+  13: cargo::ops::cargo_compile::compile
+  14: cargo::commands::check::exec
+  15: <cargo::cli::Exec>::exec
+  16: cargo::main
+  17: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  18: std::rt::lang_start::<()>::{closure#0}
+  19: std::rt::lang_start_internal
+  20: _main
+   0.722546125s  INFO prepare_target{force=false package_id=serde v1.0.229 target="serde"}: cargo::core::compiler::fingerprint: fingerprint error for serde v1.0.229/Check { test: false }/TargetInner { ..: lib_target("serde", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/lib.rs", Edition2021) }
+   0.722552250s  INFO prepare_target{force=false package_id=serde v1.0.229 target="serde"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/serde-ad7ad56715320dd2/lib-serde`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  10: cargo::ops::cargo_compile::compile_ws
+  11: cargo::ops::cargo_compile::compile_with_exec
+  12: cargo::ops::cargo_compile::compile
+  13: cargo::commands::check::exec
+  14: <cargo::cli::Exec>::exec
+  15: cargo::main
+  16: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  17: std::rt::lang_start::<()>::{closure#0}
+  18: std::rt::lang_start_internal
+  19: _main
+   0.722860875s  INFO prepare_target{force=false package_id=serde_json v1.0.151 target="serde_json"}: cargo::core::compiler::fingerprint: fingerprint error for serde_json v1.0.151/Check { test: false }/TargetInner { ..: lib_target("serde_json", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_json-1.0.151/src/lib.rs", Edition2021) }
+   0.722866500s  INFO prepare_target{force=false package_id=serde_json v1.0.151 target="serde_json"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/serde_json-4af398538258bcc1/lib-serde_json`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  10: cargo::ops::cargo_compile::compile_ws
+  11: cargo::ops::cargo_compile::compile_with_exec
+  12: cargo::ops::cargo_compile::compile
+  13: cargo::commands::check::exec
+  14: <cargo::cli::Exec>::exec
+  15: cargo::main
+  16: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  17: std::rt::lang_start::<()>::{closure#0}
+  18: std::rt::lang_start_internal
+  19: _main
+   0.723167166s  INFO prepare_target{force=false package_id=zmij v1.0.23 target="zmij"}: cargo::core::compiler::fingerprint: fingerprint error for zmij v1.0.23/Check { test: false }/TargetInner { ..: lib_target("zmij", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zmij-1.0.23/src/lib.rs", Edition2021) }
+   0.723171750s  INFO prepare_target{force=false package_id=zmij v1.0.23 target="zmij"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/zmij-7bcff18738fd6d6c/lib-zmij`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: cargo::core::compiler::compile
+  10: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  11: cargo::ops::cargo_compile::compile_ws
+  12: cargo::ops::cargo_compile::compile_with_exec
+  13: cargo::ops::cargo_compile::compile
+  14: cargo::commands::check::exec
+  15: <cargo::cli::Exec>::exec
+  16: cargo::main
+  17: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  18: std::rt::lang_start::<()>::{closure#0}
+  19: std::rt::lang_start_internal
+  20: _main
+   0.723448750s  INFO prepare_target{force=false package_id=simdutf8 v0.1.5 target="simdutf8"}: cargo::core::compiler::fingerprint: fingerprint error for simdutf8 v0.1.5/Check { test: false }/TargetInner { ..: lib_target("simdutf8", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/simdutf8-0.1.5/src/lib.rs", Edition2018) }
+   0.723454041s  INFO prepare_target{force=false package_id=simdutf8 v0.1.5 target="simdutf8"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/simdutf8-f8a33bc77b9ca363/lib-simdutf8`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  10: cargo::ops::cargo_compile::compile_ws
+  11: cargo::ops::cargo_compile::compile_with_exec
+  12: cargo::ops::cargo_compile::compile
+  13: cargo::commands::check::exec
+  14: <cargo::cli::Exec>::exec
+  15: cargo::main
+  16: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  17: std::rt::lang_start::<()>::{closure#0}
+  18: std::rt::lang_start_internal
+  19: _main
+   0.723582000s  INFO prepare_target{force=false package_id=arrow-ord v54.3.1 target="arrow_ord"}: cargo::core::compiler::fingerprint: fingerprint error for arrow-ord v54.3.1/Check { test: false }/TargetInner { benched: false, ..: lib_target("arrow_ord", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-ord-54.3.1/src/lib.rs", Edition2021) }
+   0.723587291s  INFO prepare_target{force=false package_id=arrow-ord v54.3.1 target="arrow_ord"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/arrow-ord-4b9b0541e07a0c1f/lib-arrow_ord`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   9: cargo::ops::cargo_compile::compile_ws
+  10: cargo::ops::cargo_compile::compile_with_exec
+  11: cargo::ops::cargo_compile::compile
+  12: cargo::commands::check::exec
+  13: <cargo::cli::Exec>::exec
+  14: cargo::main
+  15: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  16: std::rt::lang_start::<()>::{closure#0}
+  17: std::rt::lang_start_internal
+  18: _main
+   0.723755666s  INFO prepare_target{force=false package_id=arrow-row v54.3.1 target="arrow_row"}: cargo::core::compiler::fingerprint: fingerprint error for arrow-row v54.3.1/Check { test: false }/TargetInner { benched: false, ..: lib_target("arrow_row", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-row-54.3.1/src/lib.rs", Edition2021) }
+   0.723760958s  INFO prepare_target{force=false package_id=arrow-row v54.3.1 target="arrow_row"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/arrow-row-de1e077bd1c23a89/lib-arrow_row`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   9: cargo::ops::cargo_compile::compile_ws
+  10: cargo::ops::cargo_compile::compile_with_exec
+  11: cargo::ops::cargo_compile::compile
+  12: cargo::commands::check::exec
+  13: <cargo::cli::Exec>::exec
+  14: cargo::main
+  15: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  16: std::rt::lang_start::<()>::{closure#0}
+  17: std::rt::lang_start_internal
+  18: _main
+   0.723922041s  INFO prepare_target{force=false package_id=arrow-string v54.3.1 target="arrow_string"}: cargo::core::compiler::fingerprint: fingerprint error for arrow-string v54.3.1/Check { test: false }/TargetInner { benched: false, ..: lib_target("arrow_string", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/arrow-string-54.3.1/src/lib.rs", Edition2021) }
+   0.723927750s  INFO prepare_target{force=false package_id=arrow-string v54.3.1 target="arrow_string"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/arrow-string-64b8551abb5ac789/lib-arrow_string`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   9: cargo::ops::cargo_compile::compile_ws
+  10: cargo::ops::cargo_compile::compile_with_exec
+  11: cargo::ops::cargo_compile::compile
+  12: cargo::commands::check::exec
+  13: <cargo::cli::Exec>::exec
+  14: cargo::main
+  15: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  16: std::rt::lang_start::<()>::{closure#0}
+  17: std::rt::lang_start_internal
+  18: _main
+   0.724270666s  INFO prepare_target{force=false package_id=parquet v54.3.1 target="parquet"}: cargo::core::compiler::fingerprint: fingerprint error for parquet v54.3.1/Check { test: false }/TargetInner { benched: false, ..: lib_target("parquet", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parquet-54.3.1/src/lib.rs", Edition2021) }
+   0.724277541s  INFO prepare_target{force=false package_id=parquet v54.3.1 target="parquet"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/parquet-77dd78fed0cd251f/lib-parquet`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   8: cargo::ops::cargo_compile::compile_ws
+   9: cargo::ops::cargo_compile::compile_with_exec
+  10: cargo::ops::cargo_compile::compile
+  11: cargo::commands::check::exec
+  12: <cargo::cli::Exec>::exec
+  13: cargo::main
+  14: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  15: std::rt::lang_start::<()>::{closure#0}
+  16: std::rt::lang_start_internal
+  17: _main
+   0.724559875s  INFO prepare_target{force=false package_id=brotli v7.0.0 target="brotli"}: cargo::core::compiler::fingerprint: fingerprint error for brotli v7.0.0/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("brotli", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/brotli-7.0.0/src/lib.rs", Edition2015) }
+   0.724564833s  INFO prepare_target{force=false package_id=brotli v7.0.0 target="brotli"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/brotli-7fb4448e2dcc1c35/lib-brotli`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   9: cargo::ops::cargo_compile::compile_ws
+  10: cargo::ops::cargo_compile::compile_with_exec
+  11: cargo::ops::cargo_compile::compile
+  12: cargo::commands::check::exec
+  13: <cargo::cli::Exec>::exec
+  14: cargo::main
+  15: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  16: std::rt::lang_start::<()>::{closure#0}
+  17: std::rt::lang_start_internal
+  18: _main
+   0.725172083s  INFO prepare_target{force=false package_id=brotli-decompressor v4.0.3 target="brotli_decompressor"}: cargo::core::compiler::fingerprint: fingerprint error for brotli-decompressor v4.0.3/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("brotli_decompressor", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/brotli-decompressor-4.0.3/src/lib.rs", Edition2015) }
+   0.725182125s  INFO prepare_target{force=false package_id=brotli-decompressor v4.0.3 target="brotli_decompressor"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/brotli-decompressor-749bd36f4c08e2a1/lib-brotli_decompressor`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  10: cargo::ops::cargo_compile::compile_ws
+  11: cargo::ops::cargo_compile::compile_with_exec
+  12: cargo::ops::cargo_compile::compile
+  13: cargo::commands::check::exec
+  14: <cargo::cli::Exec>::exec
+  15: cargo::main
+  16: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  17: std::rt::lang_start::<()>::{closure#0}
+  18: std::rt::lang_start_internal
+  19: _main
+   0.725354666s  INFO prepare_target{force=false package_id=flate2 v1.1.10 target="flate2"}: cargo::core::compiler::fingerprint: fingerprint error for flate2 v1.1.10/Check { test: false }/TargetInner { ..: lib_target("flate2", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/flate2-1.1.10/src/lib.rs", Edition2018) }
+   0.725361333s  INFO prepare_target{force=false package_id=flate2 v1.1.10 target="flate2"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/flate2-09111d3f1fcaaa1e/lib-flate2`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   9: cargo::ops::cargo_compile::compile_ws
+  10: cargo::ops::cargo_compile::compile_with_exec
+  11: cargo::ops::cargo_compile::compile
+  12: cargo::commands::check::exec
+  13: <cargo::cli::Exec>::exec
+  14: cargo::main
+  15: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  16: std::rt::lang_start::<()>::{closure#0}
+  17: std::rt::lang_start_internal
+  18: _main
+   0.725717875s  INFO prepare_target{force=false package_id=crc32fast v1.5.1 target="crc32fast"}: cargo::core::compiler::fingerprint: fingerprint error for crc32fast v1.5.1/Check { test: false }/TargetInner { ..: lib_target("crc32fast", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crc32fast-1.5.1/src/lib.rs", Edition2021) }
+   0.725725750s  INFO prepare_target{force=false package_id=crc32fast v1.5.1 target="crc32fast"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/crc32fast-ce9abbfedf0dcf5d/lib-crc32fast`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  10: cargo::ops::cargo_compile::compile_ws
+  11: cargo::ops::cargo_compile::compile_with_exec
+  12: cargo::ops::cargo_compile::compile
+  13: cargo::commands::check::exec
+  14: <cargo::cli::Exec>::exec
+  15: cargo::main
+  16: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  17: std::rt::lang_start::<()>::{closure#0}
+  18: std::rt::lang_start_internal
+  19: _main
+   0.726101541s  INFO prepare_target{force=false package_id=miniz_oxide v0.9.1 target="miniz_oxide"}: cargo::core::compiler::fingerprint: fingerprint error for miniz_oxide v0.9.1/Check { test: false }/TargetInner { ..: lib_target("miniz_oxide", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/miniz_oxide-0.9.1/src/lib.rs", Edition2021) }
+   0.726106791s  INFO prepare_target{force=false package_id=miniz_oxide v0.9.1 target="miniz_oxide"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/miniz_oxide-784a0d788d3b2ce4/lib-miniz_oxide`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  10: cargo::ops::cargo_compile::compile_ws
+  11: cargo::ops::cargo_compile::compile_with_exec
+  12: cargo::ops::cargo_compile::compile
+  13: cargo::commands::check::exec
+  14: <cargo::cli::Exec>::exec
+  15: cargo::main
+  16: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  17: std::rt::lang_start::<()>::{closure#0}
+  18: std::rt::lang_start_internal
+  19: _main
+   0.726262250s  INFO prepare_target{force=false package_id=adler2 v2.0.1 target="adler2"}: cargo::core::compiler::fingerprint: fingerprint error for adler2 v2.0.1/Check { test: false }/TargetInner { ..: lib_target("adler2", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/adler2-2.0.1/src/lib.rs", Edition2021) }
+   0.726267541s  INFO prepare_target{force=false package_id=adler2 v2.0.1 target="adler2"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/adler2-f07472d6c822cb97/lib-adler2`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: cargo::core::compiler::compile
+  10: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  11: cargo::ops::cargo_compile::compile_ws
+  12: cargo::ops::cargo_compile::compile_with_exec
+  13: cargo::ops::cargo_compile::compile
+  14: cargo::commands::check::exec
+  15: <cargo::cli::Exec>::exec
+  16: cargo::main
+  17: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  18: std::rt::lang_start::<()>::{closure#0}
+  19: std::rt::lang_start_internal
+  20: _main
+   0.726478000s  INFO prepare_target{force=false package_id=simd-adler32 v0.3.10 target="simd_adler32"}: cargo::core::compiler::fingerprint: fingerprint error for simd-adler32 v0.3.10/Check { test: false }/TargetInner { ..: lib_target("simd_adler32", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/simd-adler32-0.3.10/src/lib.rs", Edition2018) }
+   0.726484333s  INFO prepare_target{force=false package_id=simd-adler32 v0.3.10 target="simd_adler32"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/simd-adler32-9c06726d519337b8/lib-simd_adler32`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: cargo::core::compiler::compile
+  10: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  11: cargo::ops::cargo_compile::compile_ws
+  12: cargo::ops::cargo_compile::compile_with_exec
+  13: cargo::ops::cargo_compile::compile
+  14: cargo::commands::check::exec
+  15: <cargo::cli::Exec>::exec
+  16: cargo::main
+  17: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  18: std::rt::lang_start::<()>::{closure#0}
+  19: std::rt::lang_start_internal
+  20: _main
+   0.726629208s  INFO prepare_target{force=false package_id=lz4_flex v0.11.6 target="lz4_flex"}: cargo::core::compiler::fingerprint: fingerprint error for lz4_flex v0.11.6/Check { test: false }/TargetInner { ..: lib_target("lz4_flex", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lz4_flex-0.11.6/src/lib.rs", Edition2021) }
+   0.726633791s  INFO prepare_target{force=false package_id=lz4_flex v0.11.6 target="lz4_flex"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/lz4_flex-6ebf05b1874b3138/lib-lz4_flex`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   9: cargo::ops::cargo_compile::compile_ws
+  10: cargo::ops::cargo_compile::compile_with_exec
+  11: cargo::ops::cargo_compile::compile
+  12: cargo::commands::check::exec
+  13: <cargo::cli::Exec>::exec
+  14: cargo::main
+  15: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  16: std::rt::lang_start::<()>::{closure#0}
+  17: std::rt::lang_start_internal
+  18: _main
+   0.726768250s  INFO prepare_target{force=false package_id=twox-hash v2.1.4 target="twox_hash"}: cargo::core::compiler::fingerprint: fingerprint error for twox-hash v2.1.4/Check { test: false }/TargetInner { ..: lib_target("twox_hash", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/twox-hash-2.1.4/src/lib.rs", Edition2021) }
+   0.726771708s  INFO prepare_target{force=false package_id=twox-hash v2.1.4 target="twox_hash"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/twox-hash-bc6266bbd6045bb3/lib-twox_hash`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  10: cargo::ops::cargo_compile::compile_ws
+  11: cargo::ops::cargo_compile::compile_with_exec
+  12: cargo::ops::cargo_compile::compile
+  13: cargo::commands::check::exec
+  14: <cargo::cli::Exec>::exec
+  15: cargo::main
+  16: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  17: std::rt::lang_start::<()>::{closure#0}
+  18: std::rt::lang_start_internal
+  19: _main
+   0.727262833s  INFO prepare_target{force=false package_id=snap v1.1.2 target="snap"}: cargo::core::compiler::fingerprint: fingerprint error for snap v1.1.2/Check { test: false }/TargetInner { benched: false, ..: lib_target("snap", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/snap-1.1.2/src/lib.rs", Edition2018) }
+   0.727270125s  INFO prepare_target{force=false package_id=snap v1.1.2 target="snap"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/snap-273dd82fb9a6d34b/lib-snap`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   9: cargo::ops::cargo_compile::compile_ws
+  10: cargo::ops::cargo_compile::compile_with_exec
+  11: cargo::ops::cargo_compile::compile
+  12: cargo::commands::check::exec
+  13: <cargo::cli::Exec>::exec
+  14: cargo::main
+  15: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  16: std::rt::lang_start::<()>::{closure#0}
+  17: std::rt::lang_start_internal
+  18: _main
+   0.727729083s  INFO prepare_target{force=false package_id=thrift v0.17.0 target="thrift"}: cargo::core::compiler::fingerprint: fingerprint error for thrift v0.17.0/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("thrift", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thrift-0.17.0/src/lib.rs", Edition2018) }
+   0.727734375s  INFO prepare_target{force=false package_id=thrift v0.17.0 target="thrift"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/thrift-53497d7c9596266e/lib-thrift`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   9: cargo::ops::cargo_compile::compile_ws
+  10: cargo::ops::cargo_compile::compile_with_exec
+  11: cargo::ops::cargo_compile::compile
+  12: cargo::commands::check::exec
+  13: <cargo::cli::Exec>::exec
+  14: cargo::main
+  15: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  16: std::rt::lang_start::<()>::{closure#0}
+  17: std::rt::lang_start_internal
+  18: _main
+   0.727906666s  INFO prepare_target{force=false package_id=byteorder v1.5.0 target="byteorder"}: cargo::core::compiler::fingerprint: fingerprint error for byteorder v1.5.0/Check { test: false }/TargetInner { benched: false, ..: lib_target("byteorder", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/byteorder-1.5.0/src/lib.rs", Edition2021) }
+   0.727911166s  INFO prepare_target{force=false package_id=byteorder v1.5.0 target="byteorder"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/byteorder-aca7f53558f7d4de/lib-byteorder`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  10: cargo::ops::cargo_compile::compile_ws
+  11: cargo::ops::cargo_compile::compile_with_exec
+  12: cargo::ops::cargo_compile::compile
+  13: cargo::commands::check::exec
+  14: <cargo::cli::Exec>::exec
+  15: cargo::main
+  16: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  17: std::rt::lang_start::<()>::{closure#0}
+  18: std::rt::lang_start_internal
+  19: _main
+   0.728069541s  INFO prepare_target{force=false package_id=integer-encoding v3.0.4 target="integer_encoding"}: cargo::core::compiler::fingerprint: fingerprint error for integer-encoding v3.0.4/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("integer_encoding", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/integer-encoding-3.0.4/src/lib.rs", Edition2018) }
+   0.728076125s  INFO prepare_target{force=false package_id=integer-encoding v3.0.4 target="integer_encoding"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/integer-encoding-3fa332f1e30eb0d1/lib-integer_encoding`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  10: cargo::ops::cargo_compile::compile_ws
+  11: cargo::ops::cargo_compile::compile_with_exec
+  12: cargo::ops::cargo_compile::compile
+  13: cargo::commands::check::exec
+  14: <cargo::cli::Exec>::exec
+  15: cargo::main
+  16: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  17: std::rt::lang_start::<()>::{closure#0}
+  18: std::rt::lang_start_internal
+  19: _main
+   0.728211833s  INFO prepare_target{force=false package_id=ordered-float v2.10.1 target="ordered_float"}: cargo::core::compiler::fingerprint: fingerprint error for ordered-float v2.10.1/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("ordered_float", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ordered-float-2.10.1/src/lib.rs", Edition2018) }
+   0.728216125s  INFO prepare_target{force=false package_id=ordered-float v2.10.1 target="ordered_float"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/ordered-float-58b654eefac0e3f4/lib-ordered_float`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  10: cargo::ops::cargo_compile::compile_ws
+  11: cargo::ops::cargo_compile::compile_with_exec
+  12: cargo::ops::cargo_compile::compile
+  13: cargo::commands::check::exec
+  14: <cargo::cli::Exec>::exec
+  15: cargo::main
+  16: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  17: std::rt::lang_start::<()>::{closure#0}
+  18: std::rt::lang_start_internal
+  19: _main
+   0.728503541s  INFO prepare_target{force=false package_id=twox-hash v1.6.3 target="twox_hash"}: cargo::core::compiler::fingerprint: fingerprint error for twox-hash v1.6.3/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("twox_hash", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/twox-hash-1.6.3/src/lib.rs", Edition2018) }
+   0.728509125s  INFO prepare_target{force=false package_id=twox-hash v1.6.3 target="twox_hash"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/twox-hash-d955aea2c3316d33/lib-twox_hash`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   9: cargo::ops::cargo_compile::compile_ws
+  10: cargo::ops::cargo_compile::compile_with_exec
+  11: cargo::ops::cargo_compile::compile
+  12: cargo::commands::check::exec
+  13: <cargo::cli::Exec>::exec
+  14: cargo::main
+  15: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  16: std::rt::lang_start::<()>::{closure#0}
+  17: std::rt::lang_start_internal
+  18: _main
+   0.728660083s  INFO prepare_target{force=false package_id=static_assertions v1.1.0 target="static_assertions"}: cargo::core::compiler::fingerprint: fingerprint error for static_assertions v1.1.0/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("static_assertions", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/static_assertions-1.1.0/src/lib.rs", Edition2015) }
+   0.728665833s  INFO prepare_target{force=false package_id=static_assertions v1.1.0 target="static_assertions"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/static_assertions-250a5477ab8f84a3/lib-static_assertions`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  10: cargo::ops::cargo_compile::compile_ws
+  11: cargo::ops::cargo_compile::compile_with_exec
+  12: cargo::ops::cargo_compile::compile
+  13: cargo::commands::check::exec
+  14: <cargo::cli::Exec>::exec
+  15: cargo::main
+  16: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  17: std::rt::lang_start::<()>::{closure#0}
+  18: std::rt::lang_start_internal
+  19: _main
+   0.728795791s  INFO prepare_target{force=false package_id=zstd v0.13.3 target="zstd"}: cargo::core::compiler::fingerprint: fingerprint error for zstd v0.13.3/Check { test: false }/TargetInner { ..: lib_target("zstd", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zstd-0.13.3/src/lib.rs", Edition2018) }
+   0.728800375s  INFO prepare_target{force=false package_id=zstd v0.13.3 target="zstd"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/zstd-8b8203c1f1c28f8a/lib-zstd`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   9: cargo::ops::cargo_compile::compile_ws
+  10: cargo::ops::cargo_compile::compile_with_exec
+  11: cargo::ops::cargo_compile::compile
+  12: cargo::commands::check::exec
+  13: <cargo::cli::Exec>::exec
+  14: cargo::main
+  15: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  16: std::rt::lang_start::<()>::{closure#0}
+  17: std::rt::lang_start_internal
+  18: _main
+   0.728949041s  INFO prepare_target{force=false package_id=zstd-safe v7.2.4 target="zstd_safe"}: cargo::core::compiler::fingerprint: fingerprint error for zstd-safe v7.2.4/Check { test: false }/TargetInner { ..: lib_target("zstd_safe", ["lib"], "/Users/onell/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zstd-safe-7.2.4/src/lib.rs", Edition2018) }
+   0.728952125s  INFO prepare_target{force=false package_id=zstd-safe v7.2.4 target="zstd_safe"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/zstd-safe-4cde3b1a8b0c258d/lib-zstd_safe`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: cargo::core::compiler::compile
+   8: cargo::core::compiler::compile
+   9: <cargo::core::compiler::build_runner::BuildRunner>::compile
+  10: cargo::ops::cargo_compile::compile_ws
+  11: cargo::ops::cargo_compile::compile_with_exec
+  12: cargo::ops::cargo_compile::compile
+  13: cargo::commands::check::exec
+  14: <cargo::cli::Exec>::exec
+  15: cargo::main
+  16: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  17: std::rt::lang_start::<()>::{closure#0}
+  18: std::rt::lang_start_internal
+  19: _main
+   0.730541500s  INFO prepare_target{force=false package_id=lab01-read-parquet v0.1.0 (/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet) target="lab01-read-parquet"}: cargo::core::compiler::fingerprint: fingerprint error for lab01-read-parquet v0.1.0 (/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet)/Check { test: true }/TargetInner { name: "lab01-read-parquet", doc: true, ..: with_path("/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/src/main.rs", Edition2021) }
+   0.730550375s  INFO prepare_target{force=false package_id=lab01-read-parquet v0.1.0 (/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet) target="lab01-read-parquet"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/.fingerprint/lab01-read-parquet-54e115205fb3d68f/test-bin-lab01-read-parquet`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: <std::backtrace::Backtrace>::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   7: cargo::ops::cargo_compile::compile_ws
+   8: cargo::ops::cargo_compile::compile_with_exec
+   9: cargo::ops::cargo_compile::compile
+  10: cargo::commands::check::exec
+  11: <cargo::cli::Exec>::exec
+  12: cargo::main
+  13: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  14: std::rt::lang_start::<()>::{closure#0}
+  15: std::rt::lang_start_internal
+  16: _main
+    Checking num-traits v0.2.19
+    Checking zerocopy v0.8.56
+    Checking serde_core v1.0.229
+    Checking regex-syntax v0.8.11
+    Checking zmij v1.0.23
+    Checking csv-core v0.1.13
+    Checking hashbrown v0.17.1
+    Checking adler2 v2.0.1
+    Checking equivalent v1.0.2
+    Checking simdutf8 v0.1.5
+    Checking simd-adler32 v0.3.10
+    Checking crc32fast v1.5.1
+    Checking zstd-safe v7.2.4
+    Checking miniz_oxide v0.9.1
+    Checking brotli-decompressor v4.0.3
+    Checking indexmap v2.14.1
+    Checking integer-encoding v3.0.4
+    Checking num-integer v0.1.47
+    Checking num-complex v0.4.6
+    Checking chrono v0.4.45
+    Checking num-bigint v0.4.8
+    Checking num-iter v0.1.46
+    Checking atoi v2.0.0
+    Checking ordered-float v2.10.1
+    Checking static_assertions v1.1.0
+    Checking lazy_static v1.5.0
+    Checking twox-hash v2.1.4
+    Checking byteorder v1.5.0
+    Checking twox-hash v1.6.3
+    Checking lz4_flex v0.11.6
+    Checking thrift v0.17.0
+    Checking brotli v7.0.0
+    Checking regex-automata v0.4.18
+    Checking flate2 v1.1.10
+    Checking zstd v0.13.3
+    Checking snap v1.1.2
+    Checking anyhow v1.0.104
+    Checking serde_json v1.0.151
+    Checking serde v1.0.229
+    Checking csv v1.4.0
+    Checking num-rational v0.4.2
+    Checking num v0.4.3
+    Checking regex v1.13.1
+    Checking half v2.7.1
+    Checking ahash v0.8.12
+    Checking arrow-buffer v54.3.1
+    Checking arrow-data v54.3.1
+    Checking arrow-array v54.3.1
+    Checking arrow-select v54.3.1
+    Checking arrow-ipc v54.3.1
+    Checking arrow-row v54.3.1
+    Checking arrow-arith v54.3.1
+    Checking arrow-cast v54.3.1
+    Checking arrow-ord v54.3.1
+    Checking arrow-string v54.3.1
+    Checking arrow-csv v54.3.1
+    Checking arrow-json v54.3.1
+    Checking parquet v54.3.1
+    Checking arrow v54.3.1
+    Checking lab01-read-parquet v0.1.0 (/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 10.40s

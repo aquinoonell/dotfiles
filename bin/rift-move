@@ -147,6 +147,18 @@ def active_workspace_windows(workspaces: list) -> list:
     return list((ws or {}).get("windows") or [])
 
 
+def windows_for_focused(workspaces: list, focused) -> list:
+    for ws in workspaces:
+        wins = list(ws.get("windows") or [])
+        if focused and any(same_window(ident_of(w), focused) for w in wins):
+            return wins
+    return active_workspace_windows(workspaces)
+
+
+def all_floating(windows: list) -> bool:
+    return bool(windows) and all(is_floating(w) for w in windows)
+
+
 def focus_window(window: dict) -> bool:
     payload = window_id_json(window)
     if not payload:
@@ -154,14 +166,14 @@ def focus_window(window: dict) -> bool:
     return run_ok(["execute", "window", "focus", "--window-id", payload])
 
 
-def tile_workspace_floaters(windows: list, focused) -> bool:
+def tile_workspace_floaters(windows: list, focused, include_keep: bool) -> bool:
     """Put sibling floaters into the tiling tree so they can split as neighbors."""
     changed = False
     to_tile = []
     for window in windows:
         if not is_floating(window):
             continue
-        if window.get("bundle_id") in KEEP_FLOATING:
+        if window.get("bundle_id") in KEEP_FLOATING and not include_keep:
             continue
         to_tile.append(window)
     if not to_tile:
@@ -184,7 +196,7 @@ def tile_workspace_floaters(windows: list, focused) -> bool:
             ]
         )
     if changed:
-        time.sleep(0.08)
+        time.sleep(0.15)
     return changed
 
 
@@ -241,22 +253,25 @@ def main() -> int:
     layout = run_json(["query", "layout"]) or {}
     workspaces = run_json(["query", "workspaces"]) or []
     displays = run_json(["query", "displays"]) or []
-    windows = active_workspace_windows(workspaces)
     focused = layout.get("focused_window") or layout.get("selected_window")
+    windows = windows_for_focused(workspaces, focused)
     if not focused:
         focused = ident_of(next((w for w in windows if w.get("is_focused")), {}) or {})
     active = next((d for d in displays if d.get("is_active_space")), displays[0] if displays else None)
 
+    arrange_floaters = all_floating(windows) and len(windows) >= 2
     siblings = [
         w
         for w in windows
         if not same_window(ident_of(w), focused)
-        and w.get("bundle_id") not in KEEP_FLOATING
+        and (arrange_floaters or w.get("bundle_id") not in KEEP_FLOATING)
     ]
 
     just_tiled = False
     if siblings:
-        just_tiled = tile_workspace_floaters(windows, focused)
+        just_tiled = tile_workspace_floaters(
+            windows, focused, include_keep=arrange_floaters
+        )
         layout = run_json(["query", "layout"]) or layout
         focused = layout.get("focused_window") or focused
         if just_tiled:

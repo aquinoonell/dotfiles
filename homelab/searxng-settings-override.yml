@@ -1,54 +1,92 @@
-# SearXNG settings overlay — merge into /etc/searxng/settings.yml
-# or mount as the only custom file when use_default_settings: true.
+# SearXNG settings overlay for general + tech search.
+# Deploy to CT 103 via fix-searxng-engines.sh.
 #
-# Disables engines that CAPTCHA-block homelab IPs; keeps engines that work
-# from this network (verified 2026-09-01).
+# Profile: DuckDuckGo as primary general engine, IT engines kept as extras.
+# Last updated: 2026-09-03
 
-use_default_settings: true
+server:
+  secret_key: "13bf9a01eaaa15ece14d7547aed2f7e1dc15dd00e6f034b704c24ae99f50a282"
+
+use_default_settings:
+  engines:
+    keep_only:
+      - duckduckgo
+      - bing
+      - github
+      - stackoverflow
+      - crates.io
+      - arch linux wiki
+      - wikipedia
+      - wikidata
 
 search:
-  # Avoid burning engines with aggressive parallel queries from one IP.
+  autocomplete: "duckduckgo"
+  default_lang: "en"
   max_ban_time_on_fail: 120
   suspended_times:
     SearxEngineAccessDenied: 86400
     SearxEngineCaptcha: 86400
     SearxEngineTooManyRequests: 3600
 
+# Send engine fetches through wireproxy on the docker bridge (CT 103).
+# LAN / Tailscale inbound is unchanged — this is outbound only.
+outgoing:
+  request_timeout: 12.0
+  max_request_timeout: 18.0
+  extra_proxy_timeout: 5
+  proxies:
+    all://:
+      - socks5://172.17.0.1:1080
+
 engines:
-  # Blocked / unreliable on homelab egress
+  # Primary general engine (Zen address-bar / everyday search)
   - name: duckduckgo
-    disabled: true
-  - name: startpage
-    disabled: true
+    disabled: false
+    weight: 3.0
+
+  # CAPTCHA-prone — keep off
   - name: google
     disabled: true
   - name: brave
     disabled: true
+  - name: startpage
+    disabled: true
 
-  # Working general web engines (tested from LAN)
-  - name: bing
+  # Dev engines — high weight
+  - name: github
     disabled: false
     weight: 2.0
-  - name: wiby
+  - name: stackoverflow
+    disabled: false
+    weight: 2.0
+  - name: crates.io
+    disabled: false
+    weight: 2.0
+
+  # Reference engines
+  - name: arch linux wiki
     disabled: false
     weight: 1.5
   - name: wikipedia
     disabled: false
+    weight: 1.5
+  - name: wikidata
+    disabled: false
     weight: 1.0
-  - name: seznam
-    disabled: false
-    weight: 0.5
 
-  # Keep enabled but lower priority — may recover after cooldown
-  - name: mojeek
+  # Fallback if DuckDuckGo is challenged
+  - name: bing
     disabled: false
-    weight: 0.8
-  - name: qwant
-    disabled: false
-    weight: 0.8
-  - name: yahoo
-    disabled: false
-    weight: 0.5
-  - name: presearch
-    disabled: false
-    weight: 0.5
+    weight: 1.0
+
+# Hostnames plugin config — boost/demote domains for technical search
+hostnames:
+  high_priority: 'searxng-hostnames.yml'
+  low_priority:
+    - '(.*\.)?youtube\.com$'
+    - '(.*\.)?reddit\.com$'
+    - '(.*\.)?ebay\.com$'
+    - '(.*\.)?steamcommunity\.com$'
+    - '(.*\.)?linkedin\.com$'
+    - '(.*\.)?gizmodo\.(com|com\.br)$'
+    - '(.*\.)?squarespace\.com$'

@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-# Visual theme + wallpaper picker (grouped list, color preview)
+# Visual theme + wallpaper picker (grouped list, image + color preview)
 #
 
 set -e
 
-export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$HOME/dotfiles/bin:${PATH:-}"
+export PATH="/opt/homebrew/bin:/usr/local/bin:/Applications/kitty.app/Contents/MacOS:/usr/bin:/bin:$HOME/dotfiles/bin:${PATH:-}"
 
 DOTFILES_DIR="$HOME/dotfiles"
 THEMES_DIR="$DOTFILES_DIR/themes"
@@ -75,7 +75,7 @@ selected=$(build_list | fzf \
     --prompt="Theme: " \
     --header="Current: $current_theme │ theme or wallpaper │ Enter=apply" \
     --preview="$DOTFILES_DIR/bin/theme-preview {}" \
-    --preview-window=right:50%:wrap \
+    --preview-window=right:55%:nowrap \
     --height=100% \
     --layout=reverse \
     --border \

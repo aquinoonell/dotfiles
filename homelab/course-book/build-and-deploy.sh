@@ -18,9 +18,15 @@ mkdir -p "$DIR/src/chapters/parqtool"
 cp "$COURSE"/*.md "$DIR/src/chapters/"
 cp "$COURSE"/parqtool/*.md "$DIR/src/chapters/parqtool/"
 
-echo "==> Build"
+echo "==> Build mdBook"
 cd "$DIR"
 mdbook build
+
+GUIDE="$DIR/../kiwix-guide"
+echo "==> Overlay HTML guides (rust/ db/ taxi/) into mdBook output"
+"$GUIDE/build-rust-pages.sh"
+cp -R "$GUIDE/rust" "$GUIDE/db" "$GUIDE/taxi" "$DIR/book/"
+cp "$GUIDE/style.css" "$DIR/book/style.css"
 
 echo "==> Deploy to $PROXMOX (CT 104)"
 tar czf /tmp/course-book.tar.gz -C "$DIR" book
@@ -28,4 +34,4 @@ scp /tmp/course-book.tar.gz "root@$PROXMOX:/tmp/"
 ssh "root@$PROXMOX" "pct push 104 /tmp/course-book.tar.gz /tmp/course-book.tar.gz && \
   pct exec 104 -- bash -c 'rm -rf $REMOTE_HTML/* && tar xzf /tmp/course-book.tar.gz -C /tmp && cp -r /tmp/book/* $REMOTE_HTML/'"
 
-echo "==> Done: http://192.168.1.175:8089"
+echo "==> Done: http://192.168.1.175:8089  and  http://192.168.1.175:8089/taxi/"

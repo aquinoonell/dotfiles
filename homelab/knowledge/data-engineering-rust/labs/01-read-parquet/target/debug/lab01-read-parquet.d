@@ -1,0 +1,1 @@
+/Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/target/debug/lab01-read-parquet: /Users/onell/dotfiles/homelab/knowledge/data-engineering-rust/labs/01-read-parquet/src/main.rs

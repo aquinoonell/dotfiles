@@ -1,9 +1,14 @@
 #!/bin/bash
 #
-# Preview helper for theme-picker (color swatches only — no image preview)
+# Preview helper for theme-picker (wallpaper image + color swatches).
+# Kitty graphics use unicode placeholders so fzf can render them in a tmux popup.
 #
 
+export PATH="/opt/homebrew/bin:/usr/local/bin:/Applications/kitty.app/Contents/MacOS:/usr/bin:/bin:$HOME/dotfiles/bin:${PATH:-}"
+
 THEMES_DIR="${THEMES_DIR:-$HOME/dotfiles/themes}"
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles/theme-selector"
+PREVIEW_DIR="$CACHE_DIR/previews"
 line="$1"
 
 if [[ "$line" =~ ^[●○] ]]; then
@@ -32,6 +37,77 @@ hex_to_rgb() {
     printf "%d;%d;%d" "0x${hex:0:2}" "0x${hex:2:2}" "0x${hex:4:2}"
 }
 
+is_kitty() {
+    [[ -n "${KITTY_WINDOW_ID:-}" ]] && return 0
+    [[ "${TERM_PROGRAM:-}" == "kitty" ]] && return 0
+    [[ "${TERM:-}" == *kitty* ]] && return 0
+    if [[ -n "${TMUX:-}" ]] && command -v tmux >/dev/null; then
+        local client_term
+        client_term=$(tmux display-message -p '#{client_termname}' 2>/dev/null || true)
+        [[ "$client_term" == *kitty* ]] && return 0
+    fi
+    [[ -n "${GHOSTTY_RESOURCES_DIR:-}" ]] && return 0
+    return 1
+}
+
+preview_dims() {
+    cols="${FZF_PREVIEW_COLUMNS:-${COLUMNS:-40}}"
+    lines="${FZF_PREVIEW_LINES:-24}"
+    (( cols < 8 )) && cols=8
+    (( lines < 8 )) && lines=8
+    # Caption (~3) + swatches (~12) leave the rest for the image
+    img_lines=$((lines - 15))
+    (( img_lines < 8 )) && img_lines=8
+    return 0
+}
+
+# Image data on stdout as unicode placeholders — fzf positions them in the
+# preview pane. --place is avoided: it needs /dev/tty and uses screen coords.
+strip_preview_esc() {
+    sed $'s/\x1b\\[?25[lh]//g'
+}
+
+show_image() {
+    local img="$1"
+    [[ -f "$img" ]] || return 1
+
+    local cols lines img_lines
+    preview_dims
+
+    if is_kitty && command -v kitten >/dev/null; then
+        local px_w=$((cols * 20))
+        local px_h=$((img_lines * 40))
+        (
+            set -o pipefail
+            kitten icat \
+                --clear \
+                --transfer-mode=stream \
+                --unicode-placeholder \
+                --stdin=no \
+                --passthrough=none \
+                --align=center \
+                --use-window-size="${cols},${img_lines},${px_w},${px_h}" \
+                --fit=width \
+                "$img" 2>/dev/null \
+                | strip_preview_esc | sed '$d' | sed $'$s/$/\e[m/'
+        ) && printf '\n' && return 0
+    fi
+
+    if command -v chafa >/dev/null; then
+        # braille only — --symbols all uses U+1FBxx, missing from FiraMono Nerd Font
+        chafa \
+            --format symbols \
+            --symbols braille \
+            --probe off \
+            --colors full \
+            -s "${cols}x${img_lines}" \
+            "$img" 2>/dev/null \
+            | strip_preview_esc && printf '\n' && return 0
+    fi
+
+    return 1
+}
+
 fg=$(get_color foreground)
 bg=$(get_color background)
 accent=$(get_color accent)
@@ -50,6 +126,20 @@ if [[ -n "$bg_name" ]]; then
     printf '  %s\n' "$bg_name"
 fi
 printf '  --- %s ---\033[0m\n\n' "$theme"
+
+if [[ -n "$bg_name" && -f "$THEMES_DIR/$theme/backgrounds/$bg_name" ]]; then
+    preview_img="$THEMES_DIR/$theme/backgrounds/$bg_name"
+elif [[ -f "$PREVIEW_DIR/$theme.jpg" ]]; then
+    preview_img="$PREVIEW_DIR/$theme.jpg"
+else
+    preview_img=$(find "$THEMES_DIR/$theme/backgrounds" -maxdepth 1 -type f \
+        \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) \
+        2>/dev/null | sort | head -n 1)
+fi
+
+if [[ -n "${preview_img:-}" ]]; then
+    show_image "$preview_img" || true
+fi
 
 color_block() {
     local hex="$1"

@@ -27,6 +27,7 @@ Parquet file on disk
 5. [Database Internals](database-internals.html) — B+Tree, WAL, MVCC context
 6. [PostgreSQL](../db/postgres.html) — client–server, WAL, homelab CT 110
 7. [DuckDB](../db/duckdb.html) — embedded OLAP on Parquet (Mac CLI, no CT)
+8. [Lake → job → Postgres](../taxi/index.html) — DataFusion job writing marts to CT 110
 
 ## Cargo.toml starter
 

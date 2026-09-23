@@ -12,6 +12,7 @@
 - [Resources](./chapters/09-resources.md)
 - [PostgreSQL](./chapters/10-postgres.md)
 - [DuckDB](./chapters/11-duckdb.md)
+- [Lake → job → Postgres](./chapters/12-taxipg.md)
 
 # parq-tool
 

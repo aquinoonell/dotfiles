@@ -2,7 +2,7 @@
 
 Postgres is a **client–server** relational database. A daemon owns a data directory on disk. Your Mac (or `parq-tool`) is a **client**: it opens a TCP connection to port 5432 and speaks the Postgres wire protocol. That is different from DuckDB and DataFusion, which run *inside* your process.
 
-This homelab runs Postgres on **CT 110** at `postgres.lan`. Full usage (connect, dump, `parq-tool`) is in `~/dotfiles/homelab/POSTGRES.md`.
+This homelab runs Postgres on **CT 110** at `postgres.lan`. Full usage (connect, dump, `parq-tool`) is in `~/dotfiles/homelab/POSTGRES.md`. Hands-on lab that writes aggregated taxi stats into this instance: [Lake → job → Postgres](../taxi/index.html).
 
 ## Process model
 

@@ -1,0 +1,17 @@
+# High-priority hostnames for SearXNG technical search.
+# Referenced by searxng-settings-override.yml as hostnames.high_priority.
+# These domains float to the top of search results.
+#
+# Format: YAML list of regex patterns (one per line).
+
+- '(.*\.)?github\.com$'
+- '(.*\.)?docs\.rs$'
+- '(.*\.)?stackoverflow\.com$'
+- '(.*\.)?apache\.org$'
+- '(.*\.)?rust-lang\.org$'
+- '(.*\.)?doc\.rust-lang\.org$'
+- '(.*\.)?postgresql\.org$'
+- '(.*\.)?duckdb\.org$'
+- '(.*\.)?crates\.io$'
+- '(.*\.)?archlinux\.org$'
+- '(.*\.)?wiki\.archlinux\.org$'
