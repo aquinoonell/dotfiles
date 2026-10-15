@@ -33,9 +33,10 @@ return {
                 "<cmd>lua require'dap'.toggle_breakpoint()<CR>",
                 { desc = "Debugger toggle breakpoint" }
             )
+            -- <leader>dd is DevDocs; use dC for conditional breakpoint
             vim.keymap.set(
                 "n",
-                "<Leader>dd",
+                "<Leader>dC",
                 "<cmd>lua require'dap'.set_breakpoint(vim.fn.input('Breakpoint condition: '))<CR>",
                 { desc = "Debugger set conditional breakpoint" }
             )

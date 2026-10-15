@@ -22,6 +22,7 @@ local theme_configs = {
     ["nord"] = { plugin = "shaunsingh/nord.nvim", colorscheme = "nord", bg = "dark" },
     ["kanagawa"] = { plugin = "rebelot/kanagawa.nvim", colorscheme = "kanagawa", bg = "dark" },
     ["everforest"] = { plugin = "sainnhe/everforest", colorscheme = "everforest", bg = "dark" },
+    ["sora"] = { plugin = "Aejkatappaja/sora", colorscheme = "sora", bg = "dark" },
     ["flexoki-light"] = { plugin = "kepano/flexoki-neovim", colorscheme = "flexoki-light", bg = "light" },
     ["hackerman"] = { plugin = "bjarneo/hackerman.nvim", colorscheme = "hackerman", bg = "dark" },
     ["matte-black"] = { plugin = "tahayvr/matteblack.nvim", colorscheme = "matteblack", bg = "dark" },
@@ -36,6 +37,12 @@ local theme_configs = {
     ["vantablack"] = { plugin = nil, colorscheme = nil, bg = "dark" },
     ["white"] = { plugin = nil, colorscheme = nil, bg = "light" },
     ["ristretto"] = { plugin = nil, colorscheme = nil, bg = "dark" },
+    -- Mekanikos (Mikkel Malmberg) — toml-only, marble + machine glow
+    ["mekanikos-mare"] = { plugin = nil, colorscheme = nil, bg = "dark" },
+    ["mekanikos-oracle"] = { plugin = nil, colorscheme = nil, bg = "dark" },
+    ["mekanikos-lantern"] = { plugin = nil, colorscheme = nil, bg = "dark" },
+    ["mekanikos-ferryman"] = { plugin = nil, colorscheme = nil, bg = "dark" },
+    ["mekanikos-light"] = { plugin = nil, colorscheme = nil, bg = "light" },
 }
 
 local function read_toml_colors(theme_name)
@@ -97,6 +104,22 @@ local function apply_telescope_highlights(theme_name)
     hi("TelescopeSelectionCaret", { fg = accent, bg = sel })
     hi("TelescopeMultiSelection", { fg = accent, bg = sel })
     hi("TelescopeMatching", { fg = yellow, bold = true })
+
+    -- Same solid surfaces for the Snacks picker
+    hi("SnacksPicker", { fg = fg, bg = bg })
+    hi("SnacksPickerBorder", { fg = muted, bg = bg })
+    hi("SnacksPickerInput", { fg = fg, bg = prompt_bg })
+    hi("SnacksPickerInputBorder", { fg = accent, bg = prompt_bg })
+    hi("SnacksPickerList", { fg = fg, bg = bg })
+    hi("SnacksPickerListBorder", { fg = muted, bg = bg })
+    hi("SnacksPickerPreview", { fg = fg, bg = bg })
+    hi("SnacksPickerPreviewBorder", { fg = muted, bg = bg })
+    hi("SnacksPickerTitle", { fg = bg, bg = accent, bold = true })
+    hi("SnacksPickerPreviewTitle", { fg = bg, bg = yellow, bold = true })
+    hi("SnacksPickerListCursorLine", { bg = sel })
+    hi("SnacksPickerMatch", { fg = yellow, bold = true })
+    -- directory part of file paths (src/routes/) in the normal text color, not muted
+    hi("SnacksPickerDir", { fg = fg })
 end
 
 -- Apply colors from colors.toml when no dedicated colorscheme exists
@@ -225,7 +248,6 @@ end
 _G.OmarchyApplyTheme = apply_theme
 
 local current_theme = read_theme() or "gruvbox"
-local config = theme_configs[current_theme] or theme_configs["gruvbox"]
 
 return {
     -- Dedicated theme plugins (name = lazy plugin id for live theme switching)
@@ -237,6 +259,13 @@ return {
     { "shaunsingh/nord.nvim", lazy = true },
     { "rebelot/kanagawa.nvim", lazy = true },
     { "sainnhe/everforest", lazy = true },
+    {
+        "Aejkatappaja/sora",
+        lazy = true,
+        config = function()
+            require("sora").setup({ transparent = true })
+        end,
+    },
     { "kepano/flexoki-neovim", lazy = true },
     { "xero/miasma.nvim", lazy = true },
     { "bjarneo/aether.nvim", lazy = true },

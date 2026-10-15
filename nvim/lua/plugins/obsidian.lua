@@ -27,7 +27,7 @@ return {
 
     dependencies = {
         "nvim-lua/plenary.nvim",
-        "nvim-telescope/telescope.nvim",
+        "folke/snacks.nvim",
     },
 
     opts = {
@@ -43,6 +43,8 @@ return {
         end,
 
         legacy_commands = false,
+
+        picker = { name = "snacks.pick" },
 
         notes_subdir = "Projects",
 

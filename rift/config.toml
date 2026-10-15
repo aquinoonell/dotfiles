@@ -21,27 +21,38 @@ auto_focus_blacklist = [
 ]
 
 run_on_start = [
-    "/bin/bash -lc '$HOME/dotfiles/bin/borders-toggle on'",
+    # SketchyBar: subscribe Rift events → bar triggers
+    "rift-cli subscribe cli --event workspace_changed --command sketchybar --args --trigger --args rift_workspace_changed",
+    "rift-cli subscribe cli --event windows_changed --command sketchybar --args --trigger --args rift_windows_changed",
+    "rift-cli subscribe cli --event focused_window_changed --command sketchybar --args --trigger --args rift_focused_window_changed",
+    "rift-cli subscribe cli --event layout_changed --command sketchybar --args --trigger --args rift_layout_changed",
+    "rift-cli subscribe cli --event stacks_changed --command sketchybar --args --trigger --args rift_stacks_changed",
 ]
 
 hot_reload = true
 
 [settings.layout]
+# BSP so windows tile side by side (Alt+Shift+H/J/K/L via rift-move needs this).
+# Stack mode only ever shows one window, so it broke split panes.
 mode = "bsp"
 window_insertion_point = "next_to_selection"
 
 [settings.layout.gaps.outer]
-top = 8.0
-left = 8.0
-bottom = 8.0
-right = 8.0
+# Top clears the transparent SketchyBar pills; the rest is a slim frame so the
+# window uses most of the screen.
+top = 42.0
+left = 12.0
+bottom = 12.0
+right = 12.0
 
 [settings.layout.gaps.inner]
-horizontal = 8.0
-vertical = 8.0
+# Room for the 3pt cyan JankyBorders between tiled windows.
+horizontal = 10.0
+vertical = 10.0
 
 [settings.ui.menu_bar]
-enabled = true
+# Disabled — SketchyBar + hidden macOS menubar
+enabled = false
 show_empty = false
 mode = "all"
 active_label = "index"
@@ -142,7 +153,7 @@ comb1 = "Alt + Shift"
 "comb1 + Right" = { join_window = "right" }
 
 # Launch terminal
-"Alt + Enter" = { exec = ["/opt/homebrew/bin/kitty", "--single-instance", "-d", "/Users/onell"] }
+"Alt + Enter" = { exec = ["/bin/bash", "-lc", "$HOME/dotfiles/bin/new-terminal"] }
 
 # Workspace navigation
 "Alt + Tab"   = "switch_to_last_workspace"

@@ -4,7 +4,7 @@
 # Kitty graphics use unicode placeholders so fzf can render them in a tmux popup.
 #
 
-export PATH="/opt/homebrew/bin:/usr/local/bin:/Applications/kitty.app/Contents/MacOS:/usr/bin:/bin:$HOME/dotfiles/bin:${PATH:-}"
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$HOME/dotfiles/bin:${PATH:-}"
 
 THEMES_DIR="${THEMES_DIR:-$HOME/dotfiles/themes}"
 CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles/theme-selector"
@@ -127,17 +127,21 @@ if [[ -n "$bg_name" ]]; then
 fi
 printf '  --- %s ---\033[0m\n\n' "$theme"
 
-if [[ -n "$bg_name" && -f "$THEMES_DIR/$theme/backgrounds/$bg_name" ]]; then
+if [[ -n "$bg_name" && -e "$THEMES_DIR/$theme/backgrounds/$bg_name" ]]; then
     preview_img="$THEMES_DIR/$theme/backgrounds/$bg_name"
 elif [[ -f "$PREVIEW_DIR/$theme.jpg" ]]; then
     preview_img="$PREVIEW_DIR/$theme.jpg"
 else
-    preview_img=$(find "$THEMES_DIR/$theme/backgrounds" -maxdepth 1 -type f \
+    preview_img=$(find "$THEMES_DIR/$theme/backgrounds" -maxdepth 1 \( -type f -o -type l \) \
         \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) \
         2>/dev/null | sort | head -n 1)
 fi
 
 if [[ -n "${preview_img:-}" ]]; then
+    # Resolve symlinks so Kitty/chafa always get a real 6K file
+    if command -v python3 &>/dev/null; then
+        preview_img=$(python3 -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$preview_img")
+    fi
     show_image "$preview_img" || true
 fi
 

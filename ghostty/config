@@ -1,0 +1,59 @@
+theme = sora
+
+# font-family                    = TX-02
+# font-family                    = DepartureMono Nerd Font Mono
+# font-family                    = JetBrainsMono Nerd Font Mono
+font-family = Liga SFMono Nerd Font
+# This Liga SFMono is an older Nerd Font (v2): newer icon codepoints (tmux/lualine
+# glyphs like U+F0xxx) are missing or wrong, so draw all private-use icons from
+# the current symbols font.
+font-codepoint-map = U+E000-U+F8FF=Symbols Nerd Font Mono
+font-codepoint-map = U+F0000-U+FFFFD=Symbols Nerd Font Mono
+adjust-cell-height = 5%
+
+# background-image               = /Users/anton/.config/wallpapers/mima.png
+# background-image               = /Users/anton/.config/wallpapers/ghostty_planet.png
+# background-image               = /Users/anton/.config/wallpapers/sunken-tower.png
+#
+#
+# background-image-fit           = cover
+# background-image-opacity       = 0.06
+# font-size                      = 20
+font-size                      = 16
+
+# font-thicken                   = true
+
+copy-on-select                 = clipboard
+
+title                          = " "
+
+macos-titlebar-proxy-icon      = hidden
+macos-titlebar-style           = hidden
+macos-option-as-alt            = true
+macos-window-shadow            = false
+
+adjust-underline-position      = 3
+
+mouse-hide-while-typing        = true
+
+cursor-opacity                 = 1
+cursor-style                   = block
+cursor-style-blink             = false
+shell-integration-features     = no-cursor
+
+link-url                       = true
+
+background-opacity             = 0.92
+background-blur-radius         = 12
+
+# The cell is 11x27pt at this font and size, so the grid only fills the window
+# exactly when (width - 2*padding-x) and (height - 2*padding-y) are multiples of
+# it. yabai imposes the window size, so the padding here is paired with the
+# per-side padding in yabairc; changing one without the other leaves a dead strip
+# of pixels under the last row. See the comment in yabai/yabairc.
+window-padding-x               = 10
+window-padding-y               = 10,0
+window-padding-color           = extend
+
+window-save-state              = always
+

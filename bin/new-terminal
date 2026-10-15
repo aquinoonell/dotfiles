@@ -1,0 +1,7 @@
+#!/bin/bash
+# Open a new Ghostty window (reuses the running app; launches it if needed).
+if pgrep -x ghostty >/dev/null; then
+  /usr/bin/osascript -e 'tell application "Ghostty" to new window' -e 'tell application "Ghostty" to activate' >/dev/null
+else
+  /usr/bin/open -a Ghostty
+fi

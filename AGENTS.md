@@ -1,6 +1,6 @@
 # Creating a theme (read this first)
 
-This repo is a unified theme system for macOS: WezTerm, Neovim, JankyBorders, tmux popup colors, and desktop wallpaper. **Do not invent a parallel theming path.** One folder under `themes/` plus one nvim mapping is enough to theme everything.
+This repo is a unified theme system for macOS: WezTerm, Neovim, SketchyBar, tmux popup colors, and desktop wallpaper. **Do not invent a parallel theming path.** One folder under `themes/` plus one nvim mapping is enough to theme everything.
 
 Repo: `~/dotfiles` (also `https://github.com/aquinoonell/dotfiles`).
 
@@ -29,7 +29,7 @@ Do **not** edit `.wezterm.lua` by hand. `bin/theme` generates it from templates.
 | Surface | Source | How |
 |---|---|---|
 | WezTerm | `templates/wezterm.lua.tmpl` | Filled from `colors.toml` → `~/.wezterm.lua` |
-| JankyBorders | `themes/<name>/colors.toml` `accent` / `muted` | Applied as `0xffRRGGBB` via borders IPC |
+| SketchyBar | `themes/<name>/colors.toml` `background` / `foreground` / `accent` / `muted` | Sets `local theme` in `sketchybar/colors.lua` (sora/cendre), then `sketchybar --reload` |
 | Neovim | `nvim/lua/plugins/colorscheme.lua` | Live reload via `nvr` calling `OmarchyApplyTheme('<name>')`; next launch reads `~/.current-theme` |
 | Desktop wallpaper | `themes/<name>/backgrounds/` | First file in glob order on theme apply; a specific file if the user picks a wallpaper row |
 | Tmux popup / fzf picker chrome | `colors.toml` `background`, `foreground`, `accent`, `selection`, `muted` | Set when picker opens and when `theme` runs |
@@ -94,7 +94,7 @@ bright_magenta = "#E05CB4"
 
 ### How keys are consumed
 
-Must exist or templates/borders/picker look wrong:
+Must exist or templates/picker look wrong:
 
 - `background`, `foreground`, `accent`, `selection`, `muted`
 - `red` `green` `yellow` `blue` `cyan` `magenta`
@@ -121,7 +121,7 @@ done
 
 ### Palette rules that match the rest of the system
 
-- **Dark themes:** near-black `background`, light `foreground`, one saturated `accent`. `selection` slightly lighter than background. `muted` readable on background (borders + comments).
+- **Dark themes:** near-black `background`, light `foreground`, one saturated `accent`. `selection` slightly lighter than background. `muted` readable on background (comments + UI chrome).
 - **Light themes:** copy `white` / `flexoki-light`. Set `mode = "light"` and nvim `bg = "light"`.
 - ANSI `red`…`magenta` should look like the wallpapers (e.g. Christmas-bulb colors for Stranger Things), not a generic rainbow.
 - WezTerm maps ansi black → `background`, ansi white → `muted`, bright white → `foreground`. Keep those relationships or the terminal will look wrong.
@@ -194,13 +194,12 @@ After adding a plugin, restart nvim once so lazy installs it. Toml-only themes d
 theme-picker
 ```
 
-`theme` writes `~/.current-theme`, regenerates WezTerm, updates `borders` via IPC (and writes `~/.config/borders/bordersrc` so brew-service restarts stay themed), sets wallpaper, updates tmux popup colors, and pokes running nvim via `nvr`. If `~/.borders-disabled` exists, borders are skipped.
+`theme` writes `~/.current-theme`, regenerates WezTerm, reloads SketchyBar colors, sets wallpaper, updates tmux popup colors, and pokes running nvim via `nvr`.
 
 Do not apply a theme just to test files unless the user wants their desktop changed.
 
 ## Do not
 
-- Use `pkill borders` from theme scripts or tmux popups — JankyBorders supports IPC updates, and `pkill` races Homebrew's KeepAlive launchd service. Use `borders active_color=... inactive_color=...` to recolor a running instance.
 - Hand-edit generated `~/.wezterm.lua` as the source of truth.
 - Add a theme only in nvim plugins, or only as a folder with no `colorscheme.lua` mapping.
 - Scrape official show/movie stills into `backgrounds/` (copyright). Generate original images in the same aesthetic.

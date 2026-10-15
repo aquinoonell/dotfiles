@@ -83,13 +83,25 @@ if [[ "$(uname)" == "Darwin" ]]; then
     brew list neovim-remote &>/dev/null || brew install neovim-remote
     brew list tmux &>/dev/null || brew install tmux
     brew list fzf &>/dev/null || brew install fzf
-    brew list borders &>/dev/null || brew install FelixKratz/formulae/borders
+    brew list sketchybar &>/dev/null || brew install FelixKratz/formulae/sketchybar
+    brew list switchaudio-osx &>/dev/null || brew install switchaudio-osx
     brew list rift &>/dev/null || brew install acsandmann/tap/rift
+    brew list jq &>/dev/null || brew install jq
     
-    # Fonts
-    brew list --cask font-fira-mono-nerd-font &>/dev/null || brew install --cask font-fira-mono-nerd-font
+    # Fonts — Felix: SF Pro (SketchyBar) + Liga SFMono Nerd Font (terminal/editor)
+    brew list --cask font-sf-pro &>/dev/null || brew install --cask font-sf-pro
+    brew list --cask font-sketchybar-app-font &>/dev/null || brew install --cask font-sketchybar-app-font
+    brew list --cask sf-symbols &>/dev/null || brew install --cask sf-symbols
+    if ! fc-list : family 2>/dev/null | grep -q "Liga SFMono Nerd Font"; then
+        git clone --depth 1 https://github.com/shaunsingh/SFMono-Nerd-Font-Ligaturized.git /tmp/SFMono_Nerd_Font
+        cp -f /tmp/SFMono_Nerd_Font/*.otf "$HOME/Library/Fonts/"
+        rm -rf /tmp/SFMono_Nerd_Font
+    fi
     
     print_success "Dependencies installed"
+
+    # Start sketchybar as a login service
+    brew services start sketchybar 2>/dev/null || true
 fi
 
 # Run install script

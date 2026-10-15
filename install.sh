@@ -50,6 +50,25 @@ rm -f ~/.config/rift/config.toml
 ln -sf "$DOTFILES_DIR/rift/config.toml" ~/.config/rift/config.toml
 echo "✓ Linked rift config"
 
+# SketchyBar
+if [[ -d ~/.config/sketchybar && ! -L ~/.config/sketchybar ]]; then
+    echo "Backing up existing sketchybar config to ~/.config/sketchybar.backup"
+    mv ~/.config/sketchybar ~/.config/sketchybar.backup
+fi
+rm -rf ~/.config/sketchybar
+ln -sfn "$DOTFILES_DIR/sketchybar" ~/.config/sketchybar
+chmod +x "$DOTFILES_DIR/sketchybar/sketchybarrc"
+echo "✓ Linked sketchybar config"
+
+# Ghostty
+mkdir -p ~/.config
+if [[ -e ~/.config/ghostty && ! -L ~/.config/ghostty ]]; then
+    echo "Backing up existing ghostty config to ~/.config/ghostty.backup"
+    mv ~/.config/ghostty ~/.config/ghostty.backup
+fi
+ln -sfn "$DOTFILES_DIR/ghostty" ~/.config/ghostty
+echo "✓ Linked ghostty config"
+
 # Add bin to PATH if not already there
 if ! echo "$PATH" | grep -q "$DOTFILES_DIR/bin"; then
     echo ""

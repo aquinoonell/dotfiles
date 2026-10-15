@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Screenshot layout: left Neovim, top-right fastfetch, bottom-right btop.
+# Usage: rice-layout   (or tmux prefix + R)
+
+set -euo pipefail
+
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+
+if ! command -v tmux >/dev/null; then
+  echo "tmux not found" >&2
+  exit 1
+fi
+
+# Must run inside a tmux pane
+if [[ -z "${TMUX:-}" ]]; then
+  # Start a dedicated session
+  exec tmux new-session -A -s rice "$0"
+fi
+
+# Wipe extra panes and rebuild
+tmux kill-pane -a || true
+
+# Left ~60% nvim, right column split: fetch / btop
+tmux split-window -h -p 40
+tmux select-pane -t 1
+tmux split-window -v -p 55
+
+# Pane 0 (left): nvim
+tmux select-pane -t 0
+tmux send-keys -t 0 "nvim" C-m
+tmux rename-window -t "#{window_id}" "nvim"
+
+# Pane 1 (top-right): fastfetch
+tmux select-pane -t 1
+tmux send-keys -t 1 "clear; fastfetch; exec zsh" C-m
+
+# Pane 2 (bottom-right): btop
+tmux select-pane -t 2
+tmux send-keys -t 2 "btop" C-m
+
+tmux select-pane -t 0

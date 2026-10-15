@@ -5,3 +5,7 @@ __pycache__/
 *.pyc
 themes/*/preview*.png
 themes/*/*.png
+# Full 6K Mekanikos PNGs (~600MB) — install via: bin/mekanikos-wallpapers
+wallpapers/mekanikos/**/*.png
+# Full 8K Sora wallpaper (~35MB) — theme uses themes/sora/backgrounds/1-stellar-sora.jpg
+wallpapers/stellar_sora.png

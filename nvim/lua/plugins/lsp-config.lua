@@ -21,6 +21,12 @@ return {
         },
         config = function()
             local capabilities = require("blink.cmp").get_lsp_capabilities()
+
+            -- Apply blink.cmp capabilities to every server (nvim 0.11+)
+            vim.lsp.config("*", {
+                capabilities = capabilities,
+            })
+
             vim.lsp.enable({
                 "gopls",
                 "lua_ls",
@@ -56,11 +62,12 @@ return {
                     local bufnr = args.buf
 
                     -- Hover & signature help
+                    -- Insert-mode signature uses <C-s> so it does not fight blink.cmp's <C-k>
                     vim.keymap.set("n", "K", function()
                         vim.lsp.buf.hover({ border = "rounded" })
                     end, { buffer = bufnr, desc = "Hover documentation" })
 
-                    vim.keymap.set("i", "<C-k>", function()
+                    vim.keymap.set("i", "<C-s>", function()
                         vim.lsp.buf.signature_help({ border = "rounded" })
                     end, { buffer = bufnr, desc = "Signature help" })
 
@@ -68,15 +75,8 @@ return {
                         vim.lsp.buf.signature_help({ border = "rounded" })
                     end, { buffer = bufnr, desc = "Signature help" })
 
-                    if vim.bo.filetype == "lua" then
-                        -- Format the current buffer on save
-                        vim.api.nvim_create_autocmd("BufWritePre", {
-                            buffer = args.buf,
-                            callback = function()
-                                vim.lsp.buf.format({ bufnr = args.buf, id = c.id })
-                            end,
-                        })
-                    end
+                    -- Format via none-ls / stylua on demand (<leader>gf); skip lua_ls on-save
+                    -- to avoid fighting stylua.
                 end,
             })
         end,

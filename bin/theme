@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Theme Switcher - Switch nvim, kitty, borders, and wallpaper themes
+# Theme Switcher - Switch nvim, ghostty, sketchybar, and wallpaper themes
 # Usage: theme <theme-name> | theme --list | theme --current
 #
 
@@ -51,10 +51,35 @@ get_toml_value() {
     grep "^$key = " "$file" 2>/dev/null | sed 's/.*= "\(.*\)"/\1/' | head -1
 }
 
-# Convert hex color to 0xff format for borders
+# Convert hex color to 0xff format (WezTerm template placeholders)
 hex_to_borders() {
     local hex="$1"
     echo "0xff${hex:1}"
+}
+
+hex_to_sketchy() {
+    local hex="$1"
+    local alpha="${2:-ff}"
+    echo "0x${alpha}${hex:1}"
+}
+
+# Point his Lua SketchyBar at the matching palette (sora | cendre) and reload
+apply_sketchybar() {
+    local colors_file="$1"
+    local name
+    name=$(basename "$(dirname "$colors_file")")
+    local lua="$HOME/dotfiles/sketchybar/colors.lua"
+    [[ -f "$lua" ]] || return
+
+    case "$name" in
+        sora|cendre) sed -i '' "s/^local theme = \"[^\"]*\"/local theme = \"$name\"/" "$lua" ;;
+        *) print_info "SketchyBar has no '$name' palette (only sora/cendre); keeping current" ;;
+    esac
+
+    if pgrep -x sketchybar >/dev/null; then
+        sketchybar --reload
+        print_success "SketchyBar theme updated"
+    fi
 }
 
 # Fill template with colors
@@ -125,81 +150,40 @@ get_nvim_plugin() {
     fi
 }
 
-# Set desktop wallpaper
+# Set desktop wallpaper (resolves symlinks so macOS gets the real 6K file)
 set_wallpaper() {
     local theme_dir="$1"
     local backgrounds_dir="$theme_dir/backgrounds"
     
     if [[ -d "$backgrounds_dir" ]]; then
-        # Get the first available wallpaper
-        local wallpaper
-        wallpaper=$(ls "$backgrounds_dir"/*.{jpg,jpeg,png,webp} 2>/dev/null | head -1)
+        local wallpaper=""
+        local f
+        for f in "$backgrounds_dir"/*; do
+            [[ -e "$f" ]] || continue
+            case "${f##*.}" in
+                jpg|jpeg|png|webp|JPG|JPEG|PNG|WEBP)
+                    wallpaper="$f"
+                    break
+                    ;;
+            esac
+        done
         
-        if [[ -n "$wallpaper" && -f "$wallpaper" ]]; then
-            osascript -e "tell application \"System Events\" to tell every desktop to set picture to \"$wallpaper\"" 2>/dev/null
+        if [[ -n "$wallpaper" ]]; then
+            # Resolve symlinks — System Events often fails on relative link paths
+            local real="$wallpaper"
+            if command -v python3 &>/dev/null; then
+                real=$(python3 -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$wallpaper")
+            elif command -v realpath &>/dev/null; then
+                real=$(realpath "$wallpaper")
+            fi
+            osascript -e "tell application \"System Events\" to tell every desktop to set picture to POSIX file \"$real\"" 2>/dev/null \
+                || osascript -e "tell application \"System Events\" to tell every desktop to set picture to \"$real\"" 2>/dev/null
             print_success "Wallpaper set"
         else
             print_info "No wallpaper found for this theme"
         fi
     else
         print_info "No backgrounds directory for this theme"
-    fi
-}
-
-# Write bordersrc config file for brew service restarts
-write_bordersrc() {
-    local accent="$1"
-    local muted="$2"
-    
-    mkdir -p "$HOME/.config/borders"
-    cat > "$HOME/.config/borders/bordersrc" << EOF
-#!/bin/bash
-borders active_color="$accent" inactive_color="$muted" width=6.0
-EOF
-    chmod +x "$HOME/.config/borders/bordersrc"
-}
-
-# Apply borders colors (IPC update if running, start via brew if not)
-restart_borders() {
-    local accent="$1"
-    local muted="$2"
-    
-    # Respect user preference (borders-toggle off)
-    if [[ -f "$HOME/.borders-disabled" ]]; then
-        print_info "Borders disabled (run borders-toggle on to enable)"
-        return
-    fi
-    
-    # Always write bordersrc so brew service restarts stay themed
-    write_bordersrc "$accent" "$muted"
-    
-    # If borders is running, IPC update (no pkill needed)
-    if pgrep -x borders >/dev/null; then
-        borders active_color="$accent" inactive_color="$muted" width=6.0
-        print_success "Borders updated ($accent)"
-        return
-    fi
-    
-    # Not running — start via brew services (launchd-managed)
-    if command -v brew &>/dev/null && brew services list 2>/dev/null | grep -q "^borders"; then
-        brew services start borders 2>/dev/null || true
-        sleep 0.3
-        # IPC apply colors after brew starts it
-        if pgrep -x borders >/dev/null; then
-            borders active_color="$accent" inactive_color="$muted" width=6.0
-            print_success "Borders started via brew ($accent)"
-            return
-        fi
-    fi
-    
-    # Fallback: start directly (bordersrc will apply colors on next brew restart)
-    borders active_color="$accent" inactive_color="$muted" width=6.0 &
-    disown
-    sleep 0.2
-    if pgrep -x borders >/dev/null; then
-        print_success "Borders started ($accent)"
-    else
-        print_info "Borders failed to start — try: borders-toggle on"
     fi
 }
 
@@ -264,114 +248,66 @@ switch_theme() {
     echo -e "${BLUE}Switching to theme: ${YELLOW}$theme_name${NC}"
     echo ""
     
-    # 1. Generate Kitty theme config
-    local kitty_conf="$HOME/.config/kitty/current-theme.conf"
-    if [[ -d "$HOME/.config/kitty" ]]; then
-        local bg fg cursor sel
-        bg=$(get_toml_value "$colors_file" "background")
-        fg=$(get_toml_value "$colors_file" "foreground")
-        cursor=$(get_toml_value "$colors_file" "foreground")
-        sel=$(get_toml_value "$colors_file" "selection")
-        
-        local black red green yellow blue magenta cyan white
-        black=$(get_toml_value "$colors_file" "background")
-        red=$(get_toml_value "$colors_file" "red")
-        green=$(get_toml_value "$colors_file" "green")
-        yellow=$(get_toml_value "$colors_file" "yellow")
-        blue=$(get_toml_value "$colors_file" "blue")
-        magenta=$(get_toml_value "$colors_file" "magenta")
-        cyan=$(get_toml_value "$colors_file" "cyan")
-        white=$(get_toml_value "$colors_file" "muted")
-        
-        local bright_black bright_red bright_green bright_yellow bright_blue bright_magenta bright_cyan bright_white
-        bright_black=$(get_toml_value "$colors_file" "muted")
-        bright_red=$(get_toml_value "$colors_file" "bright_red")
-        [[ -z "$bright_red" ]] && bright_red="$red"
-        bright_green=$(get_toml_value "$colors_file" "bright_green")
-        [[ -z "$bright_green" ]] && bright_green="$green"
-        bright_yellow=$(get_toml_value "$colors_file" "bright_yellow")
-        [[ -z "$bright_yellow" ]] && bright_yellow="$yellow"
-        bright_blue=$(get_toml_value "$colors_file" "bright_blue")
-        [[ -z "$bright_blue" ]] && bright_blue="$blue"
-        bright_magenta=$(get_toml_value "$colors_file" "bright_magenta")
-        [[ -z "$bright_magenta" ]] && bright_magenta="$magenta"
-        bright_cyan=$(get_toml_value "$colors_file" "bright_cyan")
-        [[ -z "$bright_cyan" ]] && bright_cyan="$cyan"
-        bright_white=$(get_toml_value "$colors_file" "foreground")
-        
-        cat > "$kitty_conf" << EOF
-# ${theme_name} theme for Kitty
-# Generated by theme switcher
+    # 1. Ghostty theme (themes/<name> embeds its own palette + background)
+    local ghostty_dir="$HOME/dotfiles/ghostty"
+    if [[ -d "$ghostty_dir" ]]; then
+        local gtheme="$ghostty_dir/themes/$theme_name"
+        if [[ ! -f "$gtheme" ]]; then
+            # No hand-made Ghostty theme for this one: build it from colors.toml
+            local g
+            g() { local v; v=$(get_toml_value "$colors_file" "$1"); echo "${v:-$2}"; }
+            local fg bg acc muted
+            bg=$(g background "#000000"); fg=$(g foreground "#ffffff")
+            acc=$(g accent "$fg"); muted=$(g muted "$fg")
+            cat > "$gtheme" << EOF
+# ${theme_name} - generated by theme switcher
+background = ${bg}
+foreground = ${fg}
+cursor-color = ${acc}
+cursor-text = ${bg}
+selection-foreground = $(g bright_foreground "$fg")
+selection-background = $(g selection "#504945")
 
-foreground ${fg}
-background ${bg}
-cursor ${cursor}
-cursor_text_color ${bg}
-selection_foreground ${fg}
-selection_background ${sel:-#504945}
-
-# Black
-color0 ${black}
-color8 ${bright_black}
-
-# Red
-color1 ${red}
-color9 ${bright_red}
-
-# Green
-color2 ${green}
-color10 ${bright_green}
-
-# Yellow
-color3 ${yellow}
-color11 ${bright_yellow}
-
-# Blue
-color4 ${blue}
-color12 ${bright_blue}
-
-# Magenta
-color5 ${magenta}
-color13 ${bright_magenta}
-
-# Cyan
-color6 ${cyan}
-color14 ${bright_cyan}
-
-# White
-color7 ${white}
-color15 ${bright_white}
+palette = 0=${bg}
+palette = 1=$(g red "#ea6962")
+palette = 2=$(g green "#a9b665")
+palette = 3=$(g yellow "#d8a657")
+palette = 4=$(g blue "$acc")
+palette = 5=$(g magenta "#d3869b")
+palette = 6=$(g cyan "#89b482")
+palette = 7=${muted}
+palette = 8=${muted}
+palette = 9=$(g bright_red "$(g red "#ea6962")")
+palette = 10=$(g bright_green "$(g green "#a9b665")")
+palette = 11=$(g bright_yellow "$(g yellow "#d8a657")")
+palette = 12=$(g bright_blue "$(g blue "$acc")")
+palette = 13=$(g bright_magenta "$(g magenta "#d3869b")")
+palette = 14=$(g bright_cyan "$(g cyan "#89b482")")
+palette = 15=${fg}
 EOF
-        # Signal Kitty to reload
-        if pgrep -x kitty >/dev/null; then
-            kill -SIGUSR1 $(pgrep -x kitty) 2>/dev/null || true
         fi
-        print_success "Kitty theme updated"
+        sed -i '' -E "s/^theme = .*/theme = ${theme_name}/" "$ghostty_dir/config"
+        # Ghostty reloads its config on SIGUSR2
+        pgrep -x ghostty >/dev/null && pkill -USR2 -x ghostty
+        print_success "Ghostty theme updated"
     fi
     
-    # 2. Restart borders with new colors
-    local accent muted_color
-    accent=$(get_toml_value "$colors_file" "accent")
-    muted_color=$(get_toml_value "$colors_file" "muted")
-    if [[ -n "$accent" && -n "$muted_color" ]]; then
-        restart_borders "$(hex_to_borders "$accent")" "$(hex_to_borders "$muted_color")"
-    else
-        print_info "Missing accent/muted colors for borders"
-    fi
+    # 2. SketchyBar palette (cache + reload)
+    apply_sketchybar "$colors_file"
     
-    # 4. Save current theme early so nvim/other tools can read it
+    # 3. Save current theme early so nvim/other tools can read it
     echo "$theme_name" > "$CURRENT_THEME_FILE"
     
-    # 5. Update neovim colorscheme
+    # 4. Update neovim colorscheme
     local nvim_colorscheme nvim_plugin
     nvim_colorscheme=$(get_nvim_colorscheme "$theme_dir")
     nvim_plugin=$(get_nvim_plugin "$theme_dir")
     signal_nvim "$theme_name" "$nvim_colorscheme" "$nvim_plugin"
     
-    # 6. Set wallpaper
+    # 5. Set wallpaper
     set_wallpaper "$theme_dir"
     
-    # 7. Update tmux popup colors to match theme
+    # 6. Update tmux popup colors to match theme
     if command -v tmux &>/dev/null; then
         local popup_bg popup_fg popup_muted
         popup_bg=$(get_toml_value "$colors_file" "background")
@@ -379,11 +315,94 @@ EOF
         popup_muted=$(get_toml_value "$colors_file" "muted")
         tmux set -g popup-style "bg=${popup_bg},fg=${popup_fg}" 2>/dev/null || true
         tmux set -g popup-border-style "fg=${popup_muted}" 2>/dev/null || true
+        # Prefer Sora tokyo-night slot when on sora
+        if [[ "$theme_name" == "sora" ]]; then
+            tmux set -g @tokyo-night-tmux_theme "sora" 2>/dev/null || true
+            tmux set -g mode-style "fg=#dce4f0,bg=#1e2430" 2>/dev/null || true
+            tmux set -g pane-border-style "fg=#222838" 2>/dev/null || true
+            tmux set -g pane-active-border-style "fg=#80c8e0" 2>/dev/null || true
+            tmux source-file "$HOME/.tmux.conf" 2>/dev/null || true
+        fi
         print_success "Tmux popup colors updated"
     fi
+
+    # 7. Ported Aejkatappaja surfaces (yazi/lazygit/hunk/bat/btop/fzf/delta/borders)
+    apply_stack_surfaces "$theme_name" "$colors_file"
     
     echo ""
     print_success "Theme switched to: $theme_name"
+}
+
+# Swap his palette snapshots + borders when the folder theme maps to them
+apply_stack_surfaces() {
+    local theme_name="$1"
+    local colors_file="$2"
+    local cfg="$DOTFILES_DIR"
+    local palette=""
+
+    case "$theme_name" in
+        sora) palette="sora" ;;
+        *) palette="" ;;
+    esac
+
+    if [[ -n "$palette" ]]; then
+        [[ -f "$cfg/yazi/themes/${palette}.toml" ]] && cp "$cfg/yazi/themes/${palette}.toml" "$cfg/yazi/theme.toml" && print_success "yazi → $palette"
+        [[ -f "$cfg/lazygit/${palette}.yml" ]] && cp "$cfg/lazygit/${palette}.yml" "$cfg/lazygit/config.yml" && print_success "lazygit → $palette"
+        [[ -f "$cfg/hunk/${palette}.toml" ]] && cp "$cfg/hunk/${palette}.toml" "$cfg/hunk/config.toml" && print_success "hunk → $palette"
+        [[ -f "$cfg/fzf/${palette}.fzf" ]] && cp "$cfg/fzf/${palette}.fzf" "$cfg/fzf/current.fzf" && print_success "fzf → $palette"
+        if [[ -f "$cfg/bat/config" ]]; then
+            # bat theme display name is capitalized in .tmTheme
+            local bat_name
+            bat_name="$(echo "${palette:0:1}" | tr '[:lower:]' '[:upper:]')${palette:1}"
+            sed -i '' -E "s/^--theme=.*/--theme=\"${bat_name}\"/" "$cfg/bat/config"
+            print_success "bat → $bat_name"
+        fi
+        if [[ -f "$cfg/btop/btop.conf" ]]; then
+            if rg -q '^color_theme' "$cfg/btop/btop.conf"; then
+                sed -i '' -E "s|^color_theme = .*|color_theme = \"${palette}\"|" "$cfg/btop/btop.conf"
+            else
+                echo "color_theme = \"${palette}\"" >> "$cfg/btop/btop.conf"
+            fi
+            print_success "btop → $palette"
+        fi
+        if [[ -f "$HOME/.gitconfig" && -f "$cfg/git/${palette}.gitconfig" ]]; then
+            if ! rg -q "git/${palette}\\.gitconfig" "$HOME/.gitconfig"; then
+                # replace any prior include of our palette gitconfigs, or append
+                if rg -q 'path = .*/dotfiles/git/.*\.gitconfig' "$HOME/.gitconfig"; then
+                    sed -i '' -E "s|path = .*/dotfiles/git/.*\\.gitconfig|path = $cfg/git/${palette}.gitconfig|" "$HOME/.gitconfig"
+                else
+                    printf '\n[include]\n\tpath = %s/git/%s.gitconfig\n' "$cfg" "$palette" >> "$HOME/.gitconfig"
+                fi
+            fi
+            print_success "git-delta → $palette"
+        fi
+        if [[ -f "$cfg/opencode/tui.json" ]]; then
+            python3 - "$cfg/opencode/tui.json" "$palette" <<'PY'
+import json, sys
+path, pal = sys.argv[1], sys.argv[2]
+try:
+    data = json.loads(open(path).read())
+except Exception:
+    data = {}
+data["theme"] = pal
+open(path, "w").write(json.dumps(data, indent=2) + "\n")
+PY
+            print_success "opencode → $palette"
+        fi
+    fi
+
+    # Borders: push accent live
+    local accent
+    accent=$(get_toml_value "$colors_file" "accent")
+    if [[ -n "$accent" ]] && pgrep -x borders >/dev/null; then
+        local hex="0xff${accent:1}"
+        borders "active_color=${hex}" >/dev/null 2>&1 || true
+        # Persist into bordersrc when on sora
+        if [[ "$theme_name" == "sora" && -f "$cfg/borders/bordersrc" ]]; then
+            sed -i '' -E "s|^[[:space:]]*active_color=.*|	active_color=0xFF80C8E0|" "$cfg/borders/bordersrc"
+        fi
+        print_success "borders accent updated"
+    fi
 }
 
 # Main

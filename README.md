@@ -12,7 +12,7 @@ curl -fsSL https://raw.githubusercontent.com/aquinoonell/dotfiles/main/bootstrap
 
 This will:
 - Install Homebrew (if needed)
-- Install Kitty, Neovim, Rift, Borders, and fonts
+- Install Ghostty, Neovim, Rift, SketchyBar, and fonts
 - Clone this repo to `~/dotfiles`
 - Set up all symlinks
 - Configure your shell
@@ -63,24 +63,50 @@ Press `Ctrl-s t` to open the theme picker popup (browse all themes and wallpaper
 
 | Shortcut | Action |
 |----------|--------|
-| Option+Return | New Kitty window, tiled on this workspace |
+| Option+Return | New Ghostty window, tiled on this workspace |
 | Option+H / J / K / L | Focus |
 | Option+Shift+H / J / K / L | Move window; neighbor fills the other side. No neighbor: next display |
 | Option+1–4 | Workspaces 1–4 |
 | Option+Shift+F or Option+Shift+T | Toggle focused window as a centered floater |
-| Option+F | Fullscreen inside the gaps (borders stay visible) |
+| Option+F | Fullscreen inside the gaps (clears SketchyBar) |
 | Option+Z | Toggle Rift management on the current macOS Space |
 | Option+Shift+R | Reload Rift config |
 
-Finder, Mail, Notes, Messages, Music, Obsidian, and Zoom still float. Gaps and JankyBorders are unchanged. The menu bar shows numbered square icons only for workspaces that currently have windows.
+Finder, Mail, Notes, Messages, Music, Obsidian, and Zoom still float. Workspace indicators live in SketchyBar (Rift’s own menu bar is off). Outer top gap is 42 so tiled and fullscreen-within-gaps windows clear the floating 24px bar.
+
+### SketchyBar
+
+Felix Kratz–inspired floating 24px bar, wired to **Rift** and your `theme` palette. UI font: **SF Pro**; terminal/editor: **Liga SFMono Nerd Font** (same stack as [Felix’s dotfiles](https://github.com/FelixKratz/dotfiles/tree/6fbd917f745df1bac7f84ef930feecb67df0cb10)).
+
+| Item | Behavior |
+|------|----------|
+| Workspaces | Occupied only; focused shows `N App` (e.g. `3 Cursor`); others show the index; click switches |
+| Volume | Slider + SF Symbol icon; right-click output devices |
+| Battery | SF Symbol + percent |
+| Time | Date + clock |
+
+Mekanikos wallpapers are native **6K** (6016×3384), all 17 per theme. Install/refresh:
+
+```bash
+mekanikos-wallpapers ~/Downloads/Mekanikos\ Wallpapers\ 1.0.zip
+theme mekanikos-mare
+theme-picker   # lists every wallpaper under the theme
+```
+
+Config: `~/dotfiles/sketchybar/` → `~/.config/sketchybar`. Rift pushes `workspace_changed` / `windows_changed` / `focused_window_changed` into SketchyBar on start.
+
+```bash
+brew services start sketchybar   # login service
+theme $(cat ~/.current-theme)    # refresh bar colors after edits
+```
 
 ### What Gets Themed
 
 | Component | What Changes |
 |-----------|--------------|
-| Kitty | Terminal colors (via `current-theme.conf`) |
+| Ghostty | Terminal colors (`ghostty/themes/<name>`, `theme =` in config) |
 | Neovim | Colorscheme |
-| JankyBorders | Window border colors |
+| SketchyBar | Bar + workspace/clock/battery colors |
 | Desktop | Wallpaper |
 
 ### Available Themes
@@ -96,10 +122,11 @@ Finder, Mail, Notes, Messages, Music, Obsidian, and Zoom still float. Gaps and J
 | hackerman | Dark, matrix | tokyo-night | Dark, neon |
 | kanagawa | Dark, Japanese | vantablack | Dark, pure black |
 | last-horizon | Dark | white | Light |
-| lumon | Dark | | |
-| lupine | Dark, purple | | |
-| matte-black | Dark, minimal | | |
-| miasma | Dark, swamp | | |
+| lumon | Dark | mekanikos-mare | Dark, cyan glow |
+| lupine | Dark, purple | mekanikos-oracle | Dark, neon green |
+| matte-black | Dark, minimal | mekanikos-lantern | Dark, amber |
+| miasma | Dark, swamp | mekanikos-ferryman | Dark, warm orange |
+| mekanikos-light | Light, copper | | |
 
 ## Structure
 
@@ -110,10 +137,13 @@ Finder, Mail, Notes, Messages, Music, Obsidian, and Zoom still float. Gaps and J
 │   ├── theme-picker       # Interactive theme browser (fzf)
 │   ├── wallpaper          # Wallpaper picker
 │   ├── rift-move          # Move/tile window in a direction
-│   ├── borders-toggle     # JankyBorders on/off
 │   └── music              # cliamp daemon controller (play/pause/next/search)
 ├── rift/
 │   └── config.toml        # Live Rift WM config
+├── sketchybar/
+│   ├── sketchybarrc       # Minimal bar config
+│   ├── colors.sh          # Defaults + cache include
+│   └── plugins/           # workspaces, front_app, clock, theme_picker
 ├── themes/                # All 22 omarchy themes
 │   ├── osaka-jade/
 │   │   ├── colors.toml    # Color definitions
@@ -129,12 +159,12 @@ Finder, Mail, Notes, Messages, Music, Obsidian, and Zoom still float. Gaps and J
 ## Requirements
 
 - macOS (tested on Sonoma+)
-- [Kitty](https://sw.kovidgoyal.net/kitty/) - Terminal
+- [Ghostty](https://ghostty.org/) - Terminal
 - [Neovim](https://neovim.io/) - Editor
 - [tmux](https://github.com/tmux/tmux) - Terminal multiplexer
 - [fzf](https://github.com/junegunn/fzf) - Fuzzy finder (for pickers)
 - [Rift](https://github.com/acsandmann/rift) - Tiling WM
-- [JankyBorders](https://github.com/FelixKratz/JankyBorders) - Window borders
+- [SketchyBar](https://github.com/FelixKratz/SketchyBar) - Status bar (workspaces + clock/battery)
 - [cliamp](https://github.com/bjarneo/cliamp) - Terminal music player (Spotify + YouTube Music)
 - [jq](https://jqlang.github.io/jq/) - JSON parser (for tmux music status)
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp) - YouTube streaming backend for cliamp

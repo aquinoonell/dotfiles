@@ -1,0 +1,83 @@
+# Starship — his symbol set + Sora palette (https://github.com/Aejkatappaja/sora)
+palette = "sora"
+
+format = """
+$directory\
+$git_branch\
+$git_status\
+$rust\
+$nodejs
+$character"""
+
+add_newline = true
+
+[palettes.sora]
+bg = "#0e1018"
+fg = "#c8d0e0"
+fg_dim = "#9aa4b8"
+cyan = "#80c8e0"
+purple = "#b0a0d8"
+sage = "#90c8a0"
+rose = "#d0909c"
+gold = "#d4b878"
+peach = "#d0a888"
+teal = "#78b8b0"
+steel = "#8898b8"
+error = "#c46c78"
+warning = "#c8a860"
+
+[directory]
+style = "bold cyan"
+format = "[$path]($style) "
+truncation_length = 2
+truncate_to_repo = true
+fish_style_pwd_dir_length = 1
+read_only = " 󰌾"
+
+[character]
+success_symbol = "[❯](bold sage)"
+error_symbol = "[❯](bold error)"
+vimcmd_symbol = "[❮](bold purple)"
+
+[git_branch]
+format = "[$symbol$branch]($style) "
+symbol = " "
+style = "bold purple"
+
+[git_status]
+format = "[$all_status$ahead_behind]($style)"
+style = "bold rose"
+modified = "!"
+untracked = "?"
+staged = "+"
+deleted = "-"
+ahead = "⇡"
+behind = "⇣"
+diverged = "⇕"
+
+[rust]
+format = "[󱘗 $version]($style) "
+style = "bold peach"
+
+[nodejs]
+format = "[ $version]($style) "
+style = "bold sage"
+
+[aws]
+disabled = true
+[gcloud]
+disabled = true
+[kubernetes]
+disabled = true
+[docker_context]
+disabled = true
+[package]
+disabled = true
+[python]
+disabled = true
+[golang]
+disabled = true
+[java]
+disabled = true
+[cmd_duration]
+disabled = true

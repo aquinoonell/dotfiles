@@ -28,14 +28,15 @@ vim.opt.termguicolors = true
 -- Reserve space for gitsigns/diagnostic marks so they don't flicker in/out
 vim.opt.signcolumn = "yes"
 
--- Always show the tabline (airline's buffer list)
-vim.opt.showtabline = 2
+-- No bufferline/tabline — matches Aejkatappaja's full-window Sora look
+vim.opt.showtabline = 0
 
 -- Global statusline at the bottom (single statusline across all windows)
 vim.opt.laststatus = 3
 
--- Command line height (1 = dedicated row for commands and messages)
-vim.opt.cmdheight = 1
+-- No dedicated command-line row: the statusline sits right above tmux's bar
+-- (cmdline appears only while typing a command)
+vim.opt.cmdheight = 0
 
 -- Line numbers: current line absolute, others relative (matches reference screenshot)
 vim.opt.number = true

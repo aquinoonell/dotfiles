@@ -5,7 +5,7 @@
 
 set -e
 
-export PATH="/opt/homebrew/bin:/usr/local/bin:/Applications/kitty.app/Contents/MacOS:/usr/bin:/bin:$HOME/dotfiles/bin:${PATH:-}"
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$HOME/dotfiles/bin:${PATH:-}"
 
 DOTFILES_DIR="$HOME/dotfiles"
 THEMES_DIR="$DOTFILES_DIR/themes"
@@ -62,7 +62,8 @@ build_list() {
         echo "$marker $theme_name"
 
         if [[ -d "$bg_dir" ]]; then
-            find "$bg_dir" -maxdepth 1 -type f \
+            # Include symlinks to wallpapers (-type f misses links on macOS)
+            find "$bg_dir" -maxdepth 1 \( -type f -o -type l \) \
                 \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) \
                 2>/dev/null | sort | while IFS= read -r wallpaper; do
                 echo "  $theme_name/$(basename "$wallpaper")"
@@ -97,8 +98,9 @@ else
     "$DOTFILES_DIR/bin/theme" "$theme_name"
 
     bg_path="$THEMES_DIR/$theme_name/backgrounds/$bg_name"
-    if [[ -f "$bg_path" ]]; then
-        osascript -e "tell application \"System Events\" to tell every desktop to set picture to \"$bg_path\"" 2>/dev/null
+    if [[ -e "$bg_path" ]]; then
+        real=$(python3 -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$bg_path" 2>/dev/null || echo "$bg_path")
+        osascript -e "tell application \"System Events\" to tell every desktop to set picture to POSIX file \"$real\"" 2>/dev/null
         echo "✓ Wallpaper: $bg_name"
     fi
 fi

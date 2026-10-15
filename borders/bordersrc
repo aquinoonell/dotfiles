@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# JankyBorders — Sora (his bordersrc, cyan active). all windows; Rift WM.
+
+options=(
+	width=3.0
+	hidpi=on
+	active_color=0xFF80C8E0
+	inactive_color=0xFF364050
+)
+
+borders "${options[@]}"

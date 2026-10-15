@@ -2,7 +2,8 @@ return {
     "luckasRanarison/nvim-devdocs",
     dependencies = {
         "nvim-lua/plenary.nvim",
-        "nvim-telescope/telescope.nvim",
+        -- nvim-devdocs hard-requires Telescope; kept only for it (all other pickers use Snacks)
+        { "nvim-telescope/telescope.nvim", tag = "0.1.8", lazy = true },
         "MunifTanjim/nui.nvim",
     },
     cmd = { "DevdocsFetch", "DevdocsOpen", "DevdocsOpenFloat", "DevdocsInstall", "DevdocsUpdate" },

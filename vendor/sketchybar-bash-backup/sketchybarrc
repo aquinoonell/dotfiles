@@ -1,0 +1,254 @@
+#!/bin/bash
+# SketchyBar — floating pills over a transparent bar (Aejkatappaja style).
+# No solid strip: only left spaces cluster + right widget pills.
+# Rift for tiling (not Yabai).
+
+CONFIG_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PLUGIN_DIR="$CONFIG_DIR/plugins"
+export CONFIG_DIR PLUGIN_DIR
+
+# shellcheck disable=SC1091
+source "$CONFIG_DIR/colors.sh"
+# shellcheck disable=SC1091
+source "$CONFIG_DIR/icons.sh"
+
+FONT="SF Pro"
+PADDINGS=3
+
+# Hide macOS volume HUD
+launchctl unload -F /System/Library/LaunchAgents/com.apple.OSDUIHelper.plist >/dev/null 2>&1 &
+
+##### Bar — fully transparent; only item/bracket backgrounds show #####
+bar=(
+  height=40
+  color=0x00000000
+  border_color=0x00000000
+  border_width=0
+  shadow=off
+  position=top
+  sticky=on
+  padding_right=0
+  padding_left=0
+  corner_radius=0
+  y_offset=8
+  margin=14
+  blur_radius=0
+)
+sketchybar --bar "${bar[@]}"
+
+##### Defaults #####
+PILL_BG="${BACKGROUND_1:-0xcc0e1018}"
+PILL_BORDER="${BACKGROUND_2:-0xff222838}"
+ACCENT="${ACCENT_COLOR:-0xff80c8e0}"
+MUTED="${TEXT_MUTED:-0xff586478}"
+FG="${TEXT_PRIMARY:-0xffc8d0e0}"
+
+defaults=(
+  updates=when_shown
+  icon.font="$FONT:Bold:14.0"
+  icon.color="$ACCENT"
+  icon.padding_left="$PADDINGS"
+  icon.padding_right="$PADDINGS"
+  label.font="$FONT:Bold:13.0"
+  label.color="$ACCENT"
+  label.padding_left="$PADDINGS"
+  label.padding_right="$PADDINGS"
+  padding_left=5
+  padding_right=5
+  background.height=28
+  background.corner_radius=9
+  background.border_width=0
+  popup.background.border_width=2
+  popup.background.corner_radius=9
+  popup.background.border_color="$POPUP_BORDER_COLOR"
+  popup.background.color="$POPUP_BACKGROUND_COLOR"
+  popup.blur_radius=40
+  popup.background.shadow.drawing=on
+)
+sketchybar --default "${defaults[@]}"
+
+##### Events #####
+sketchybar --add event rift_workspace_changed
+sketchybar --add event rift_windows_changed
+sketchybar --add event rift_focused_window_changed
+
+##### LEFT: apple (own pill) · spaces cluster · front_app #####
+sketchybar --add item apple.logo left \
+  --set apple.logo \
+    icon=􀣺 \
+    icon.font="$FONT:Black:16.0" \
+    icon.color="$ACCENT" \
+    icon.padding_left=10 \
+    icon.padding_right=10 \
+    label.drawing=off \
+    background.color="$PILL_BG" \
+    background.corner_radius=9 \
+    background.height=28 \
+    click_script="open -a 'System Settings'"
+
+sketchybar --add item pad.apple left --set pad.apple width=8 label.drawing=off icon.drawing=off
+
+for i in $(seq 0 8); do
+  sid=$((i + 1))
+  sketchybar --add item space.$i left \
+    --set space.$i \
+      drawing=off \
+      icon="$sid" \
+      icon.font="$FONT:Heavy:13.0" \
+      icon.color="$MUTED" \
+      icon.padding_left=8 \
+      icon.padding_right=8 \
+      padding_left=1 \
+      padding_right=1 \
+      label.drawing=off \
+      background.drawing=off \
+      click_script="rift-cli execute workspace switch $i"
+done
+
+# Spaces share one floating pill
+sketchybar --add bracket spaces_pill '/space\..*/' \
+  --set spaces_pill \
+    background.color="$PILL_BG" \
+    background.corner_radius=9 \
+    background.height=28 \
+    background.border_width=1 \
+    background.border_color="$PILL_BORDER"
+
+sketchybar --add item rift_spaces left \
+  --set rift_spaces \
+    drawing=off \
+    updates=on \
+    script="$PLUGIN_DIR/workspaces.sh" \
+  --subscribe rift_spaces \
+    rift_workspace_changed \
+    rift_windows_changed \
+    rift_focused_window_changed \
+    front_app_switched \
+    system_woke
+
+sketchybar --add item pad.spaces left --set pad.spaces width=8 label.drawing=off icon.drawing=off
+
+sketchybar --add item front_app left \
+  --set front_app \
+    icon.drawing=off \
+    label.font="$FONT:Bold:12.0" \
+    label.color="$MUTED" \
+    label.padding_left=10 \
+    label.padding_right=10 \
+    background.color="$PILL_BG" \
+    background.corner_radius=9 \
+    background.height=28 \
+    script="$PLUGIN_DIR/front_app.sh" \
+  --subscribe front_app front_app_switched rift_focused_window_changed
+
+##### RIGHT: clock · date · volume · wifi · cpu · battery (add = right→left) #####
+# Clock pill
+sketchybar --add item clock right \
+  --set clock \
+    icon=􀐫 \
+    icon.color="$ACCENT" \
+    label.color="$ACCENT" \
+    label.font="$FONT:Bold:13.0" \
+    padding_left=1 \
+    padding_right=1 \
+    update_freq=15 \
+    script="$PLUGIN_DIR/clock.sh" \
+    background.color="$PILL_BG" \
+    background.corner_radius=9 \
+    background.height=28 \
+  --subscribe clock system_woke
+
+sketchybar --add item pad.clock right --set pad.clock width=6 label.drawing=off icon.drawing=off position=right
+
+# Date pill
+sketchybar --add item calendar right \
+  --set calendar \
+    icon=􀉉 \
+    icon.color="$MUTED" \
+    label.color="$MUTED" \
+    label.font="$FONT:Bold:12.0" \
+    padding_left=1 \
+    padding_right=1 \
+    update_freq=30 \
+    script="$PLUGIN_DIR/calendar.sh" \
+    background.color="$PILL_BG" \
+    background.corner_radius=9 \
+    background.height=28 \
+  --subscribe calendar system_woke
+
+sketchybar --add item pad.cal right --set pad.cal width=6 label.drawing=off icon.drawing=off position=right
+
+# Volume pill
+sketchybar --add item volume_icon right \
+  --set volume_icon \
+    update_freq=2 \
+    padding_left=1 \
+    padding_right=1 \
+    script="$PLUGIN_DIR/volume_icon.sh" \
+    click_script="$PLUGIN_DIR/volume_click.sh" \
+    background.color="$PILL_BG" \
+    background.corner_radius=9 \
+    background.height=28 \
+    icon.padding_left=10 \
+    icon.padding_right=10 \
+  --subscribe volume_icon volume_change
+
+sketchybar --add item pad.vol right --set pad.vol width=6 label.drawing=off icon.drawing=off position=right
+
+# Wifi pill
+sketchybar --add item wifi right \
+  --set wifi \
+    update_freq=10 \
+    padding_left=1 \
+    padding_right=1 \
+    script="$PLUGIN_DIR/wifi.sh" \
+    click_script="$PLUGIN_DIR/open_wifi_menu.sh" \
+    background.color="$PILL_BG" \
+    background.corner_radius=9 \
+    background.height=28 \
+    icon.padding_left=10 \
+    icon.padding_right=10 \
+  --subscribe wifi wifi_change system_woke
+
+sketchybar --add item pad.wifi right --set pad.wifi width=6 label.drawing=off icon.drawing=off position=right
+
+# CPU pill
+sketchybar --add item cpu right \
+  --set cpu \
+    update_freq=3 \
+    padding_left=1 \
+    padding_right=1 \
+    script="$PLUGIN_DIR/cpu.sh" \
+    background.color="$PILL_BG" \
+    background.corner_radius=9 \
+    background.height=28 \
+    icon.padding_left=8 \
+    label.padding_right=10 \
+    click_script="open -a 'Activity Monitor'"
+
+sketchybar --add item pad.cpu right --set pad.cpu width=6 label.drawing=off icon.drawing=off position=right
+
+# Battery pill
+sketchybar --add item battery right \
+  --set battery \
+    update_freq=60 \
+    padding_left=1 \
+    padding_right=1 \
+    script="$PLUGIN_DIR/battery.sh" \
+    background.color="$PILL_BG" \
+    background.corner_radius=9 \
+    background.height=28 \
+    icon.padding_left=8 \
+    label.padding_right=10 \
+  --subscribe battery system_woke power_source_change
+
+##### First paint #####
+sketchybar --update
+"$PLUGIN_DIR/workspaces.sh" &
+NAME=front_app "$PLUGIN_DIR/front_app.sh" &
+NAME=calendar "$PLUGIN_DIR/calendar.sh" &
+NAME=clock "$PLUGIN_DIR/clock.sh" &
+NAME=battery "$PLUGIN_DIR/battery.sh" &
+NAME=cpu "$PLUGIN_DIR/cpu.sh" &
+NAME=wifi "$PLUGIN_DIR/wifi.sh" &
+NAME=volume_icon "$PLUGIN_DIR/volume_icon.sh" &
