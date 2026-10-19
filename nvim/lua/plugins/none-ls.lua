@@ -1,6 +1,7 @@
 return {
     {
         "nvimtools/none-ls.nvim",
+        event = { "BufReadPre", "BufNewFile" },
         config = function()
             local null_ls = require("null-ls")
 
@@ -18,6 +19,7 @@ return {
     },
     {
         "windwp/nvim-ts-autotag",
+        ft = { "html", "javascript", "javascriptreact", "typescript", "typescriptreact", "markdown" },
         config = function()
             require("nvim-ts-autotag").setup()
         end,

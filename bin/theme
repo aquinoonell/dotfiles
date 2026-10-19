@@ -51,7 +51,7 @@ get_toml_value() {
     grep "^$key = " "$file" 2>/dev/null | sed 's/.*= "\(.*\)"/\1/' | head -1
 }
 
-# Convert hex color to 0xff format (WezTerm template placeholders)
+# Convert hex color to 0xff format (JankyBorders)
 hex_to_borders() {
     local hex="$1"
     echo "0xff${hex:1}"
@@ -78,6 +78,8 @@ apply_sketchybar() {
 
     if pgrep -x sketchybar >/dev/null; then
         sketchybar --reload
+        # re-sync the focused-space highlight once the bar has finished reloading
+        ( sleep 2; sketchybar --trigger rift_workspace_changed ) >/dev/null 2>&1 &
         print_success "SketchyBar theme updated"
     fi
 }
@@ -315,15 +317,9 @@ EOF
         popup_muted=$(get_toml_value "$colors_file" "muted")
         tmux set -g popup-style "bg=${popup_bg},fg=${popup_fg}" 2>/dev/null || true
         tmux set -g popup-border-style "fg=${popup_muted}" 2>/dev/null || true
-        # Prefer Sora tokyo-night slot when on sora
-        if [[ "$theme_name" == "sora" ]]; then
-            tmux set -g @tokyo-night-tmux_theme "sora" 2>/dev/null || true
-            tmux set -g mode-style "fg=#dce4f0,bg=#1e2430" 2>/dev/null || true
-            tmux set -g pane-border-style "fg=#222838" 2>/dev/null || true
-            tmux set -g pane-active-border-style "fg=#80c8e0" 2>/dev/null || true
-            tmux source-file "$HOME/.tmux.conf" 2>/dev/null || true
-        fi
-        print_success "Tmux popup colors updated"
+        # Repaint the status bar, borders and messages for this theme
+        "$HOME/dotfiles/bin/tmux-apply-theme" "$theme_name" 2>/dev/null || true
+        print_success "Tmux colors updated"
     fi
 
     # 7. Ported Aejkatappaja surfaces (yazi/lazygit/hunk/bat/btop/fzf/delta/borders)

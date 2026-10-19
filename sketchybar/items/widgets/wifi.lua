@@ -102,17 +102,30 @@ local router = sbar.add("item", {
 
 sbar.add("item", { position = "right", width = settings.group_paddings })
 
-wifi:subscribe({ "wifi_change", "system_woke" }, function(env)
-	sbar.exec("ipconfig getifaddr en0", function(ip)
-		local connected = not (ip == "")
-		wifi:set({
-			icon = {
-				string = connected and icons.wifi.connected or icons.wifi.disconnected,
-				color = connected and colors.sora.steel or colors.semantic.error,
-			},
-		})
+local ETHERNET_ICON = "􀤆" -- SF Symbol "network"
+local WIFI_DEVICE = "en0"
+local active_if = ""
+
+-- Which interface carries the default route? Wi-Fi shows the wifi icon,
+-- anything else (dock / USB ethernet) shows the ethernet icon.
+local function update_connection()
+	sbar.exec("route -n get default 2>/dev/null | awk '/interface:/{print $2}'", function(result)
+		active_if = (type(result) == "string" and result:gsub("%s+", "")) or ""
+		local icon, color
+		if active_if == "" then
+			icon, color = icons.wifi.disconnected, colors.semantic.error
+		elseif active_if == WIFI_DEVICE then
+			icon, color = icons.wifi.connected, colors.sora.steel
+		else
+			icon, color = ETHERNET_ICON, colors.sora.steel
+		end
+		wifi:set({ icon = { string = icon, color = color } })
 	end)
-end)
+end
+
+wifi:set({ update_freq = 10 })
+wifi:subscribe({ "wifi_change", "system_woke", "routine", "forced" }, update_connection)
+update_connection()
 
 local function hide_details()
 	wifi_bracket:set({ popup = { drawing = false } })
@@ -125,16 +138,21 @@ local function toggle_details()
 		sbar.exec("networksetup -getcomputername", function(result)
 			hostname:set({ label = result })
 		end)
-		sbar.exec("ipconfig getifaddr en0", function(result)
+		local iface = active_if ~= "" and active_if or WIFI_DEVICE
+		sbar.exec("ipconfig getifaddr " .. iface, function(result)
 			ip:set({ label = result })
 		end)
-		sbar.exec("ipconfig getsummary en0 | awk -F ' SSID : '  '/ SSID : / {print $2}'", function(result)
-			ssid:set({ label = result })
-		end)
-		sbar.exec("networksetup -getinfo Wi-Fi | awk -F 'Subnet mask: ' '/^Subnet mask: / {print $2}'", function(result)
+		if iface == WIFI_DEVICE then
+			sbar.exec("ipconfig getsummary en0 | awk -F ' SSID : '  '/ SSID : / {print $2}'", function(result)
+				ssid:set({ label = result })
+			end)
+		else
+			ssid:set({ label = "Ethernet (" .. iface .. ")" })
+		end
+		sbar.exec("ipconfig getoption " .. iface .. " subnet_mask", function(result)
 			mask:set({ label = result })
 		end)
-		sbar.exec("networksetup -getinfo Wi-Fi | awk -F 'Router: ' '/^Router: / {print $2}'", function(result)
+		sbar.exec("route -n get default 2>/dev/null | awk '/gateway:/{print $2}'", function(result)
 			router:set({ label = result })
 		end)
 	else

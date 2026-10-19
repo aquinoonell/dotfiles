@@ -8,7 +8,7 @@ local app_icons = require("helpers.app_icons")
 local RIFT = "/opt/homebrew/bin/rift-cli"
 local JQ = "/opt/homebrew/bin/jq"
 local WORKSPACES = 9
-local ALWAYS_SHOWN = 3 -- 1..3 always visible, the rest only when occupied/active
+local ALWAYS_SHOWN = 0 -- spaces only show when they have windows or are focused
 
 for _, ev in ipairs({
 	"rift_workspace_changed",
@@ -138,3 +138,6 @@ rift_observer:subscribe({
 }, refresh)
 
 refresh()
+-- A reload (theme switch) can race with Rift's startup state; re-sync shortly after
+sbar.delay(1, refresh)
+sbar.delay(3, refresh)

@@ -46,7 +46,6 @@ is_kitty() {
         client_term=$(tmux display-message -p '#{client_termname}' 2>/dev/null || true)
         [[ "$client_term" == *kitty* ]] && return 0
     fi
-    [[ -n "${GHOSTTY_RESOURCES_DIR:-}" ]] && return 0
     return 1
 }
 
@@ -94,10 +93,13 @@ show_image() {
     fi
 
     if command -v chafa >/dev/null; then
-        # braille only — --symbols all uses U+1FBxx, missing from FiraMono Nerd Font
+        # Half blocks (U+2580/2584) exist in every font and keep true colors, so the
+        # wallpaper stays recognisable. Braille turned dark wallpapers into noise and
+        # --symbols all uses U+1FBxx, which no installed font has.
         chafa \
             --format symbols \
-            --symbols braille \
+            --symbols vhalf \
+            --dither none \
             --probe off \
             --colors full \
             -s "${cols}x${img_lines}" \

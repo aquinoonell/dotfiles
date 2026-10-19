@@ -1,0 +1,87 @@
+#!/bin/bash
+#
+# Paint tmux (tokyo-night-tmux plugin + chrome) with the current dotfiles theme.
+#   tmux-apply-theme [theme]          write colors, repaint the running server
+#   tmux-apply-theme --write-only     only regenerate the colors file (used by .tmux.conf)
+#   tmux-apply-theme --chrome         only set borders/mode/message/popup styles
+#
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
+
+THEMES_DIR="$HOME/dotfiles/themes"
+OUT="$HOME/.cache/dotfiles/tmux-theme.sh"
+PLUGIN="$HOME/.tmux/plugins/tokyo-night-tmux/tokyo-night.tmux"
+
+mode=full
+theme=""
+case "${1:-}" in
+  --write-only) mode=write ;;
+  --chrome) mode=chrome ;;
+  "") ;;
+  *) theme="$1" ;;
+esac
+[[ -z "$theme" ]] && theme=$(cat "$HOME/.current-theme" 2>/dev/null || echo sora)
+
+colors="$THEMES_DIR/$theme/colors.toml"
+[[ -f "$colors" ]] || colors="$THEMES_DIR/sora/colors.toml"
+
+c() { # c key fallback...
+  local v key="$1"; shift
+  v=$(grep "^$key = " "$colors" 2>/dev/null | sed 's/.*= "\(.*\)"/\1/' | head -1)
+  for fb in "$@"; do [[ -n "$v" ]] && break; v=$(grep "^$fb = " "$colors" 2>/dev/null | sed 's/.*= "\(.*\)"/\1/' | head -1); done
+  echo "$v"
+}
+
+bg=$(c background); fg=$(c foreground); accent=$(c accent blue)
+sel=$(c selection lighter_background); muted=$(c muted dark_foreground)
+red=$(c red); green=$(c green); yellow=$(c yellow); blue=$(c blue accent)
+cyan=$(c cyan blue); magenta=$(c magenta)
+bred=$(c bright_red red); bgreen=$(c bright_green green); byellow=$(c bright_yellow yellow)
+bblue=$(c bright_blue blue); bcyan=$(c bright_cyan cyan); bmagenta=$(c bright_magenta magenta)
+brightfg=$(c bright_foreground foreground); lighter=$(c lighter_background selection)
+
+write_colors() {
+  mkdir -p "$(dirname "$OUT")"
+  cat > "$OUT" <<EOT
+THEME[background]="$bg"
+THEME[foreground]="$fg"
+THEME[black]="$bg"
+THEME[blue]="$accent"
+THEME[cyan]="$cyan"
+THEME[green]="$green"
+THEME[magenta]="$magenta"
+THEME[red]="$red"
+THEME[white]="$fg"
+THEME[yellow]="$yellow"
+THEME[bblack]="$sel"
+THEME[bblue]="$bblue"
+THEME[bcyan]="$bcyan"
+THEME[bgreen]="$bgreen"
+THEME[bmagenta]="$bmagenta"
+THEME[bred]="$bred"
+THEME[bwhite]="$muted"
+THEME[byellow]="$byellow"
+EOT
+}
+
+chrome() {
+  command -v tmux >/dev/null && tmux info >/dev/null 2>&1 || return 0
+  tmux set -g mode-style "fg=${brightfg},bg=${sel}"
+  tmux set -g pane-border-style "fg=${sel}"
+  tmux set -g pane-active-border-style "fg=${accent}"
+  tmux set -g message-style "bg=${lighter},fg=${fg}"
+  tmux set -g popup-style "bg=${bg},fg=${fg}"
+  tmux set -g popup-border-style "fg=${muted}"
+}
+
+case "$mode" in
+  write) write_colors ;;
+  chrome) chrome ;;
+  full)
+    write_colors
+    command -v tmux >/dev/null && tmux info >/dev/null 2>&1 || exit 0
+    tmux set -g @tokyo-night-tmux_theme custom
+    bash "$PLUGIN"
+    chrome
+    tmux refresh-client -S 2>/dev/null || true
+    ;;
+esac

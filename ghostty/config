@@ -53,7 +53,9 @@ background-blur-radius         = 12
 # of pixels under the last row. See the comment in yabai/yabairc.
 window-padding-x               = 10
 window-padding-y               = 10,0
-window-padding-color           = extend
+# "background" (not "extend") so a one-row bar like tmux's status line is not
+# stretched into the leftover pixels below the grid.
+window-padding-color           = background
 
 window-save-state              = always
 

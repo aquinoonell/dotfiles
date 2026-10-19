@@ -1,15 +1,41 @@
+-- Debugger: nothing loads until the first <leader>d* key (or :Dap* / a Rust debug run).
+local function dap(fn, ...)
+    local args = { ... }
+    return function()
+        local d = require("dap")
+        d[fn](unpack(args))
+    end
+end
+
 return {
     {
         "mfussenegger/nvim-dap",
-        dependencies = { "nvim-neotest/nvim-nio" },
-    },
-    {
-        "rcarriga/nvim-dap-ui",
-        dependencies = { "mfussenegger/nvim-dap", "nvim-neotest/nvim-nio" },
+        dependencies = {
+            "nvim-neotest/nvim-nio",
+            "rcarriga/nvim-dap-ui",
+        },
+        keys = {
+            { "<Leader>dl", dap("step_into"), desc = "Debugger step into" },
+            { "<Leader>dj", dap("step_over"), desc = "Debugger step over" },
+            { "<Leader>dk", dap("step_out"), desc = "Debugger step out" },
+            { "<Leader>dc", dap("continue"), desc = "Debugger continue" },
+            { "<Leader>db", dap("toggle_breakpoint"), desc = "Debugger toggle breakpoint" },
+            -- <leader>dd is DevDocs; use dC for conditional breakpoint
+            {
+                "<Leader>dC",
+                function()
+                    require("dap").set_breakpoint(vim.fn.input("Breakpoint condition: "))
+                end,
+                desc = "Debugger set conditional breakpoint",
+            },
+            { "<Leader>de", dap("terminate"), desc = "Debugger reset" },
+            { "<Leader>dr", dap("run_last"), desc = "Debugger run last" },
+            { "<Leader>dt", "<cmd>RustLsp testables<CR>", desc = "Debugger testables" },
+        },
         config = function()
-            require("dapui").setup()
-
             local dap, dapui = require("dap"), require("dapui")
+            dapui.setup()
+
             dap.listeners.before.attach.dapui_config = function()
                 dapui.open()
             end
@@ -22,34 +48,6 @@ return {
             dap.listeners.before.event_exited.dapui_config = function()
                 dapui.close()
             end
-            -- Nvim DAP
-            vim.keymap.set("n", "<Leader>dl", "<cmd>lua require'dap'.step_into()<CR>", { desc = "Debugger step into" })
-            vim.keymap.set("n", "<Leader>dj", "<cmd>lua require'dap'.step_over()<CR>", { desc = "Debugger step over" })
-            vim.keymap.set("n", "<Leader>dk", "<cmd>lua require'dap'.step_out()<CR>", { desc = "Debugger step out" })
-            vim.keymap.set("n", "<Leader>dc", "<cmd>lua require'dap'.continue()<CR>", { desc = "Debugger continue" })
-            vim.keymap.set(
-                "n",
-                "<Leader>db",
-                "<cmd>lua require'dap'.toggle_breakpoint()<CR>",
-                { desc = "Debugger toggle breakpoint" }
-            )
-            -- <leader>dd is DevDocs; use dC for conditional breakpoint
-            vim.keymap.set(
-                "n",
-                "<Leader>dC",
-                "<cmd>lua require'dap'.set_breakpoint(vim.fn.input('Breakpoint condition: '))<CR>",
-                { desc = "Debugger set conditional breakpoint" }
-            )
-            vim.keymap.set("n", "<Leader>de", "<cmd>lua require'dap'.terminate()<CR>", { desc = "Debugger reset" })
-            vim.keymap.set("n", "<Leader>dr", "<cmd>lua require'dap'.run_last()<CR>", { desc = "Debugger run last" })
-
-            -- rustaceanvim
-            vim.keymap.set(
-                "n",
-                "<Leader>dt",
-                "<cmd>lua vim.cmd('RustLsp testables')<CR>",
-                { desc = "Debugger testables" }
-            )
         end,
     },
 }

@@ -1,17 +1,12 @@
-# Rift tiling WM config.
-
 [settings]
 animate = true
-animation_duration = 0.2
+animation_duration = 0.12
 animation_fps = 120.0
 animation_easing = "ease_out_cubic"
-
 default_disable = false
-
-focus_follows_mouse = false
-mouse_follows_focus = true
+mouse_follows_focus = false
 mouse_hides_on_focus = false
-
+focus_follows_mouse = false
 auto_focus_blacklist = [
     "com.apple.Spotlight",
     "com.raycast.macos",
@@ -19,54 +14,285 @@ auto_focus_blacklist = [
     "com.apple.systemuiserver",
     "com.apple.SecurityAgent",
 ]
-
 run_on_start = [
-    # SketchyBar: subscribe Rift events → bar triggers
     "rift-cli subscribe cli --event workspace_changed --command sketchybar --args --trigger --args rift_workspace_changed",
     "rift-cli subscribe cli --event windows_changed --command sketchybar --args --trigger --args rift_windows_changed",
     "rift-cli subscribe cli --event focused_window_changed --command sketchybar --args --trigger --args rift_focused_window_changed",
     "rift-cli subscribe cli --event layout_changed --command sketchybar --args --trigger --args rift_layout_changed",
     "rift-cli subscribe cli --event stacks_changed --command sketchybar --args --trigger --args rift_stacks_changed",
 ]
-
 hot_reload = true
 
 [settings.layout]
-# BSP so windows tile side by side (Alt+Shift+H/J/K/L via rift-move needs this).
-# Stack mode only ever shows one window, so it broke split panes.
-mode = "bsp"
 window_insertion_point = "next_to_selection"
+mode = "bsp"
+
+[settings.layout.traditional]
+equalize_nodes = true
+
+[settings.layout.bsp]
+
+[settings.layout.stack]
+stack_offset = 40.0
+default_orientation = "perpendicular"
+
+[settings.layout.master_stack]
+master_ratio = 0.6
+master_count = 1
+master_side = "left"
+new_window_placement = "master"
 
 [settings.layout.gaps.outer]
-# Top clears the transparent SketchyBar pills; the rest is a slim frame so the
-# window uses most of the screen.
 top = 42.0
 left = 12.0
 bottom = 12.0
 right = 12.0
 
 [settings.layout.gaps.inner]
-# Room for the 3pt cyan JankyBorders between tiled windows.
 horizontal = 10.0
 vertical = 10.0
 
+[settings.layout.gaps.per_display]
+
+[settings.layout.scrolling]
+animate = true
+column_width_ratio = 0.7
+preset_column_widths = [
+    0.3333333333333333,
+    0.5,
+    0.6666666666666666,
+]
+preserve_window_sizes = true
+expand_single_column = false
+min_column_width_ratio = 0.3
+max_column_width_ratio = 0.9
+alignment = "center"
+focus_navigation_style = "niri"
+
+[settings.layout.scrolling.per_display]
+
+[settings.layout.scrolling.gestures]
+enabled = false
+invert_horizontal = false
+vertical_tolerance = 0.4
+fingers = 3
+distance_pct = 0.08
+propagate_to_workspace_swipe = false
+workspace_switch_threshold = 0.55
+
 [settings.ui.menu_bar]
-# Disabled — SketchyBar + hidden macOS menubar
 enabled = false
 show_empty = false
 mode = "all"
 active_label = "index"
 display_style = "label"
+layout_folder = "~/.config/rift/layouts"
+
+[settings.ui.stack_line]
+enabled = false
+hover = "hover"
+thickness = 0.0
+horiz_placement = "top"
+vert_placement = "left"
+spacing = 0.0
+
+[settings.ui.stack_line.selected_color]
+r = 0.0
+g = 0.0
+b = 0.0
+a = 1.0
+
+[settings.ui.stack_line.unselected_color]
+r = 0.0
+g = 0.0
+b = 0.0
+a = 1.0
+
+[settings.ui.stack_line.border_color]
+r = 0.0
+g = 0.0
+b = 0.0
+a = 1.0
+
+[settings.ui.mission_control]
+show_empty_workspaces = false
+window_previews = false
+enabled = false
+fade_enabled = false
+fade_duration_ms = 0.0
 
 [settings.gestures]
 enabled = false
 consume_dock_swipe = true
 invert_horizontal_swipe = false
+swipe_vertical_tolerance = 0.4
+skip_empty = false
 fingers = 3
+distance_pct = 0.08
 haptics_enabled = true
+haptic_pattern = "level_change"
 
-[settings.window_snapping]
-drag_swap_fraction = 0.5
+[settings.drag_drop]
+haptics_enabled = true
+enabled = true
+modifier = "fn"
+action1 = "move"
+action2 = "none"
+drop_action = "swap"
+drop_zone_fraction = 0.25
+preview = true
+
+[keys]
+"Alt + Shift + Semicolon" = "reload_config"
+"Alt + Shift + G" = "toggle_focus_floating"
+"Alt + Tab" = "switch_to_last_workspace"
+"Alt + Z" = "toggle_space_activated"
+"Alt + Shift + R" = "reload_config"
+"Alt + Shift + Space" = "toggle_stack"
+"Alt + F" = "toggle_fullscreen_within_gaps"
+"Alt + Space" = "toggle_orientation"
+"Alt + Shift + P" = "serialize"
+
+[keys."Alt + Shift + ArrowUp"]
+join_window = "up"
+
+[keys."Alt + K"]
+move_focus = "up"
+
+[keys."Alt + H"]
+move_focus = "left"
+
+[keys."Alt + 9"]
+switch_to_workspace = 8
+
+[keys."Alt + Shift + 7"]
+move_window_to_workspace = 6
+
+[keys."Alt + 8"]
+switch_to_workspace = 7
+
+[keys."Alt + J"]
+move_focus = "down"
+
+[keys."Alt + Shift + 4"]
+move_window_to_workspace = 3
+
+[keys."Alt + 6"]
+switch_to_workspace = 5
+
+[keys."Alt + Equal"]
+resize_window_grow = "smart"
+
+[keys."Alt + Shift + J"]
+exec = [
+    "/bin/bash",
+    "-lc",
+    "$HOME/dotfiles/bin/rift-move down",
+]
+
+[keys."Alt + Shift + 2"]
+move_window_to_workspace = 1
+
+[keys."Alt + Shift + 6"]
+move_window_to_workspace = 5
+
+[keys."Alt + Shift + ArrowRight"]
+join_window = "right"
+
+[keys."Alt + Enter"]
+exec = [
+    "/bin/bash",
+    "-lc",
+    "$HOME/dotfiles/bin/new-terminal",
+]
+
+[keys."Alt + Shift + Minus"]
+resize_window_shrink = "horizontal"
+
+[keys."Alt + 7"]
+switch_to_workspace = 6
+
+[keys."Alt + Shift + 9"]
+move_window_to_workspace = 8
+
+[keys."Alt + Shift + 1"]
+move_window_to_workspace = 0
+
+[keys."Alt + 5"]
+switch_to_workspace = 4
+
+[keys."Alt + Shift + Tab".move_window_to_display]
+selector = "right"
+
+[keys."Alt + 1"]
+switch_to_workspace = 0
+
+[keys."Alt + 2"]
+switch_to_workspace = 1
+
+[keys."Alt + 3"]
+switch_to_workspace = 2
+
+[keys."Alt + Shift + 8"]
+move_window_to_workspace = 7
+
+[keys."Alt + Shift + H"]
+exec = [
+    "/bin/bash",
+    "-lc",
+    "$HOME/dotfiles/bin/rift-move left",
+]
+
+[keys."Alt + Minus"]
+resize_window_shrink = "smart"
+
+[keys."Alt + Shift + ArrowDown"]
+join_window = "down"
+
+[keys."Alt + Shift + L"]
+exec = [
+    "/bin/bash",
+    "-lc",
+    "$HOME/dotfiles/bin/rift-move right",
+]
+
+[keys."Alt + Shift + F".toggle_window_floating]
+center = true
+size = "smart"
+
+[keys."Alt + Shift + 5"]
+move_window_to_workspace = 4
+
+[keys."Alt + Shift + Backspace"]
+exec = [
+    "/bin/bash",
+    "-lc",
+    "$HOME/dotfiles/bin/rift-reset",
+]
+
+[keys."Alt + 4"]
+switch_to_workspace = 3
+
+[keys."Alt + Shift + K"]
+exec = [
+    "/bin/bash",
+    "-lc",
+    "$HOME/dotfiles/bin/rift-move up",
+]
+
+[keys."Alt + Shift + ArrowLeft"]
+join_window = "left"
+
+[keys."Alt + Shift + Equal"]
+resize_window_grow = "horizontal"
+
+[keys."Alt + L"]
+move_focus = "right"
+
+[keys."Alt + Shift + 3"]
+move_window_to_workspace = 2
+
+[binding_modes]
 
 [virtual_workspaces]
 enabled = true
@@ -75,93 +301,54 @@ auto_assign_windows = true
 preserve_focus_per_workspace = true
 workspace_auto_back_and_forth = false
 prevent_wrapping = false
-reapply_app_rules_on_title_change = false
+workspace_names = [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+]
 default_workspace = 0
-workspace_names = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+reapply_app_rules_on_title_change = false
 workspace_rules = []
 
-app_rules = [
-    { app_id = "com.apple.mail",      floating = true },
-    { app_id = "com.apple.finder",    floating = true },
-    { app_id = "com.apple.Music",     floating = true },
-    { app_id = "com.apple.Notes",     floating = true },
-    { app_id = "com.apple.MobileSMS", floating = true },
-    { app_id = "md.obsidian",         floating = true },
-    { app_id = "us.zoom.xos",         floating = true },
-]
+[[virtual_workspaces.app_rules]]
+app_id = "com.apple.mail"
+floating = true
+focus = false
+
+[[virtual_workspaces.app_rules]]
+app_id = "com.apple.finder"
+floating = true
+focus = false
+
+[[virtual_workspaces.app_rules]]
+app_id = "com.apple.Music"
+floating = true
+focus = false
+
+[[virtual_workspaces.app_rules]]
+app_id = "com.apple.Notes"
+floating = true
+focus = false
+
+[[virtual_workspaces.app_rules]]
+app_id = "com.apple.MobileSMS"
+floating = true
+focus = false
+
+[[virtual_workspaces.app_rules]]
+app_id = "md.obsidian"
+floating = true
+focus = false
+
+[[virtual_workspaces.app_rules]]
+app_id = "us.zoom.xos"
+floating = true
+focus = false
 
 [modifier_combinations]
-comb1 = "Alt + Shift"
-
-[keys]
-# Space management
-"Alt + Z" = "toggle_space_activated"
-
-# Focus movement
-"Alt + H" = { move_focus = "left" }
-"Alt + J" = { move_focus = "down" }
-"Alt + K" = { move_focus = "up" }
-"Alt + L" = { move_focus = "right" }
-
-# Window movement
-"comb1 + H" = { exec = ["/bin/bash", "-lc", "$HOME/dotfiles/bin/rift-move left"] }
-"comb1 + J" = { exec = ["/bin/bash", "-lc", "$HOME/dotfiles/bin/rift-move down"] }
-"comb1 + K" = { exec = ["/bin/bash", "-lc", "$HOME/dotfiles/bin/rift-move up"] }
-"comb1 + L" = { exec = ["/bin/bash", "-lc", "$HOME/dotfiles/bin/rift-move right"] }
-
-# Fullscreen and float
-"Alt + F"   = "toggle_fullscreen_within_gaps"
-"comb1 + F" = { toggle_window_floating = { center = true, size = "smart" } }
-"comb1 + G" = "toggle_focus_floating"
-
-# Layout
-"Alt + Space"   = "toggle_orientation"
-"comb1 + Space" = "toggle_stack"
-
-# Resize
-"Alt + Minus"   = { resize_window_shrink = "smart" }
-"Alt + Equal"   = { resize_window_grow = "smart" }
-"comb1 + Minus" = "resize_window_shrink"
-"comb1 + Equal" = "resize_window_grow"
-
-# Workspace switching
-"Alt + 1" = { switch_to_workspace = 0 }
-"Alt + 2" = { switch_to_workspace = 1 }
-"Alt + 3" = { switch_to_workspace = 2 }
-"Alt + 4" = { switch_to_workspace = 3 }
-"Alt + 5" = { switch_to_workspace = 4 }
-"Alt + 6" = { switch_to_workspace = 5 }
-"Alt + 7" = { switch_to_workspace = 6 }
-"Alt + 8" = { switch_to_workspace = 7 }
-"Alt + 9" = { switch_to_workspace = 8 }
-
-# Move window to workspace
-"comb1 + 1" = { move_window_to_workspace = 0 }
-"comb1 + 2" = { move_window_to_workspace = 1 }
-"comb1 + 3" = { move_window_to_workspace = 2 }
-"comb1 + 4" = { move_window_to_workspace = 3 }
-"comb1 + 5" = { move_window_to_workspace = 4 }
-"comb1 + 6" = { move_window_to_workspace = 5 }
-"comb1 + 7" = { move_window_to_workspace = 6 }
-"comb1 + 8" = { move_window_to_workspace = 7 }
-"comb1 + 9" = { move_window_to_workspace = 8 }
-
-# Join windows into BSP container
-"comb1 + Left"  = { join_window = "left" }
-"comb1 + Down"  = { join_window = "down" }
-"comb1 + Up"    = { join_window = "up" }
-"comb1 + Right" = { join_window = "right" }
-
-# Launch terminal
-"Alt + Enter" = { exec = ["/bin/bash", "-lc", "$HOME/dotfiles/bin/new-terminal"] }
-
-# Workspace navigation
-"Alt + Tab"   = "switch_to_last_workspace"
-"comb1 + Tab" = { move_window_to_display = { selector = "right" } }
-
-# Config
-"comb1 + R"         = "reload_config"
-"comb1 + Semicolon" = "reload_config"
-
-# Debug
-"comb1 + P" = "serialize"

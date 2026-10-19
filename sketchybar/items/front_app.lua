@@ -9,7 +9,16 @@ local front_app = sbar.add("item", "front_app", {
 			style = settings.font.style_map["Bold"],
 			size = 12.0,
 		},
-		color = colors.sora.steel,
+		color = colors.white,
+		padding_left = 10,
+		padding_right = 10,
+	},
+	-- own pill so the name stays readable over any wallpaper/theme
+	background = {
+		drawing = true,
+		color = colors.bar.bg,
+		border_width = 2,
+		border_color = colors.bg2,
 	},
 	updates = true,
 })

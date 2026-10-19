@@ -1,7 +1,6 @@
 return {
     "saghen/blink.cmp",
     version = "1.*",
-    dependencies = { "L3MON4D3/LuaSnip", version = "v2.*" },
     opts = {
         enabled = function()
             return not vim.tbl_contains({ "text", "markdown" }, vim.bo.filetype)
@@ -24,7 +23,7 @@ return {
         completion = {
             documentation = { auto_show = false },
         },
-        snippets = { preset = "luasnip" },
+        snippets = { preset = "default" }, -- blink's built-in snippet engine (no LuaSnip needed)
         sources = {
             default = { "lsp", "path", "snippets", "buffer" },
         },

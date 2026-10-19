@@ -1,0 +1,6 @@
+#!/bin/bash
+# Rebuild Rift's layout tree from the live windows. Use when windows open in
+# only part of the screen (stale/ghost nodes after a monitor or resolution change).
+launchctl kickstart -k "gui/$(id -u)/git.acsandmann.rift"
+sleep 2
+rift-cli execute workspace switch 0 >/dev/null 2>&1

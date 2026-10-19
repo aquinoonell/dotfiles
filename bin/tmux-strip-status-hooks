@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+"""Remove #() status hooks and keep a lean status-left (session name only)."""
+import re
+import subprocess
+from pathlib import Path
+
+def theme_colors():
+    colors = {
+        "background": "#0e1018",
+        "bblack": "#1e2430",
+        "blue": "#80c8e0",
+        "foreground": "#c8d0e0",
+    }
+    cache = Path.home() / ".cache/dotfiles/tmux-theme.sh"
+    if cache.exists():
+        for line in cache.read_text().splitlines():
+            m = re.match(r'THEME\[(\w+)\]="([^"]*)"', line)
+            if m:
+                colors[m.group(1)] = m.group(2)
+    return colors
+
+c = theme_colors()
+left = (
+    f"#[fg={c['bblack']},bg={c['blue']},bold] "
+    f"#{{?client_prefix,#[bg={c['blue']}]󰠠 ,#[dim]󰤂 }}"
+    f"#[bold,nodim]#S "
+)
+subprocess.run(["tmux", "set", "-g", "status-left", left], check=False)
+subprocess.run(["tmux", "set", "-g", "status-right", ""], check=False)
+# Also strip any remaining #() from window formats? keep superscript numbers (cheap enough)

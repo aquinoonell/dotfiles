@@ -1,10 +1,26 @@
 local colors = require("colors")
 local settings = require("settings")
+local icons = require("icons")
 
 local artwork_path = "/tmp/sketchybar_artwork.jpg"
 
 -- Order: right items render right-to-left
 -- So: toggle first (rightmost), then text, then cover (leftmost)
+
+local music_next = sbar.add("item", "widgets.music.next", {
+	position = "right",
+	icon = {
+		string = icons.media.forward,
+		color = colors.sora.purple,
+		font = { size = 14.0 },
+		padding_left = 4,
+		padding_right = 8,
+	},
+	label = { drawing = false },
+	padding_left = 0,
+	padding_right = 0,
+	drawing = false,
+})
 
 local music_toggle = sbar.add("item", "widgets.music.toggle", {
 	position = "right",
@@ -13,11 +29,26 @@ local music_toggle = sbar.add("item", "widgets.music.toggle", {
 		color = colors.sora.purple,
 		font = { size = 14.0 },
 		padding_left = 4,
-		padding_right = 8,
+		padding_right = 4,
 	},
 	label = { drawing = false },
 	padding_left = 0,
 	padding_right = 1,
+	drawing = false,
+})
+
+local music_prev = sbar.add("item", "widgets.music.prev", {
+	position = "right",
+	icon = {
+		string = icons.media.back,
+		color = colors.sora.purple,
+		font = { size = 14.0 },
+		padding_left = 4,
+		padding_right = 4,
+	},
+	label = { drawing = false },
+	padding_left = 0,
+	padding_right = 0,
 	drawing = false,
 })
 
@@ -53,7 +84,7 @@ local music_cover = sbar.add("item", "widgets.music.cover", {
 	icon = { drawing = false },
 	label = { drawing = false },
 	width = 24,
-	padding_left = 4,
+	padding_left = 8,
 	padding_right = -4,
 	drawing = false,
 })
@@ -61,7 +92,9 @@ local music_cover = sbar.add("item", "widgets.music.cover", {
 sbar.add("bracket", "widgets.music.bracket", {
 	music_cover.name,
 	music.name,
+	music_prev.name,
 	music_toggle.name,
+	music_next.name,
 }, {
 	background = { color = colors.bar.bg },
 })
@@ -98,6 +131,8 @@ poller:subscribe({ "routine", "forced" }, function(env)
 				label = { string = artist .. " — " .. title },
 			})
 			music_cover:set({ drawing = true })
+			music_prev:set({ drawing = true })
+			music_next:set({ drawing = true })
 			music_toggle:set({
 				drawing = true,
 				icon = { string = is_playing and "􀊆" or "􀊄" },
@@ -116,12 +151,22 @@ poller:subscribe({ "routine", "forced" }, function(env)
 			music:set({ drawing = false })
 			music_cover:set({ drawing = false })
 			music_toggle:set({ drawing = false })
+			music_prev:set({ drawing = false })
+			music_next:set({ drawing = false })
 		end
 	end)
 end)
 
 music_toggle:subscribe("mouse.clicked", function(env)
 	sbar.exec("nowplaying-cli togglePlayPause")
+end)
+
+music_next:subscribe("mouse.clicked", function(env)
+	sbar.exec("nowplaying-cli next")
+end)
+
+music_prev:subscribe("mouse.clicked", function(env)
+	sbar.exec("nowplaying-cli previous")
 end)
 
 music:subscribe("mouse.clicked", function(env)
