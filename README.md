@@ -37,9 +37,10 @@ export PATH="$HOME/dotfiles/bin:$PATH"
 Switch between themes with a single command:
 
 ```bash
-theme osaka-jade    # Switch to osaka-jade
+theme sora          # Switch to sora
 theme gruvbox       # Switch to gruvbox
 theme tokyo-night   # Switch to tokyo-night
+theme everforest    # Switch to everforest
 theme --list        # List all themes
 theme --current     # Show current theme
 ```
@@ -92,14 +93,6 @@ Felix Kratz–inspired floating 24px bar, wired to **Rift** and your `theme` pal
 | Battery | SF Symbol + percent |
 | Time | Date + clock |
 
-Mekanikos wallpapers are native **6K** (6016×3384), all 17 per theme. Install/refresh:
-
-```bash
-mekanikos-wallpapers ~/Downloads/Mekanikos\ Wallpapers\ 1.0.zip
-theme mekanikos-mare
-theme-picker   # lists every wallpaper under the theme
-```
-
 Config: `~/dotfiles/sketchybar/` → `~/.config/sketchybar`. Rift pushes `workspace_changed` / `windows_changed` / `focused_window_changed` into SketchyBar on start.
 
 ```bash
@@ -118,22 +111,12 @@ theme $(cat ~/.current-theme)    # refresh bar colors after edits
 
 ### Available Themes
 
-| Theme | Style | Theme | Style |
-|-------|-------|-------|-------|
-| catppuccin | Dark, pastel | nord | Dark, arctic |
-| catppuccin-latte | Light, pastel | osaka-jade | Dark, jade green |
-| ethereal | Dark, subtle | retro-82 | Dark, retro |
-| everforest | Dark, green | ristretto | Dark, coffee |
-| flexoki-light | Light, warm | rose-pine | Dark, pink |
-| gruvbox | Dark, retro | solitude | Dark |
-| hackerman | Dark, matrix | tokyo-night | Dark, neon |
-| kanagawa | Dark, Japanese | vantablack | Dark, pure black |
-| last-horizon | Dark | white | Light |
-| lumon | Dark | mekanikos-mare | Dark, cyan glow |
-| lupine | Dark, purple | mekanikos-oracle | Dark, neon green |
-| matte-black | Dark, minimal | mekanikos-lantern | Dark, amber |
-| miasma | Dark, swamp | mekanikos-ferryman | Dark, warm orange |
-| mekanikos-light | Light, copper | | |
+| Theme | Style |
+|-------|-------|
+| sora | Dark, cool blue/black with cyan accent |
+| gruvbox | Dark, warm retro |
+| tokyo-night | Dark, neon |
+| everforest | Dark, green |
 
 ## Structure
 
@@ -151,8 +134,8 @@ theme $(cat ~/.current-theme)    # refresh bar colors after edits
 │   ├── sketchybarrc       # Minimal bar config
 │   ├── colors.sh          # Defaults + cache include
 │   └── plugins/           # workspaces, front_app, clock, theme_picker
-├── themes/                # All 22 omarchy themes
-│   ├── osaka-jade/
+├── themes/                # sora, gruvbox, tokyo-night, everforest
+│   ├── sora/
 │   │   ├── colors.toml    # Color definitions
 │   │   ├── backgrounds/   # Wallpapers
 │   │   └── neovim.lua     # Nvim colorscheme info

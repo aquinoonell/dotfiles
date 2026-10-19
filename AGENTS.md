@@ -8,10 +8,10 @@ Repo: `~/dotfiles` (also `https://github.com/aquinoonell/dotfiles`).
 
 1. Copy an existing theme as a skeleton:
    ```bash
-   cp -R ~/dotfiles/themes/ethereal ~/dotfiles/themes/<kebab-name>
+   cp -R ~/dotfiles/themes/gruvbox ~/dotfiles/themes/<kebab-name>
    rm -f ~/dotfiles/themes/<kebab-name>/backgrounds/*
    ```
-   Use `ethereal` (toml-only) unless a real nvim plugin exists. Use `gruvbox` as the plugin example.
+   Kept themes are `sora`, `gruvbox`, `tokyo-night`, and `everforest`. Use `gruvbox` as the plugin example.
 2. Rewrite `colors.toml` (required keys below). Hex only, quoted, `#RRGGBB`.
 3. Put 3–5 wallpapers in `themes/<kebab-name>/backgrounds/` named `N-short-slug.jpg` (or `.png` / `.webp`).
 4. Register the theme in `nvim/lua/plugins/colorscheme.lua` (required — picker finds folders, nvim does not).
@@ -107,12 +107,11 @@ Also fill (nvim toml fallback + future-proofing): `dark_background`, `darker_bac
 ### Palette rules that match the rest of the system
 
 - **Dark themes:** near-black `background`, light `foreground`, one saturated `accent`. `selection` slightly lighter than background. `muted` readable on background (comments + UI chrome).
-- **Light themes:** copy `white` / `flexoki-light`. Set `mode = "light"` and nvim `bg = "light"`.
-- ANSI `red`…`magenta` should look like the wallpapers (e.g. Christmas-bulb colors for Stranger Things), not a generic rainbow.
+- ANSI `red`…`magenta` should look like the wallpapers, not a generic rainbow.
 - Ghostty maps palette 0 → `background`, palette 7/8 → `muted`, palette 15 → `foreground`. Keep those relationships or the terminal will look wrong.
 - Contrast: accent/red/green/yellow must be readable on `background`.
 
-Reference palettes: `themes/ethereal/colors.toml` (toml-only dark), `themes/gruvbox/colors.toml` (plugin dark), `themes/flexoki-light/colors.toml` (plugin light).
+Kept themes: `sora`, `gruvbox`, `tokyo-night`, `everforest`. Reference palettes: `themes/sora/colors.toml`, `themes/gruvbox/colors.toml`.
 
 ## Neovim registration (the step that is easy to miss)
 

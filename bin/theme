@@ -420,8 +420,10 @@ case "${1:-}" in
         echo "  --help, -h      Show this help"
         echo ""
         echo "Examples:"
-        echo "  theme osaka-jade"
+        echo "  theme sora"
         echo "  theme gruvbox"
+        echo "  theme tokyo-night"
+        echo "  theme everforest"
         echo "  theme --list"
         ;;
     *)

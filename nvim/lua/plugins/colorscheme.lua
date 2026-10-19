@@ -13,36 +13,10 @@ end
 
 -- Theme name -> { plugin, colorscheme, background }
 local theme_configs = {
-    ["osaka-jade"] = { plugin = "ribru17/bamboo.nvim", colorscheme = "bamboo", bg = "dark" },
     ["gruvbox"] = { plugin = "ellisonleao/gruvbox.nvim", colorscheme = "gruvbox", bg = "dark" },
     ["tokyo-night"] = { plugin = "folke/tokyonight.nvim", colorscheme = "tokyonight-night", bg = "dark" },
-    ["catppuccin"] = { plugin = "catppuccin/nvim", colorscheme = "catppuccin", bg = "dark" },
-    ["catppuccin-latte"] = { plugin = "catppuccin/nvim", colorscheme = "catppuccin-latte", bg = "light" },
-    ["rose-pine"] = { plugin = "rose-pine/neovim", colorscheme = "rose-pine", bg = "dark" },
-    ["nord"] = { plugin = "shaunsingh/nord.nvim", colorscheme = "nord", bg = "dark" },
-    ["kanagawa"] = { plugin = "rebelot/kanagawa.nvim", colorscheme = "kanagawa", bg = "dark" },
     ["everforest"] = { plugin = "sainnhe/everforest", colorscheme = "everforest", bg = "dark" },
     ["sora"] = { plugin = "Aejkatappaja/sora", colorscheme = "sora", bg = "dark" },
-    ["flexoki-light"] = { plugin = "kepano/flexoki-neovim", colorscheme = "flexoki-light", bg = "light" },
-    ["hackerman"] = { plugin = "bjarneo/hackerman.nvim", colorscheme = "hackerman", bg = "dark" },
-    ["matte-black"] = { plugin = "tahayvr/matteblack.nvim", colorscheme = "matteblack", bg = "dark" },
-    ["lumon"] = { plugin = "omacom-io/lumon.nvim", colorscheme = "lumon", bg = "dark" },
-    ["solitude"] = { plugin = "ficcdaf/ashen.nvim", colorscheme = "ashen", bg = "dark" },
-    ["retro-82"] = { plugin = "OldJobobo/retro-82.nvim", colorscheme = "retro-82", bg = "dark" },
-    ["miasma"] = { plugin = "xero/miasma.nvim", colorscheme = "miasma", bg = "dark" },
-    -- Themes without a dedicated plugin: applied from colors.toml via fallback
-    ["ethereal"] = { plugin = nil, colorscheme = nil, bg = "dark" },
-    ["lupine"] = { plugin = nil, colorscheme = nil, bg = "dark" },
-    ["last-horizon"] = { plugin = nil, colorscheme = nil, bg = "dark" },
-    ["vantablack"] = { plugin = nil, colorscheme = nil, bg = "dark" },
-    ["white"] = { plugin = nil, colorscheme = nil, bg = "light" },
-    ["ristretto"] = { plugin = nil, colorscheme = nil, bg = "dark" },
-    -- Mekanikos (Mikkel Malmberg) — toml-only, marble + machine glow
-    ["mekanikos-mare"] = { plugin = nil, colorscheme = nil, bg = "dark" },
-    ["mekanikos-oracle"] = { plugin = nil, colorscheme = nil, bg = "dark" },
-    ["mekanikos-lantern"] = { plugin = nil, colorscheme = nil, bg = "dark" },
-    ["mekanikos-ferryman"] = { plugin = nil, colorscheme = nil, bg = "dark" },
-    ["mekanikos-light"] = { plugin = nil, colorscheme = nil, bg = "light" },
 }
 
 local function read_toml_colors(theme_name)
@@ -252,12 +226,7 @@ local current_theme = read_theme() or "gruvbox"
 return {
     -- Dedicated theme plugins (name = lazy plugin id for live theme switching)
     { "ellisonleao/gruvbox.nvim", name = "gruvbox.nvim", lazy = true },
-    { "ribru17/bamboo.nvim", lazy = true },
     { "folke/tokyonight.nvim", lazy = true },
-    { "catppuccin/nvim", name = "catppuccin", lazy = true },
-    { "rose-pine/neovim", name = "rose-pine", lazy = true },
-    { "shaunsingh/nord.nvim", lazy = true },
-    { "rebelot/kanagawa.nvim", lazy = true },
     { "sainnhe/everforest", lazy = true },
     {
         "Aejkatappaja/sora",
@@ -266,14 +235,6 @@ return {
             require("sora").setup({ transparent = true })
         end,
     },
-    { "kepano/flexoki-neovim", lazy = true },
-    { "xero/miasma.nvim", lazy = true },
-    { "bjarneo/aether.nvim", lazy = true },
-    { "bjarneo/hackerman.nvim", lazy = true, dependencies = { "bjarneo/aether.nvim" } },
-    { "tahayvr/matteblack.nvim", lazy = true },
-    { "omacom-io/lumon.nvim", lazy = true },
-    { "ficcdaf/ashen.nvim", lazy = true },
-    { "OldJobobo/retro-82.nvim", lazy = true },
 
     -- Apply theme on startup
     {
