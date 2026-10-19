@@ -78,11 +78,12 @@ if [[ "$(uname)" == "Darwin" ]]; then
     print_step "Installing macOS dependencies..."
     
     # Essential tools
-    brew list wezterm &>/dev/null || brew install --cask wezterm
+    brew list --cask ghostty &>/dev/null || brew install --cask ghostty
     brew list neovim &>/dev/null || brew install neovim
     brew list neovim-remote &>/dev/null || brew install neovim-remote
     brew list tmux &>/dev/null || brew install tmux
     brew list fzf &>/dev/null || brew install fzf
+    brew list chafa &>/dev/null || brew install chafa
     brew list sketchybar &>/dev/null || brew install FelixKratz/formulae/sketchybar
     brew list switchaudio-osx &>/dev/null || brew install switchaudio-osx
     brew list rift &>/dev/null || brew install acsandmann/tap/rift
@@ -155,7 +156,7 @@ echo "╚═══════════════════════�
 echo ""
 echo "Next steps:"
 echo "  1. Restart your terminal (or run: source ~/.zshrc)"
-echo "  2. Open WezTerm for the themed terminal"
+echo "  2. Open Ghostty for the themed terminal"
 echo "  3. Switch themes: theme --list"
 echo ""
 echo "Enjoy your new setup! 🎨"

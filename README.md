@@ -34,7 +34,7 @@ export PATH="$HOME/dotfiles/bin:$PATH"
 
 ## Theme Switching
 
-Switch between 22 beautiful themes with a single command:
+Switch between themes with a single command:
 
 ```bash
 theme osaka-jade    # Switch to osaka-jade
@@ -53,9 +53,14 @@ wallpaper           # Pick wallpaper from current theme
 wallpaper --all     # Pick wallpaper from any theme
 ```
 
-### Tmux Keybinding
+### Tmux Keybindings (prefix `Ctrl-s`)
 
-Press `Ctrl-s t` to open the theme picker popup (browse all themes and wallpapers).
+| Key | Action |
+|-----|--------|
+| `t` | Theme picker popup |
+| `f` | Project sessionizer |
+| `s` | Session / pane switcher (`1`–`9` jump) |
+| `y` | Lazygit popup |
 
 ## Window manager (Rift)
 
@@ -195,12 +200,7 @@ music now            # Print current track to terminal
 music vol -3         # Adjust volume in dB
 ```
 
-The tmux status bar shows the current track automatically (updates every 5 seconds):
-```
-♪ Track Name — Artist | 14:32
-```
-
-Kitty auto-starts the daemon on launch via `~/.config/kitty/startup.session`. The daemon has no UI — all control goes through the `music` command or `cliamp` IPC directly.
+SketchyBar shows the current track (play/pause + skip). The daemon has no UI — all control goes through the `music` command or `cliamp` IPC directly.
 
 > **Note:** Keep `~/.config/cliamp/config.toml` out of version control — it contains your Google OAuth credentials and Spotify client secret.
 

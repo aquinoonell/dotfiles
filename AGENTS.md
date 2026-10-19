@@ -1,6 +1,6 @@
 # Creating a theme (read this first)
 
-This repo is a unified theme system for macOS: WezTerm, Neovim, SketchyBar, tmux popup colors, and desktop wallpaper. **Do not invent a parallel theming path.** One folder under `themes/` plus one nvim mapping is enough to theme everything.
+This repo is a unified theme system for macOS: Ghostty, Neovim, SketchyBar, tmux, and desktop wallpaper. **Do not invent a parallel theming path.** One folder under `themes/` plus one nvim mapping is enough to theme everything.
 
 Repo: `~/dotfiles` (also `https://github.com/aquinoonell/dotfiles`).
 
@@ -22,17 +22,17 @@ Repo: `~/dotfiles` (also `https://github.com/aquinoonell/dotfiles`).
    ~/dotfiles/bin/theme <kebab-name>
    ```
 
-Do **not** edit `.wezterm.lua` by hand. `bin/theme` generates it from templates.
+Do **not** hand-edit generated Ghostty theme files under `ghostty/themes/` unless the theme is meant to be a custom palette (e.g. `sora`, `cendre`). For everyone else, `bin/theme` builds the file from `colors.toml` on first apply.
 
 ## What actually gets applied
 
 | Surface | Source | How |
 |---|---|---|
-| WezTerm | `templates/wezterm.lua.tmpl` | Filled from `colors.toml` → `~/.wezterm.lua` |
+| Ghostty | `ghostty/themes/<name>` or generated from `colors.toml` | `theme` writes/selects the theme file and sends `SIGUSR2` to Ghostty |
 | SketchyBar | `themes/<name>/colors.toml` `background` / `foreground` / `accent` / `muted` | Sets `local theme` in `sketchybar/colors.lua` (sora/cendre), then `sketchybar --reload` |
 | Neovim | `nvim/lua/plugins/colorscheme.lua` | Live reload via `nvr` calling `OmarchyApplyTheme('<name>')`; next launch reads `~/.current-theme` |
 | Desktop wallpaper | `themes/<name>/backgrounds/` | First file in glob order on theme apply; a specific file if the user picks a wallpaper row |
-| Tmux popup / fzf picker chrome | `colors.toml` `background`, `foreground`, `accent`, `selection`, `muted` | Set when picker opens and when `theme` runs |
+| Tmux status / chrome | `bin/tmux-apply-theme` + `colors.toml` | Status bar, borders, messages, popups follow the active theme |
 | Picker list | directory name under `themes/` | Any folder is listed; no extra registry |
 
 Unused omarchy leftovers (skip unless asked): `vscode.json`, `hyprland.lua`, `btop.theme`, `chromium.theme`, `keyboard.rgb`, `shell.lock.toml`, `unlock.png`. `icons.theme` is Linux Yaru; keep a one-line file if copying a skeleton, it is not applied on this Mac.
@@ -94,7 +94,7 @@ bright_magenta = "#E05CB4"
 
 ### How keys are consumed
 
-Must exist or templates/picker look wrong:
+Must exist or Ghostty / picker look wrong:
 
 - `background`, `foreground`, `accent`, `selection`, `muted`
 - `red` `green` `yellow` `blue` `cyan` `magenta`
@@ -102,29 +102,14 @@ Must exist or templates/picker look wrong:
 
 Also fill (nvim toml fallback + future-proofing): `dark_background`, `darker_background`, `lighter_background`, `dark_foreground`, `light_foreground`, `bright_foreground`, `orange`, `brown`.
 
-`bin/theme` also derives:
-
-- `{{THEME_NAME}}` from the folder name
-- `{{accent_hex}}` / `{{muted_hex}}` from `accent` / `muted` (`#E4141A` → `0xffE4141A`)
-
-After writing toml, confirm templates have no leftover `{{placeholders}}`:
-
-```bash
-theme=<kebab-name>
-for tmpl in ~/dotfiles/templates/*.tmpl; do
-  grep -o '{{[a-z_]*}}' "$tmpl" | tr -d '{}' | sort -u | while read -r key; do
-    case $key in THEME_NAME|accent_hex|muted_hex) continue ;; esac
-    grep -q "^$key = " ~/dotfiles/themes/$theme/colors.toml || echo "MISSING $key in $tmpl"
-  done
-done
-```
+`bin/theme` also derives `accent_hex` / `muted_hex` from `accent` / `muted` (`#E4141A` → `0xffE4141A`) for JankyBorders.
 
 ### Palette rules that match the rest of the system
 
 - **Dark themes:** near-black `background`, light `foreground`, one saturated `accent`. `selection` slightly lighter than background. `muted` readable on background (comments + UI chrome).
 - **Light themes:** copy `white` / `flexoki-light`. Set `mode = "light"` and nvim `bg = "light"`.
 - ANSI `red`…`magenta` should look like the wallpapers (e.g. Christmas-bulb colors for Stranger Things), not a generic rainbow.
-- WezTerm maps ansi black → `background`, ansi white → `muted`, bright white → `foreground`. Keep those relationships or the terminal will look wrong.
+- Ghostty maps palette 0 → `background`, palette 7/8 → `muted`, palette 15 → `foreground`. Keep those relationships or the terminal will look wrong.
 - Contrast: accent/red/green/yellow must be readable on `background`.
 
 Reference palettes: `themes/ethereal/colors.toml` (toml-only dark), `themes/gruvbox/colors.toml` (plugin dark), `themes/flexoki-light/colors.toml` (plugin light).
@@ -175,7 +160,7 @@ After adding a plugin, restart nvim once so lazy installs it. Toml-only themes d
   ```
 - 3–5 images is enough. `wallpaper` / `wallpaper --all` also list these files.
 
-`theme-picker` preview shows the wallpaper via `kitten icat --unicode-placeholder` (fzf + tmux popup under kitty), then color swatches. Fallback is chafa **braille** symbols, not `--symbols all` (U+1FBxx is missing from FiraMono Nerd Font). Do not use `--place` in the preview command — it needs `/dev/tty` and paints in screen coordinates. Keep `--passthrough=none` so fzf sees raw kitty APC and forwards it.
+`theme-picker` preview uses chafa **vhalf** symbols (true-color half blocks). Avoid `--symbols all` (U+1FBxx missing from FiraMono Nerd Font) and braille (turns dark wallpapers into noise).
 
 ## Apply / verify
 
@@ -194,18 +179,17 @@ After adding a plugin, restart nvim once so lazy installs it. Toml-only themes d
 theme-picker
 ```
 
-`theme` writes `~/.current-theme`, regenerates WezTerm, reloads SketchyBar colors, sets wallpaper, updates tmux popup colors, and pokes running nvim via `nvr`.
+`theme` writes `~/.current-theme`, updates Ghostty, reloads SketchyBar colors, sets wallpaper, repaints tmux via `tmux-apply-theme`, and pokes running nvim via `nvr`.
 
 Do not apply a theme just to test files unless the user wants their desktop changed.
 
 ## Do not
 
-- Hand-edit generated `~/.wezterm.lua` as the source of truth.
+- Hand-edit a generated `ghostty/themes/<name>` file as the source of truth (edit `colors.toml` instead).
 - Add a theme only in nvim plugins, or only as a folder with no `colorscheme.lua` mapping.
 - Scrape official show/movie stills into `backgrounds/` (copyright). Generate original images in the same aesthetic.
 - Use spaces or uppercase in the theme directory name.
 - Put wallpapers next to `colors.toml`; they will not show in the picker and root `*.png` is gitignored.
-- Require `chafa` for the picker (optional fallback only; kitty `kitten icat` is the image path).
 - Commit unless the user asks.
 
 ## Checklist
@@ -214,6 +198,5 @@ Do not apply a theme just to test files unless the user wants their desktop chan
 - [ ] `themes/<kebab-name>/backgrounds/N-slug.{jpg,png,webp}`
 - [ ] `theme_configs` entry in `nvim/lua/plugins/colorscheme.lua`
 - [ ] Plugin spec added **only** if `plugin` is not nil
-- [ ] Template placeholder check passes
 - [ ] `theme --list` shows the name
 - [ ] User asked to apply / commit before you do either

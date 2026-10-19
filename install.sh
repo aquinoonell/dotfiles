@@ -23,15 +23,6 @@ rm -rf ~/.config/nvim
 ln -sf "$DOTFILES_DIR/nvim" ~/.config/nvim
 echo "✓ Linked nvim config"
 
-# Backup and link wezterm config
-if [[ -f ~/.wezterm.lua && ! -L ~/.wezterm.lua ]]; then
-    echo "Backing up existing wezterm config to ~/.wezterm.lua.backup"
-    mv ~/.wezterm.lua ~/.wezterm.lua.backup
-fi
-rm -f ~/.wezterm.lua
-ln -sf "$DOTFILES_DIR/.wezterm.lua" ~/.wezterm.lua
-echo "✓ Linked wezterm config"
-
 # Backup and link tmux config
 if [[ -f ~/.tmux.conf && ! -L ~/.tmux.conf ]]; then
     echo "Backing up existing tmux config to ~/.tmux.conf.backup"
