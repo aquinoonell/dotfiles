@@ -24,7 +24,8 @@ local clock = sbar.add("item", {
 		},
 	},
 	position = "right",
-	update_freq = 1,
+	-- Clock shows HH:MM — no seconds, so sub-minute polls are wasted wakeups
+	update_freq = 15,
 	padding_left = 1,
 	padding_right = 1,
 	background = {

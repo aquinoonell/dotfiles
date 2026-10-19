@@ -1,13 +1,16 @@
 return {
     {
         "williamboman/mason.nvim",
-        lazy = false,
+        -- Don't pay mason startup cost until a buffer needs tooling
+        event = { "BufReadPre", "BufNewFile" },
+        cmd = { "Mason", "MasonInstall", "MasonUpdate" },
         config = function()
             require("mason").setup()
         end,
     },
     {
         "neovim/nvim-lspconfig",
+        event = { "BufReadPre", "BufNewFile" },
         dependencies = {
             "saghen/blink.cmp",
             {
@@ -27,16 +30,25 @@ return {
                 capabilities = capabilities,
             })
 
-            vim.lsp.enable({
-                "gopls",
-                "lua_ls",
-                "ts_ls",
-                "html",
-                "jsonls",
-                "yamlls",
-                "terraformls",
-                "bashls",
-            })
+            -- Filetype-gated: avoid spawning every language server in every project
+            local function enable_for(ft, servers)
+                vim.api.nvim_create_autocmd("FileType", {
+                    pattern = ft,
+                    once = true,
+                    callback = function()
+                        vim.lsp.enable(servers)
+                    end,
+                })
+            end
+
+            enable_for({ "go", "gomod", "gowork" }, { "gopls" })
+            enable_for({ "lua" }, { "lua_ls" })
+            enable_for({ "typescript", "typescriptreact", "javascript", "javascriptreact" }, { "ts_ls" })
+            enable_for({ "html" }, { "html" })
+            enable_for({ "json", "jsonc" }, { "jsonls" })
+            enable_for({ "yaml", "yml" }, { "yamlls" })
+            enable_for({ "terraform", "tf" }, { "terraformls" })
+            enable_for({ "sh", "bash", "zsh" }, { "bashls" })
 
             vim.diagnostic.config({
                 signs = {

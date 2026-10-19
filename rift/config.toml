@@ -1,8 +1,8 @@
 [settings]
-# Snappy but not harsh — very short tween
+# Snappy but not harsh — very short tween (60fps is enough; 120 burned CPU for free)
 animate = true
 animation_duration = 0.05
-animation_fps = 120.0
+animation_fps = 60.0
 animation_easing = "ease_out_cubic"
 default_disable = false
 mouse_follows_focus = false

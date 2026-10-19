@@ -15,10 +15,15 @@ if [[ "$line" =~ ^[●○] ]]; then
     theme="${line#* }"
     theme="${theme## }"
     bg_name=""
-else
+elif [[ "$line" == */* ]]; then
+    # theme/wallpaper (from theme-picker --list keys)
     trimmed="${line#"${line%%[![:space:]]*}"}"
     theme="${trimmed%%/*}"
     bg_name="${trimmed#*/}"
+else
+    # bare theme name
+    theme="${line#"${line%%[![:space:]]*}"}"
+    bg_name=""
 fi
 
 colors_file="$THEMES_DIR/$theme/colors.toml"

@@ -123,8 +123,8 @@ local function update_connection()
 	end)
 end
 
-wifi:set({ update_freq = 10 })
-wifi:subscribe({ "wifi_change", "system_woke", "routine", "forced" }, update_connection)
+-- Event-driven: wifi_change covers joins/drops; skip frequent routine polls
+wifi:subscribe({ "wifi_change", "system_woke", "forced" }, update_connection)
 update_connection()
 
 local function hide_details()

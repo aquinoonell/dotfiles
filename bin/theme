@@ -387,19 +387,6 @@ PY
         fi
     fi
 
-    # Borders: push accent live + persist into bordersrc
-    local accent
-    accent=$(get_toml_value "$colors_file" "accent")
-    if [[ -n "$accent" ]]; then
-        local hex="0xFF$(printf '%s' "${accent#\#}" | tr '[:lower:]' '[:upper:]')"
-        if pgrep -x borders >/dev/null; then
-            borders "active_color=${hex}" >/dev/null 2>&1 || true
-        fi
-        if [[ -f "$cfg/borders/bordersrc" ]]; then
-            sed -i '' -E "s|^[[:space:]]*active_color=0[xX][0-9A-Fa-f]+|	active_color=${hex}|" "$cfg/borders/bordersrc"
-        fi
-        print_success "borders accent → ${hex}"
-    fi
 }
 
 # Main

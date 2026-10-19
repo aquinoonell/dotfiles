@@ -1,106 +1,144 @@
-#!/bin/bash
-#
-# Visual theme + wallpaper picker (grouped list, image + color preview)
-#
-
-set -e
-
+#!/usr/bin/env bash
+# Fast theme picker — same fzf UI as Ctrl-s s (session switcher).
+# Preview off by default; press ? to toggle. Ctrl-w opens wallpapers.
+set -euo pipefail
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$HOME/dotfiles/bin:${PATH:-}"
 
 DOTFILES_DIR="$HOME/dotfiles"
 THEMES_DIR="$DOTFILES_DIR/themes"
 CURRENT_THEME_FILE="$HOME/.current-theme"
-
-if ! command -v fzf &>/dev/null; then
-    echo "fzf required. Install: brew install fzf"
-    exit 1
-fi
+SCRIPT="$DOTFILES_DIR/bin/theme-picker"
 
 if [[ "${1:-}" == "--preload" ]]; then
-    "$DOTFILES_DIR/bin/theme-picker-cache" --cache-only
-    exit 0
+  "$DOTFILES_DIR/bin/theme-picker-cache" --cache-only
+  exit 0
+fi
+
+if ! command -v fzf &>/dev/null; then
+  echo "fzf required. Install: brew install fzf" >&2
+  exit 1
 fi
 
 current_theme=$(cat "$CURRENT_THEME_FILE" 2>/dev/null || echo "gruvbox")
 
-get_theme_color() {
-    grep "^$1 = " "$THEMES_DIR/$current_theme/colors.toml" 2>/dev/null | cut -d'"' -f2
-}
-bg=$(get_theme_color background); bg="${bg:-#282828}"
-fg=$(get_theme_color foreground); fg="${fg:-#ebdbb2}"
-accent=$(get_theme_color accent); accent="${accent:-#d79921}"
-selection=$(get_theme_color selection); selection="${selection:-#504945}"
-muted=$(get_theme_color muted); muted="${muted:-#928374}"
-
-if command -v tmux &>/dev/null && [[ -n "${TMUX:-}" ]]; then
-    tmux set -g popup-style "bg=${bg},fg=${fg}" 2>/dev/null || true
-    tmux set -g popup-border-style "fg=${muted}" 2>/dev/null || true
-fi
-
-fzf_colors="bg:${bg},fg:${fg},hl:${accent}"
-fzf_colors+=",bg+:${selection},fg+:${fg},hl+:${accent}"
-fzf_colors+=",info:${muted},prompt:${accent},pointer:${accent}"
-fzf_colors+=",marker:${accent},spinner:${accent},header:${muted}"
-fzf_colors+=",border:${muted},gutter:${bg}"
-# Explicit preview fg/bg — without preview-fg, reset text is invisible on dark themes
-fzf_colors+=",preview-bg:${bg},preview-fg:${fg}"
-fzf_colors+=",separator:${muted},scrollbar:${muted},preview-border:${muted}"
-fzf_colors+=",preview-scrollbar:${muted},label:${fg},preview-label:${fg}"
-
-build_list() {
-    for theme_dir in "$THEMES_DIR"/*/; do
-        [[ -d "$theme_dir" ]] || continue
-        theme_name=$(basename "$theme_dir")
-        bg_dir="$theme_dir/backgrounds"
-
-        if [[ "$theme_name" == "$current_theme" ]]; then
-            marker="●"
-        else
-            marker="○"
-        fi
-
-        echo "$marker $theme_name"
-
-        if [[ -d "$bg_dir" ]]; then
-            # Include symlinks to wallpapers (-type f misses links on macOS)
-            find "$bg_dir" -maxdepth 1 \( -type f -o -type l \) \
-                \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) \
-                2>/dev/null | sort | while IFS= read -r wallpaper; do
-                echo "  $theme_name/$(basename "$wallpaper")"
-            done
-        fi
-    done
+apply_wallpaper() {
+  local theme_name="$1" bg_name="$2"
+  local bg_path="$THEMES_DIR/$theme_name/backgrounds/$bg_name"
+  [[ -e "$bg_path" ]] || return 0
+  local real
+  real=$(python3 -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$bg_path" 2>/dev/null || echo "$bg_path")
+  osascript -e "tell application \"System Events\" to tell every desktop to set picture to POSIX file \"$real\"" 2>/dev/null || true
 }
 
-selected=$(build_list | fzf \
-    --prompt="Theme: " \
-    --header="Current: $current_theme │ theme or wallpaper │ Enter=apply" \
-    --preview="$DOTFILES_DIR/bin/theme-preview {}" \
-    --preview-window=right:55%:nowrap \
-    --height=100% \
-    --layout=reverse \
-    --border \
-    --ansi \
-    --no-sort \
-    --color="$fzf_colors" \
-    || true)
-
-[[ -z "$selected" ]] && exit 0
-
-if [[ "$selected" =~ ^[●○] ]]; then
-    theme_name="${selected#* }"
-    "$DOTFILES_DIR/bin/theme" "$theme_name"
-else
-    trimmed="${selected#  }"
-    theme_name="${trimmed%%/*}"
-    bg_name="${trimmed#*/}"
-
-    "$DOTFILES_DIR/bin/theme" "$theme_name"
-
-    bg_path="$THEMES_DIR/$theme_name/backgrounds/$bg_name"
-    if [[ -e "$bg_path" ]]; then
-        real=$(python3 -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$bg_path" 2>/dev/null || echo "$bg_path")
-        osascript -e "tell application \"System Events\" to tell every desktop to set picture to POSIX file \"$real\"" 2>/dev/null
-        echo "✓ Wallpaper: $bg_name"
+# ── --list ────────────────────────────────────────────────────────────
+if [[ "${1:-}" == "--list" ]]; then
+  idx=0
+  for theme_dir in "$THEMES_DIR"/*/; do
+    [[ -d "$theme_dir" ]] || continue
+    theme_name=$(basename "$theme_dir")
+    idx=$((idx + 1))
+    num_label=$([[ $idx -le 9 ]] && echo "$idx" || echo " ")
+    mark=$([[ "$theme_name" == "$current_theme" ]] && echo "*" || echo " ")
+    walls=0
+    bg_dir="$theme_dir/backgrounds"
+    if [[ -d "$bg_dir" ]]; then
+      walls=$(find "$bg_dir" -maxdepth 1 \( -type f -o -type l \) \
+        \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) \
+        2>/dev/null | wc -l | tr -d ' ')
     fi
+    printf '%s\t%s %s %-18s  %2sw\n' "$theme_name" "$num_label" "$mark" "$theme_name" "$walls"
+  done
+  exit 0
 fi
+
+# ── --preview KEY ─────────────────────────────────────────────────────
+if [[ "${1:-}" == "--preview" ]]; then
+  key="${2:-}"
+  [[ -z "$key" ]] && exit 0
+  exec "$DOTFILES_DIR/bin/theme-preview" "$key"
+fi
+
+# ── --wallpapers THEME ────────────────────────────────────────────────
+if [[ "${1:-}" == "--wallpapers" ]]; then
+  theme_name="${2:-}"
+  [[ -z "$theme_name" ]] && exec "$SCRIPT"
+  bg_dir="$THEMES_DIR/$theme_name/backgrounds"
+  [[ -d "$bg_dir" ]] || exec "$SCRIPT"
+
+  wall_list=$(
+    find "$bg_dir" -maxdepth 1 \( -type f -o -type l \) \
+      \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) \
+      2>/dev/null | sort | awk -F/ -v t="$theme_name" '{
+        n=++idx
+        num=(n<=9)?n:" "
+        printf "%s/%s\t%s %-40s\n", t, $NF, num, $NF
+      }'
+  )
+  [[ -n "$wall_list" ]] || exec "$SCRIPT"
+
+  pick=$(
+    printf '%s\n' "$wall_list" \
+      | fzf --reverse \
+          --delimiter=$'\t' --with-nth=2 \
+          --prompt="$theme_name walls> " \
+          --header="1-9=jump  │  enter=apply  │  ?=hide preview  │  esc=back" \
+          --preview="$SCRIPT --preview {1}" \
+          --preview-window=right:55%:nowrap \
+          --bind='?:toggle-preview' \
+          --bind='1:pos(1)+accept' \
+          --bind='2:pos(2)+accept' \
+          --bind='3:pos(3)+accept' \
+          --bind='4:pos(4)+accept' \
+          --bind='5:pos(5)+accept' \
+          --bind='6:pos(6)+accept' \
+          --bind='7:pos(7)+accept' \
+          --bind='8:pos(8)+accept' \
+          --bind='9:pos(9)+accept' \
+      || true
+  )
+  [[ -z "${pick:-}" ]] && exec "$SCRIPT"
+  key="${pick%%$'\t'*}"
+  bg_name="${key#*/}"
+  "$DOTFILES_DIR/bin/theme" "$theme_name"
+  apply_wallpaper "$theme_name" "$bg_name"
+  exit 0
+fi
+
+# ── main ──────────────────────────────────────────────────────────────
+HEADER="$(printf '%s\n%s\n%s' \
+  '1-9=jump  │  enter=apply  │  ctrl-w=wallpapers  │  ?=preview' \
+  '────────────────────────────────────────────────────────────' \
+  ' # THEME                 WALLS')"
+
+theme_list=$("$SCRIPT" --list)
+start_pos=$(printf '%s\n' "$theme_list" | awk -F'\t' -v cur="$current_theme" '$1 == cur { print NR; exit }')
+[[ -z "${start_pos:-}" ]] && start_pos=1
+
+selected=$(
+  printf '%s\n' "$theme_list" \
+    | fzf --reverse \
+        --delimiter=$'\t' \
+        --with-nth=2 \
+        --prompt="theme> " \
+        --header="$HEADER" \
+        --preview="$SCRIPT --preview {1}" \
+        --preview-window=right:50%:wrap:hidden \
+        --bind='?:toggle-preview' \
+        --bind="load:pos(${start_pos})" \
+        --bind='1:pos(1)+accept' \
+        --bind='2:pos(2)+accept' \
+        --bind='3:pos(3)+accept' \
+        --bind='4:pos(4)+accept' \
+        --bind='5:pos(5)+accept' \
+        --bind='6:pos(6)+accept' \
+        --bind='7:pos(7)+accept' \
+        --bind='8:pos(8)+accept' \
+        --bind='9:pos(9)+accept' \
+        --bind="ctrl-w:become($SCRIPT --wallpapers {1})" \
+    || true
+)
+
+[[ -z "${selected:-}" ]] && exit 0
+key="${selected%%$'\t'*}"
+[[ -z "$key" || "$key" == "$current_theme" ]] && exit 0
+"$DOTFILES_DIR/bin/theme" "$key"
