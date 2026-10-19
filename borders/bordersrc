@@ -1,12 +1,21 @@
 #!/bin/bash
 
-# JankyBorders — Sora (his bordersrc, cyan active). all windows; Rift WM.
+# JankyBorders — terminals only (Aejkatappaja-style whitelist).
 
 options=(
+	# style=round
 	width=3.0
 	hidpi=on
+
+	# SORA (active theme)
 	active_color=0xFF80C8E0
+	# CENDRE
+	# active_color=0xFFEA9875
+	# KINTSUGI FLARED
+	# active_color=0xFFE08542
+
 	inactive_color=0xFF364050
+	whitelist="ghostty,kitty"
 )
 
 borders "${options[@]}"

@@ -74,10 +74,12 @@ wallpaper --all     # Pick wallpaper from any theme
 | Option+1–4 | Workspaces 1–4 |
 | Option+Shift+F or Option+Shift+T | Toggle focused window as a centered floater |
 | Option+F | Fullscreen inside the gaps (clears SketchyBar) |
+| Option+, | Toggle stack (native tab bar; also Option+Shift+S) |
+| Cmd+, | Open Rift Settings UI |
 | Option+Z | Toggle Rift management on the current macOS Space |
 | Option+Shift+R | Reload Rift config |
 
-Finder, Mail, Notes, Messages, Music, Obsidian, and Zoom still float. Workspace indicators live in SketchyBar (Rift’s own menu bar is off). Outer top gap is 42 so tiled and fullscreen-within-gaps windows clear the floating 24px bar.
+Finder, Mail, Notes, Messages, Music, Obsidian, and Zoom still float. Workspace indicators live in SketchyBar (Rift’s own menu bar is off). Stacked windows get Rift’s native-style tab bar. Outer top gap is 42 so tiled and fullscreen-within-gaps windows clear the floating 24px bar.
 
 ### SketchyBar
 

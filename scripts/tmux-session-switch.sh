@@ -50,14 +50,20 @@ fi
 if [[ "${1:-}" == "--panes" ]]; then
   sess="${2:-}"
   [[ -z "$sess" ]] && exec "$SCRIPT"
-  pick=$(
+  current_pane=$(tmux display-message -p '#{session_name}:#{window_index}.#{pane_index}' 2>/dev/null || echo "")
+  pane_list=$(
     tmux list-panes -t "$sess" -s -F \
       '#{session_name}:#{window_index}.#{pane_index}\t#W\t#{pane_current_command}' \
       | awk -F'\t' '{
           n=++idx
           num=(n<=9)?n:" "
           printf "%s\t%s %-18s  %-12s  %s\n",$1,num,$1,$2,$3
-        }' \
+        }'
+  )
+  start_pos=$(printf '%s\n' "$pane_list" | awk -F'\t' -v cur="$current_pane" '$1 == cur { print NR; exit }')
+  [[ -z "${start_pos:-}" ]] && start_pos=1
+  pick=$(
+    printf '%s\n' "$pane_list" \
       | fzf --reverse \
           --delimiter=$'\t' --with-nth=2 \
           --prompt="$sess panes> " \
@@ -65,6 +71,7 @@ if [[ "${1:-}" == "--panes" ]]; then
           --preview="tmux capture-pane -ep -t {1} 2>/dev/null | tail -n 40" \
           --preview-window=right:50%:wrap:hidden \
           --bind='?:toggle-preview' \
+          --bind="load:pos(${start_pos})" \
           --bind='1:pos(1)+accept' \
           --bind='2:pos(2)+accept' \
           --bind='3:pos(3)+accept' \
@@ -87,8 +94,11 @@ HEADER="$(printf '%s\n%s\n%s' \
   '1-9=switch  │  enter=switch  │  ctrl-q=kill  │  ctrl-r=rename  │  ctrl-w=panes  │  ?=preview' \
   '────────────────────────────────────────────────────────────' \
   ' # SESSION               │ WINS PANES  CMD         PATH')"
+session_list=$("$SCRIPT" --list)
+start_pos=$(printf '%s\n' "$session_list" | awk -F'\t' -v cur="$current" '$1 == cur { print NR; exit }')
+[[ -z "${start_pos:-}" ]] && start_pos=1
 selected=$(
-  "$SCRIPT" --list \
+  printf '%s\n' "$session_list" \
     | fzf --reverse \
         --delimiter=$'\t' \
         --with-nth=2 \
@@ -97,6 +107,7 @@ selected=$(
         --preview="$SCRIPT --preview {1}" \
         --preview-window=right:50%:wrap:hidden \
         --bind='?:toggle-preview' \
+        --bind="load:pos(${start_pos})" \
         --bind='1:pos(1)+accept' \
         --bind='2:pos(2)+accept' \
         --bind='3:pos(3)+accept' \

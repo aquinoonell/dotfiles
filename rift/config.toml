@@ -1,6 +1,7 @@
 [settings]
+# Snappy but not harsh — very short tween
 animate = true
-animation_duration = 0.12
+animation_duration = 0.05
 animation_fps = 120.0
 animation_easing = "ease_out_cubic"
 default_disable = false
@@ -33,7 +34,8 @@ equalize_nodes = true
 [settings.layout.bsp]
 
 [settings.layout.stack]
-stack_offset = 40.0
+# Native stack tabs (stack_line) identify windows — no peek offset needed
+stack_offset = 0.0
 default_orientation = "perpendicular"
 
 [settings.layout.master_stack]
@@ -55,7 +57,7 @@ vertical = 10.0
 [settings.layout.gaps.per_display]
 
 [settings.layout.scrolling]
-animate = true
+animate = false
 column_width_ratio = 0.7
 preset_column_widths = [
     0.3333333333333333,
@@ -81,45 +83,27 @@ propagate_to_workspace_swipe = false
 workspace_switch_threshold = 0.55
 
 [settings.ui.menu_bar]
+# SketchyBar owns workspace UI — keep Rift's menu bar off
 enabled = false
 show_empty = false
+show_binding_mode = true
 mode = "all"
 active_label = "index"
 display_style = "label"
 layout_folder = "~/.config/rift/layouts"
 
+# v0.7 native tab bar beside stacked windows (Finder/Ghostty-style chrome)
 [settings.ui.stack_line]
-enabled = false
-hover = "hover"
-thickness = 0.0
+enabled = true
+hover = "click"
 horiz_placement = "top"
 vert_placement = "left"
+thickness = 28.0
 spacing = 0.0
 
-[settings.ui.stack_line.selected_color]
-r = 0.0
-g = 0.0
-b = 0.0
-a = 1.0
-
-[settings.ui.stack_line.unselected_color]
-r = 0.0
-g = 0.0
-b = 0.0
-a = 1.0
-
-[settings.ui.stack_line.border_color]
-r = 0.0
-g = 0.0
-b = 0.0
-a = 1.0
-
 [settings.ui.mission_control]
-show_empty_workspaces = false
-window_previews = false
 enabled = false
-fade_enabled = false
-fade_duration_ms = 0.0
+show_empty_workspaces = false
 
 [settings.gestures]
 enabled = false
@@ -129,18 +113,19 @@ swipe_vertical_tolerance = 0.4
 skip_empty = false
 fingers = 3
 distance_pct = 0.08
-haptics_enabled = true
+haptics_enabled = false
 haptic_pattern = "level_change"
 
 [settings.drag_drop]
-haptics_enabled = true
+haptics_enabled = false
 enabled = true
 modifier = "fn"
 action1 = "move"
 action2 = "none"
 drop_action = "swap"
 drop_zone_fraction = 0.25
-preview = true
+# Drop previews add work during drags — off for snappier moves
+preview = false
 
 [keys]
 "Alt + Shift + Semicolon" = "reload_config"
@@ -148,10 +133,14 @@ preview = true
 "Alt + Tab" = "switch_to_last_workspace"
 "Alt + Z" = "toggle_space_activated"
 "Alt + Shift + R" = "reload_config"
-"Alt + Shift + Space" = "toggle_stack"
+# Stack: avoid Option+Shift+Space (macOS often eats it for NBSP)
+"Alt + Comma" = "toggle_stack"
+"Alt + Shift + S" = "toggle_stack"
 "Alt + F" = "toggle_fullscreen_within_gaps"
 "Alt + Space" = "toggle_orientation"
 "Alt + Shift + P" = "serialize"
+# v0.7 Settings UI — ⌘, is the macOS prefs convention (Option+, is unreliable)
+"Meta + Comma" = { exec = ["/bin/bash", "-lc", "/opt/homebrew/bin/rift-cli settings"] }
 
 [keys."Alt + Shift + ArrowUp"]
 join_window = "up"
